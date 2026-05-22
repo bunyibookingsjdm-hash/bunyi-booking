@@ -31,7 +31,13 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon
 app.get('/favicon.png', (req, res) => res.sendFile(path.join(__dirname, 'favicon.png')));
 
 const session = require('express-session');
-app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
+const FirebaseStore = require('connect-firebase')(session);
+app.use(session({ 
+  store: new FirebaseStore({ database: db }),
+  secret: process.env.SESSION_SECRET, 
+  resave: false, 
+  saveUninitialized: false 
+}));
 
 // ===== CLOUDINARY =====
 const cloudinary = require('cloudinary').v2;
