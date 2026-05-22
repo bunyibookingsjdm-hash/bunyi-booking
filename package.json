@@ -12,8 +12,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google-cloud/connect-firestore": "^3.0.0",
     "cloudinary": "^2.10.0",
-    "connect-session-firebase": "^11.0.0",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "firebase": "^12.13.0",

@@ -31,7 +31,12 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon
 app.get('/favicon.png', (req, res) => res.sendFile(path.join(__dirname, 'favicon.png')));
 
 const session = require('express-session');
+const {FirestoreStore} = require('@google-cloud/connect-firestore');
 app.use(session({
+  store: new FirestoreStore({
+    dataset: db,
+    kind: 'express-sessions',
+  }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
