@@ -16,14 +16,14 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon
 app.get('/favicon.png', (req, res) => res.sendFile(path.join(__dirname, 'favicon.png')));
 
 const session = require('express-session');
-app.use(session({ secret: 'bunyi-secret-key', resave: false, saveUninitialized: false }));
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
 
 // ===== CLOUDINARY =====
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
-  cloud_name: 'dep8360ut',
-  api_key: '831467199866277',
-  api_secret: 'YNmbdXfGMAh6LDC8zqDpZij3cQQ'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // Upload file buffer to Cloudinary
