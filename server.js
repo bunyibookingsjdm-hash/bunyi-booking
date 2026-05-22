@@ -1075,7 +1075,7 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
         loadNotifications(); setInterval(loadNotifications, 5000);
         async function uploadPhoto(input) { if (!input.files[0]) return; const formData = new FormData(); formData.append('photo', input.files[0]); try { const res = await fetch('/caterer-upload-profile-photo', { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { document.getElementById('photoMsg').textContent = '✅ Photo updated!'; const big = document.getElementById('bigAvatar'); big.style.background = 'none'; big.style.padding = '0'; big.style.overflow = 'hidden'; big.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; } } catch(e) { document.getElementById('photoMsg').textContent = '❌ Upload failed.'; } }
       </script>
-      <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js?autoOpenChatIn=1'></script>
+      <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
     </body></html>
   `);
 });
