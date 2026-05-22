@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages - Bunyi Caterer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #fff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333; --green: #16a34a; --green-light: #f0fdf4;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --yellow: #F7B731; --tangerine: #F26419; --tangerine-light: #fef0e6;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--yellow)); flex-shrink: 0; }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; z-index: 200; box-shadow: 0 2px 12px rgba(215,38,56,0.3); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; }
+    .header-brand span { color: var(--crimson); }
+    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover, .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 1rem; position: relative; transition: background 0.2s; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: -3px; right: -3px; background: var(--yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 2px 5px; min-width: 16px; text-align: center; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 24px 16px; font-size: 0.83rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--crimson-light); }
+    .notif-text { font-size: 0.83rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .profile-wrapper { position: relative; }
+    .profile-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; height: 38px; border-radius: 8px; padding: 0 12px; display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.82rem; font-weight: 500; font-family: 'Poppins', sans-serif; transition: background 0.2s; }
+    .profile-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .profile-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .profile-chevron { font-size: 0.6rem; opacity: 0.6; }
+    .profile-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 200px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .profile-dropdown.open { display: block; }
+    .profile-info { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .profile-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .profile-email { font-size: 0.72rem; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-menu-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; text-decoration: none; font-size: 0.83rem; color: var(--text); font-weight: 500; transition: background 0.15s; }
+    .profile-menu-item:hover { background: var(--bg); }
+    .profile-menu-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .profile-menu-item.logout:hover { background: var(--crimson-light); }
+    @media (max-width: 700px) { .header { padding: 0 16px; } .header-nav { display: none; } }
+    .chat-layout { display: flex; flex: 1; overflow: hidden; }
+    .chat-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--white); display: flex; flex-direction: column; overflow: hidden; }
+    .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--white); flex-shrink: 0; }
+    .messages-search { position: relative; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 11px; font-size: 0.85rem; pointer-events: none; opacity: 0.45; }
+    .messages-search input { width: 100%; padding: 9px 14px 9px 34px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; color: var(--dark); background: var(--bg); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .messages-search input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.1); background: var(--white); }
+    .messages-search input::placeholder { color: var(--muted); font-size: 0.8rem; }
+    .sidebar-list { overflow-y: auto; flex: 1; }
+    .convo-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    .convo-item:hover { background: var(--bg); }
+    .convo-item.active { background: var(--orange-light); border-left: 3px solid var(--orange); }
+    .convo-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--orange); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
+    .convo-info { flex: 1; min-width: 0; }
+    .convo-name { font-size: 0.85rem; font-weight: 600; color: var(--dark); }
+    .convo-last { font-size: 0.72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .convo-time { font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
+    .sidebar-empty { padding: 40px 18px; text-align: center; color: var(--muted); font-size: 0.84rem; }
+    .chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .chat-topbar { padding: 14px 20px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .chat-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--dark); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+    .chat-customer-name { font-size: 0.95rem; font-weight: 700; color: var(--dark); }
+    .chat-sub { font-size: 0.75rem; color: var(--muted); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+    .empty-chat { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted); text-align: center; }
+    .empty-chat-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-chat p { font-size: 0.86rem; }
+    .msg-row { display: flex; flex-direction: column; max-width: 72%; }
+    .msg-row.me { align-self: flex-end; align-items: flex-end; }
+    .msg-row.them { align-self: flex-start; align-items: flex-start; }
+    .bubble { padding: 10px 14px; border-radius: 18px; font-size: 0.9rem; line-height: 1.5; word-break: break-word; }
+    .msg-row.me .bubble { background: var(--orange); color: var(--white); border-bottom-right-radius: 4px; }
+    .msg-row.them .bubble { background: var(--white); color: var(--dark); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg-time { font-size: 0.68rem; color: var(--muted); margin-top: 3px; padding: 0 4px; }
+    .chat-input-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--white); border-top: 1px solid var(--border); flex-shrink: 0; }
+    .chat-input-bar input { flex: 1; padding: 11px 18px; border: 1.5px solid var(--border); border-radius: 24px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--bg); outline: none; transition: border-color 0.2s; }
+    .chat-input-bar input:focus { border-color: var(--orange); }
+    .send-btn { width: 42px; height: 42px; background: var(--orange); color: var(--white); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; flex-shrink: 0; transition: background 0.2s, transform 0.15s; }
+    .send-btn:hover { background: #c93a08; transform: scale(1.06); }
+  </style>
+</head>
+<body>
+  <div class="color-strip"></div>
+  <header class="header">
+    <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
+    <nav class="header-nav">
+      <a class="nav-link" href="/caterer-dashboard">Dashboard</a>
+      <a class="nav-link" href="/caterer-bookings">Bookings</a>
+      <a class="nav-link" href="/caterer-products">Products</a>
+      <a class="nav-link active" href="/caterer-messages">Messages</a>
+    </nav>
+    <div class="header-right">
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">
+          🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="profile-wrapper">
+        <button class="profile-btn" onclick="toggleProfileDropdown()">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <span class="profile-chevron">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="profile-info">
+            <div class="profile-name" id="dropdownName">—</div>
+            <div class="profile-email" id="dropdownEmail">—</div>
+          </div>
+          <a class="profile-menu-item" href="/caterer-account">⚙️ My Account</a>
+          <a class="profile-menu-item logout" href="/caterer-logout">🚪 Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="chat-layout">
+    <div class="chat-sidebar">
+      <div class="sidebar-header">
+        <div class="messages-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="customerSearch" placeholder="Search customer..." oninput="filterCustomers()">
+        </div>
+      </div>
+      <div class="sidebar-list" id="sidebarList">
+        <div class="sidebar-empty">No conversations yet.</div>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-topbar" id="chatTopbar">
+        <div class="empty-chat" style="width:100%;padding:0;">
+          <p style="color:var(--muted);font-size:0.86rem;">Select a conversation to start chatting</p>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-chat">
+          <div class="empty-chat-icon">💬</div>
+          <p>Select a conversation to start chatting</p>
+        </div>
+      </div>
+      <div class="chat-input-bar" id="chatInputBar" style="display:none;">
+        <input type="text" id="msgInput" placeholder="Type a message..." maxlength="500">
+        <button class="send-btn" onclick="sendMessage()" title="Send">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var myBusinessName = '';
+    var activeCustomer = null;
+    var allConvos = [];
+
+    function formatTime(ts) { var d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
+    function formatSidebarTime(ts) { var d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); var now = new Date(); var diff = now - d; if (diff < 86400000) return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
+
+    async function loadSession() {
+      try {
+        var res = await fetch('/caterer-session');
+        var session = await res.json();
+        if (!session.loggedIn) { window.location.href = '/caterer-login'; return; }
+        myBusinessName = session.businessName;
+        var avatarEl = document.getElementById('profileAvatar');
+        if (session.photo) { avatarEl.style.background = 'none'; avatarEl.style.padding = '0'; avatarEl.style.overflow = 'hidden'; avatarEl.innerHTML = '<img src="' + session.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
+        else { avatarEl.textContent = session.businessName.charAt(0).toUpperCase(); }
+        document.getElementById('dropdownName').textContent = session.businessName;
+        document.getElementById('dropdownEmail').textContent = session.email;
+        loadConversations();
+      } catch(e) {}
+    }
+
+    async function loadConversations() {
+      try {
+        var msgRes = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName));
+        var msgs = await msgRes.json();
+        var bookRes = await fetch('/bookings');
+        var bookings = await bookRes.json();
+        var myBookings = bookings.filter(function(b) { return b.caterer === myBusinessName; });
+        var seen = {}; var customers = [];
+        msgs.slice().reverse().forEach(function(m) {
+          if (m.sender !== myBusinessName && !seen[m.sender]) {
+            seen[m.sender] = true;
+            var displayName = m.sender;
+            if (m.sender === 'Customer' && myBookings.length > 0) { displayName = myBookings[0].sender || 'Customer'; }
+            var last = msgs.slice(-1)[0];
+            customers.push({ name: m.sender, displayName: displayName, lastMessage: last ? last.text : '', lastTime: last ? last.timestamp : m.timestamp });
+          }
+        });
+        allConvos = customers;
+        renderSidebar();
+      } catch(e) {}
+    }
+
+    function renderSidebar() {
+      var list = document.getElementById('sidebarList');
+      if (allConvos.length === 0) { list.innerHTML = '<div class="sidebar-empty">No conversations yet.<br>Customers will appear here when they message you.</div>'; return; }
+      list.innerHTML = '';
+      allConvos.forEach(function(c) {
+        var div = document.createElement('div');
+        div.className = 'convo-item' + (activeCustomer === c.name ? ' active' : '');
+        div.innerHTML = '<div class="convo-avatar">' + c.name.charAt(0).toUpperCase() + '</div>'
+          + '<div class="convo-info"><div class="convo-name">' + (c.displayName || c.name) + '</div>'
+          + '<div class="convo-last">' + (c.lastMessage || '') + '</div></div>'
+          + '<div class="convo-time">' + formatSidebarTime(c.lastTime) + '</div>';
+        div.onclick = function() { openChat(c.name); };
+        list.appendChild(div);
+      });
+    }
+
+    function filterCustomers() {
+      var q = document.getElementById('customerSearch').value.toLowerCase();
+      var list = document.getElementById('sidebarList');
+      list.innerHTML = '';
+      var filtered = allConvos.filter(function(c) { return (c.displayName || c.name).toLowerCase().includes(q); });
+      if (filtered.length === 0) { list.innerHTML = '<div class="sidebar-empty">No results found.</div>'; return; }
+      filtered.forEach(function(c) {
+        var div = document.createElement('div');
+        div.className = 'convo-item' + (activeCustomer === c.name ? ' active' : '');
+        div.innerHTML = '<div class="convo-avatar">' + c.name.charAt(0).toUpperCase() + '</div>'
+          + '<div class="convo-info"><div class="convo-name">' + (c.displayName || c.name) + '</div>'
+          + '<div class="convo-last">' + (c.lastMessage || '') + '</div></div>'
+          + '<div class="convo-time">' + formatSidebarTime(c.lastTime) + '</div>';
+        div.onclick = function() { openChat(c.name); };
+        list.appendChild(div);
+      });
+    }
+
+    async function openChat(customerName) {
+      activeCustomer = customerName;
+      renderSidebar();
+      var convo = allConvos.find(function(c) { return c.name === customerName; });
+      var displayName = convo ? (convo.displayName || convo.name) : customerName;
+      document.getElementById('chatTopbar').innerHTML = '<div class="chat-avatar">' + displayName.charAt(0).toUpperCase() + '</div><div><div class="chat-customer-name">' + displayName + '</div><div class="chat-sub">Customer</div></div>';
+      document.getElementById('chatInputBar').style.display = 'flex';
+      await loadMessages();
+    }
+
+    async function loadMessages() {
+      if (!activeCustomer) return;
+      try {
+        var res = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName));
+        var msgs = await res.json();
+        var convo = msgs.filter(function(m) { return m.sender === activeCustomer || m.sender === myBusinessName; });
+        var box = document.getElementById('chatMessages');
+        if (convo.length === 0) { box.innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>No messages yet.</p></div>'; return; }
+        var wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
+        box.innerHTML = '';
+        var lastDateStr = '';
+        convo.forEach(function(m) {
+          // Parse Firestore timestamp correctly
+          var ts = m.timestamp && m.timestamp.toDate ? m.timestamp.toDate() : (m.timestamp && m.timestamp._seconds ? new Date(m.timestamp._seconds * 1000) : new Date(m.timestamp));
+          // Add date separator when date changes
+          var dateStr = ts.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+          if (dateStr !== lastDateStr) {
+            lastDateStr = dateStr;
+            var sep = document.createElement('div');
+            sep.style.cssText = 'text-align:center;font-size:0.68rem;color:var(--muted);font-weight:600;margin:12px 0 8px;position:relative;';
+            sep.innerHTML = '<span style="background:var(--bg);padding:0 10px;position:relative;z-index:1;">' + dateStr + '</span><div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0;"></div>';
+            box.appendChild(sep);
+          }
+          var timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+          var isMe = m.sender === myBusinessName;
+          var div = document.createElement('div');
+          div.className = 'msg-row ' + (isMe ? 'me' : 'them');
+          div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
+          box.appendChild(div);
+        });
+        if (wasAtBottom) box.scrollTop = box.scrollHeight;
+      } catch(e) {}
+    }
+
+    async function sendMessage() {
+      var input = document.getElementById('msgInput');
+      var text = input.value.trim();
+      if (!text || !activeCustomer) return;
+      try {
+        await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: myBusinessName, sender: myBusinessName, text: text }) });
+        input.value = '';
+        await loadMessages();
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        await loadConversations();
+      } catch(e) {}
+    }
+
+    document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.activeElement === document.getElementById('msgInput')) sendMessage(); });
+
+    function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
+    function toggleNotifDropdown() { document.getElementById('notifDropdown').classList.toggle('open'); document.getElementById('profileDropdown').classList.remove('open'); }
+    document.addEventListener('click', function(e) {
+      var nw = document.querySelector('.notif-wrapper'); var pw = document.querySelector('.profile-wrapper');
+      if (nw && !nw.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+      if (pw && !pw.contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
+    });
+
+    function formatNotifTime(ts) { var d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
+    async function loadNotifications() {
+      try {
+        var res = await fetch('/caterer-notifications');
+        var data = await res.json();
+        var badge = document.getElementById('notifBadge');
+        var list = document.getElementById('notifList');
+        var unread = data.filter(function(n) { return !n.isRead; }).length;
+        badge.style.display = unread > 0 ? 'inline-block' : 'none';
+        badge.textContent = unread;
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(function(n) {
+          var a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = function(e) {
+            e.preventDefault();
+            fetch('/caterer-read-notification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: n.id })
+            }).then(function() {
+              var text = (n.text || '').toLowerCase();
+              if (text.includes('booking')) {
+                window.location.href = '/caterer-bookings';
+              } else if (text.includes('message') || text.includes('chat')) {
+                window.location.href = '/caterer-messages';
+              } else {
+                window.location.href = '/caterer-dashboard';
+              }
+            });
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+
+    loadSession();
+    loadNotifications();
+    setInterval(loadMessages, 2000);
+    setInterval(loadConversations, 5000);
+    setInterval(loadNotifications, 5000);
+  </script>
+</body>
+</html>
+

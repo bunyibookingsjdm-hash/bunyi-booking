@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A;
+      --white: #fff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333;
+      --green: #16a34a; --green-light: #f0fdf4;
+      --yellow: #d97706; --yellow-light: #fffbeb;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --notif-yellow: #F7B731; --tangerine: #F26419;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--notif-yellow)); }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; justify-self: start; }
+    .header-brand span { color: var(--crimson); }
+    .header-center { display: flex; align-items: center; gap: 2px; justify-content: center; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 7px 14px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.18); }
+    .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); border-radius: 6px; }
+    .header-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s, color 0.2s; position: relative; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: 4px; right: 4px; background: var(--notif-yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; font-family: 'Poppins', sans-serif; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 13px 15px 9px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 22px 15px; font-size: 0.82rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 11px 15px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; cursor: pointer; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--orange-light); }
+    .notif-text { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+    .account-wrapper { position: relative; }
+    .account-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: none; cursor: pointer; padding: 0 12px; height: 38px; border-radius: 8px; transition: background 0.2s; font-family: 'Poppins', sans-serif; }
+    .account-btn:hover { background: rgba(255,255,255,0.14); }
+    .account-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--white); flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .account-chevron { color: #aaa; font-size: 0.6rem; opacity: 0.6; }
+    .account-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 220px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .account-dropdown.open { display: block; }
+    .account-dropdown-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .account-dropdown-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .account-dropdown-email { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .account-dropdown-item { display: flex; align-items: center; gap: 9px; padding: 11px 16px; font-size: 0.84rem; color: var(--text); text-decoration: none; transition: background 0.15s; font-family: 'Poppins', sans-serif; font-weight: 500; }
+    .account-dropdown-item:hover { background: var(--bg); }
+    .account-dropdown-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .account-dropdown-item.logout:hover { background: var(--crimson-light); }
+    .cart-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s; position: relative; text-decoration: none; }
+    .cart-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .cart-badge { position: absolute; top: 4px; right: 4px; background: var(--green); color: #fff; font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; display: none; }
+    @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } }
+    @media (max-width: 480px) { .header-center { display: none; } }
+
+    .main { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 20px; transition: color 0.2s; }
+    .back-link:hover { color: var(--orange); }
+    .page-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px; }
+    .page-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); margin-bottom: 28px; }
+    .section-divider { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 16px 0 10px; border-bottom: 1px solid var(--border); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .section-count { background: var(--border); color: var(--muted); font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+
+    /* ===== BOOKING CARD ===== */
+    .booking-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.2s; }
+    .booking-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
+    .booking-card.today .card-top { background: linear-gradient(90deg, var(--crimson), var(--tangerine)); }
+    .booking-card.past .card-top { background: #555; }
+    .card-top { background: var(--dark); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .card-top-left { display: flex; flex-direction: column; gap: 3px; }
+    .card-caterer { font-size: 0.98rem; font-weight: 700; color: var(--white); }
+    .card-booking-id { font-size: 0.68rem; color: rgba(255,255,255,0.6); font-family: monospace; letter-spacing: 0.05em; }
+    .card-top-right { display: flex; align-items: center; gap: 8px; }
+    .today-tag { background: rgba(255,255,255,0.2); color: var(--white); font-size: 0.66rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; letter-spacing: 0.06em; }
+    .status-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; }
+    .badge-pending { background: #fef9c3; color: #854d0e; }
+    .badge-partial { background: var(--yellow-light); color: var(--yellow); }
+    .badge-full { background: var(--green-light); color: var(--green); }
+
+    /* Info grid */
+    .card-info { padding: 14px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; border-bottom: 1px solid var(--border); }
+    .card-field-label { font-size: 0.64rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .card-field-value { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+
+    /* Orders section */
+    .card-orders { padding: 14px 20px; }
+    .orders-label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .order-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); }
+    .order-item:last-child { margin-bottom: 0; }
+    .order-name { font-size: 0.84rem; font-weight: 600; color: var(--dark); }
+    .order-meta { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+    .order-price { font-size: 0.88rem; font-weight: 700; color: var(--orange); }
+    .order-qty { font-size: 0.72rem; font-weight: 600; color: var(--muted); background: var(--border); padding: 2px 8px; border-radius: 999px; }
+
+    .empty-state { text-align: center; padding: 40px 24px; color: var(--muted); }
+    .empty-icon { font-size: 2rem; margin-bottom: 8px; }
+    .empty-state p { font-size: 0.86rem; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { opacity: 0; animation: fadeUp 0.4s ease forwards; }
+    @media (max-width: 780px) { .card-info { grid-template-columns: 1fr 1fr; } }
+
+    /* ===== SEARCH BAR ===== */
+    .search-bar-wrapper { position: relative; margin-bottom: 24px; }
+    .search-bar-wrapper input { width: 100%; padding: 12px 16px 12px 44px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .search-bar-wrapper input:focus { border-color: var(--crimson); box-shadow: 0 0 0 3px rgba(215,38,56,0.1); }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: var(--muted); pointer-events: none; }
+    .search-clear { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--muted); cursor: pointer; display: none; background: var(--border); border: none; border-radius: 999px; width: 20px; height: 20px; display: none; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; }
+    .search-clear:hover { background: var(--crimson); color: var(--white); }
+    .search-result-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="color-strip"></div>
+  <header class="header">
+    <a href="/dashboard" class="header-brand">Bunyi<span>.</span></a>
+    <nav class="header-center">
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <a href="/browse" class="nav-link">Browse</a>
+      <a href="/chats" class="nav-link">Messages</a>
+    </nav>
+    <div class="header-right">
+      <a href="/cart" class="cart-btn" title="My Cart">
+        🛒 <span class="cart-badge" id="cartBadge">0</span>
+      </a>
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="account-wrapper">
+        <button class="account-btn" onclick="toggleAccountDropdown()">
+          <div class="account-avatar" id="accountAvatar">?</div>
+          <span class="account-chevron">▼</span>
+        </button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-dropdown-header">
+            <div class="account-dropdown-name" id="accountDropdownName">—</div>
+            <div class="account-dropdown-email" id="accountDropdownEmail">—</div>
+          </div>
+          <a href="/account" class="account-dropdown-item">👤 My Account</a>
+          <a href="/logout" class="account-dropdown-item logout">🚪 Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <a href="/dashboard" class="back-link">← Back to Dashboard</a>
+    <p class="page-eyebrow">My Bookings</p>
+    <h1 class="page-title">📅 Bookings</h1>
+
+    <!-- SEARCH BAR -->
+    <div class="search-bar-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="bookingSearch" placeholder="Search by Booking ID (e.g. BNY-XXXXX)..." oninput="handleSearch(this.value)">
+    </div>
+    <div id="searchResultLabel" class="search-result-label" style="display:none;"></div>
+
+    <div id="eventsContainer"><p style="color:var(--muted);font-size:0.88rem;">Loading...</p></div>
+  </main>
+
+  <script>
+    function formatTime(t) {
+      if (!t) return '—';
+      const [h, m] = t.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hour = h % 12 || 12;
+      return hour + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function getStatusBadge(b) {
+      // Status reflects caterer verification
+      if (b.status === 'Fully Paid' && b.verified) return '<span class="status-badge badge-full">✅ Fully Paid</span>';
+      if (b.status === 'Fully Paid' && !b.verified) return '<span class="status-badge badge-pending">⏳ Awaiting Verification</span>';
+      if (b.status === 'Partially Paid') return '<span class="status-badge badge-partial">💳 Partially Paid</span>';
+      return '<span class="status-badge badge-pending">⏳ Pending Payment</span>';
+    }
+
+    function renderOrders(b) {
+      // Cart items from checkout.html use: pkgName, catererName, price, qty
+      const items = b.cartItems && b.cartItems.length > 0 ? b.cartItems : null;
+      let html = '<div class="card-orders"><div class="orders-label">🛒 Order Details</div>';
+      if (items && items.length > 0) {
+        items.forEach(item => {
+          // checkout.html stores items as { pkgName, catererName, price, qty }
+          const itemName = item.pkgName || item.name || item.packageName || '—';
+          const itemPrice = item.price || 0;
+          const itemQty = item.qty || item.quantity || 1;
+          const lineTotal = itemPrice * itemQty;
+
+          html += '<div class="order-item">';
+          html += '<div>';
+          html += '<div class="order-name">' + itemName + '</div>';
+          if (item.catererName) html += '<div class="order-meta">by ' + item.catererName + '</div>';
+          html += '</div>';
+          html += '<div style="display:flex;align-items:center;gap:8px;">';
+          html += '<span class="order-qty">x' + itemQty + '</span>';
+          if (lineTotal) html += '<span class="order-price">₱' + Number(lineTotal).toLocaleString('en-PH') + '</span>';
+          html += '</div></div>';
+        });
+      } else {
+        // Fallback to single package from booking
+        html += '<div class="order-item">';
+        html += '<div><div class="order-name">' + (b.packageName || '—') + '</div>';
+        if (b.eventType) html += '<div class="order-meta">Event: ' + b.eventType + '</div>';
+        html += '</div>';
+        if (b.price) html += '<span class="order-price">₱' + Number(b.price).toLocaleString('en-PH') + '/head</span>';
+        html += '</div>';
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function bookingCard(b, type) {
+      const extra = type === 'today' ? ' today' : type === 'past' ? ' past' : '';
+      const tagHTML = type === 'today' ? '<span class="today-tag">TODAY 🎉</span>' : '';
+      return `
+        <div class="booking-card${extra} fade-in">
+          <div class="card-top">
+            <div class="card-top-left">
+              <div class="card-caterer">${b.caterer || '—'}</div>
+              <div class="card-booking-id">Booking ID: ${b.bookingId || b.id || '—'}</div>
+            </div>
+            <div class="card-top-right">
+              ${tagHTML}
+              ${getStatusBadge(b)}
+            </div>
+          </div>
+          <div class="card-info">
+            <div>
+              <div class="card-field-label">Event Type</div>
+              <div class="card-field-value">${b.eventType || '—'}</div>
+            </div>
+            <div>
+              <div class="card-field-label">Pick Up Date</div>
+              <div class="card-field-value">${formatDate(b.date)}</div>
+            </div>
+            <div>
+              <div class="card-field-label">Pick Up Time</div>
+              <div class="card-field-value">${b.time || '—'}</div>
+            </div>
+            <div>
+              <div class="card-field-label">Guests</div>
+              <div class="card-field-value">${b.guests || '—'} pax</div>
+            </div>
+          </div>
+          ${renderOrders(b)}
+        </div>`;
+    }
+
+    function sectionHTML(title, items, type, icon) {
+      let html = '<div class="section-divider">' + icon + ' ' + title + ' <span class="section-count">' + items.length + '</span></div>';
+      if (items.length === 0) {
+        html += '<div class="empty-state"><div class="empty-icon">' + icon + '</div><p>No ' + title.toLowerCase() + '.</p></div>';
+      } else {
+        html += items.map(b => bookingCard(b, type)).join('');
+      }
+      return html;
+    }
+
+    let allBookings = [];
+
+    function renderBookings(data) {
+      const now = new Date(); now.setHours(0,0,0,0);
+      const todayStr = now.toISOString().split('T')[0];
+      document.getElementById('eventsContainer').innerHTML =
+        sectionHTML('Today', data.filter(b => b.date === todayStr), 'today', '🔴') +
+        sectionHTML('Upcoming', data.filter(b => b.date > todayStr), 'upcoming', '📅') +
+        sectionHTML('Past', data.filter(b => b.date < todayStr).reverse(), 'past', '🕐');
+    }
+
+    function handleSearch(query) {
+      const label = document.getElementById('searchResultLabel');
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        label.style.display = 'none';
+        renderBookings(allBookings);
+        return;
+      }
+      const filtered = allBookings.filter(b =>
+        (b.bookingId || '').toLowerCase().includes(q) ||
+        (b.id || '').toLowerCase().includes(q) ||
+        (b.caterer || '').toLowerCase().includes(q)
+      );
+      label.style.display = 'block';
+      label.textContent = filtered.length > 0
+        ? filtered.length + ' booking(s) found for "' + query + '"'
+        : 'No bookings found for "' + query + '"';
+      renderBookings(filtered);
+    }
+
+    async function loadEvents() {
+      const res = await fetch('/bookings');
+      allBookings = await res.json();
+      renderBookings(allBookings);
+    }
+
+    function loadCartBadge() {
+      try {
+        const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
+        const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        const badge = document.getElementById('cartBadge');
+        badge.textContent = total;
+        badge.style.display = total > 0 ? 'inline-block' : 'none';
+      } catch(e) {}
+    }
+
+    async function loadUserInfo() {
+      try {
+        const res = await fetch('/session-user');
+        const data = await res.json();
+        if (data && data.name) {
+          const avatarEl = document.getElementById('accountAvatar');
+          if (data.photo) {
+            avatarEl.style.background = 'none';
+            avatarEl.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          } else {
+            avatarEl.textContent = data.name.charAt(0).toUpperCase();
+          }
+          document.getElementById('accountDropdownName').textContent = data.name;
+          document.getElementById('accountDropdownEmail').textContent = data.email || '';
+        }
+      } catch(e) {}
+    }
+
+    function formatNotifTime(ts) {
+      const d = ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts);
+      return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+    }
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/notifications');
+        const data = await res.json();
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        const unread = data.filter(n => !n.isRead).length;
+        if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread; } else { badge.style.display = 'none'; }
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(n => {
+          const a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = async (e) => {
+            e.preventDefault();
+            await fetch('/read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) });
+            const text = (n.text || '').toLowerCase();
+            if (n.type === 'reminder' || text.includes('remaining balance') || text.includes('balance due') || text.includes('partially paid') || text.includes('due')) {
+              window.location.href = '/dashboard';
+            } else if (n.type === 'message' || text.includes('message') || text.includes('chat')) {
+              window.location.href = '/chats';
+            } else {
+              window.location.href = '/events';
+            }
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+
+    async function toggleNotifDropdown() {
+      const dd = document.getElementById('notifDropdown');
+      const ad = document.getElementById('accountDropdown');
+      if (ad) ad.classList.remove('open');
+      dd.classList.toggle('open');
+      if (dd.classList.contains('open')) { await loadNotifications(); }
+    }
+
+    function toggleAccountDropdown() {
+      const ad = document.getElementById('accountDropdown');
+      const nd = document.getElementById('notifDropdown');
+      if (nd) nd.classList.remove('open');
+      ad.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); }
+      const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); }
+    });
+
+    loadEvents(); loadUserInfo(); loadCartBadge(); loadNotifications(); setInterval(loadNotifications, 5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caterer Dashboard – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --yellow: #F7B731; --yellow-light: #fef9e7;
+      --tangerine: #F26419; --tangerine-light: #fef0e6;
+      --dark: #1A1A1A; --dark2: #2d2d2d; --white: #ffffff;
+      --bg: #f8f8f8; --border: #e8e8e8; --muted: #888888; --text: #333333;
+      --green: #16a34a; --green-light: #f0fdf4;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--yellow)); }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(215,38,56,0.3); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; }
+    .header-brand span { color: var(--crimson); }
+    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover, .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 1rem; position: relative; transition: background 0.2s; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: -3px; right: -3px; background: var(--yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 2px 5px; min-width: 16px; text-align: center; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 24px 16px; font-size: 0.83rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--crimson-light); }
+    .notif-text { font-size: 0.83rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .profile-wrapper { position: relative; }
+    .profile-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; height: 38px; border-radius: 8px; padding: 0 12px; display: flex; align-items: center; gap: 8px; color: #ccc; font-family: 'Poppins', sans-serif; transition: background 0.2s; }
+    .profile-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .profile-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .profile-chevron { font-size: 0.6rem; opacity: 0.6; }
+    .profile-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 200px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .profile-dropdown.open { display: block; }
+    .profile-info { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .profile-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .profile-email { font-size: 0.72rem; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-menu-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; text-decoration: none; font-size: 0.83rem; color: var(--text); font-weight: 500; transition: background 0.15s; }
+    .profile-menu-item:hover { background: var(--bg); }
+    .profile-menu-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .profile-menu-item.logout:hover { background: var(--crimson-light); }
+    .main { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .fade1 { opacity: 0; animation: fadeUp 0.5s ease forwards; }
+    .fade2 { opacity: 0; animation: fadeUp 0.5s ease 0.06s forwards; }
+    .fade3 { opacity: 0; animation: fadeUp 0.5s ease 0.12s forwards; }
+    .fade4 { opacity: 0; animation: fadeUp 0.5s ease 0.18s forwards; }
+    .welcome-block { margin-bottom: 28px; }
+    .welcome-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--crimson); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .welcome-title { font-size: 1.6rem; font-weight: 700; color: var(--dark); }
+    .welcome-title span { color: var(--crimson); }
+    .welcome-sub { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+    .section-header { display: flex; align-items: center; margin-bottom: 14px; }
+    .section-title { font-size: 0.88rem; font-weight: 700; color: var(--dark); white-space: nowrap; }
+    .section-line { flex: 1; height: 1px; background: var(--border); margin-left: 14px; }
+    .section-link { font-size: 0.75rem; font-weight: 600; color: var(--crimson); text-decoration: none; margin-left: 14px; white-space: nowrap; }
+    .section-link:hover { text-decoration: underline; }
+    .top-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 24px; }
+    .today-card { background: #1A1A1A; border-radius: 12px; padding: 20px; height: 100%; }
+    .today-label { font-size: 0.68rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .today-empty { font-size: 0.83rem; color: #666; padding: 12px 0; }
+    .today-event { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; border-left: 3px solid var(--crimson); }
+    .today-event:last-child { margin-bottom: 0; }
+    .today-event-name { font-size: 0.85rem; font-weight: 600; color: var(--white); }
+    .today-event-detail { font-size: 0.72rem; color: #aaa; margin-top: 3px; }
+    .bookings-table { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .table-head { display: grid; grid-template-columns: 1.6fr 1.3fr 1.2fr 1fr 1fr; padding: 11px 20px; background: var(--bg); border-bottom: 1px solid var(--border); font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .table-row { display: grid; grid-template-columns: 1.6fr 1.3fr 1.2fr 1fr 1fr; padding: 13px 20px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.15s; font-size: 0.83rem; }
+    .table-row:last-child { border-bottom: none; }
+    .table-row:hover { background: #fafafa; }
+    .customer-name { font-weight: 600; color: var(--dark); }
+    .badge { display: inline-flex; align-items: center; font-size: 0.68rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+    .badge-pending { background: var(--yellow-light); color: #8a6200; }
+    .badge-partial { background: var(--tangerine-light); color: var(--tangerine); }
+    .badge-paid { background: var(--green-light); color: var(--green); }
+    .empty-table { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 0.86rem; }
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { border-color: var(--crimson); box-shadow: 0 4px 16px rgba(215,38,56,0.1); }
+    .stat-top { display: flex; align-items: flex-start; justify-content: space-between; }
+    .stat-icon { font-size: 1.3rem; }
+    .stat-quick-link { font-size: 0.72rem; font-weight: 600; color: var(--crimson); text-decoration: none; background: var(--crimson-light); padding: 4px 10px; border-radius: 999px; white-space: nowrap; transition: background 0.2s; }
+    .stat-quick-link:hover { background: #fac5cb; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--dark); line-height: 1; }
+    .stat-label { font-size: 0.72rem; color: var(--muted); }
+    .insights-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .insight-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); }
+    .insight-row:last-child { border-bottom: none; }
+    .insight-label { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+    .insight-value { font-size: 0.92rem; font-weight: 700; color: var(--dark); }
+    .insight-value.orange { color: var(--tangerine); }
+    .insight-value.green { color: var(--green); }
+    .stars-sm { color: var(--yellow); font-size: 0.78rem; }
+    /* CALENDAR */
+    .cal-wrapper { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .cal-title { font-size: 0.78rem; font-weight: 700; color: var(--dark); }
+    .cal-nav { display: flex; align-items: center; gap: 6px; }
+    .cal-nav-btn { background: none; border: 1.5px solid var(--border); border-radius: 5px; width: 24px; height: 24px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s, background 0.2s; font-family: 'Poppins', sans-serif; }
+    .cal-nav-btn:hover { border-color: var(--crimson); background: var(--crimson-light); }
+    .cal-month-label { font-size: 0.78rem; font-weight: 600; color: var(--dark); min-width: 110px; text-align: center; }
+    .cal-grid { padding: 8px 12px; }
+    .cal-days-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 3px; }
+    .cal-day-name { text-align: center; font-size: 0.58rem; font-weight: 700; color: var(--muted); text-transform: uppercase; padding: 2px 0; }
+    .cal-cells { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 0.68rem; font-weight: 500; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; position: relative; color: var(--text); background: transparent; font-family: 'Poppins', sans-serif; }
+    .cal-cell:hover:not(.cal-empty):not(.cal-past) { border-color: var(--crimson); background: var(--crimson-light); }
+    .cal-cell.cal-empty { cursor: default; }
+    .cal-cell.cal-past { color: #ccc; cursor: not-allowed; }
+    .cal-cell.cal-today { border-color: var(--yellow); background: var(--yellow-light); font-weight: 700; }
+    .cal-cell.cal-blocked { background: var(--crimson); color: var(--white); border-color: var(--crimson-mid); font-weight: 700; }
+    .cal-cell.cal-blocked:hover { background: var(--crimson-mid); }
+    .cal-cell.cal-partial { border-color: var(--tangerine); background: var(--tangerine-light); }
+    .cal-cell.cal-partial:hover { border-color: var(--tangerine); background: #fde0cc; }
+    .cal-cell.cal-recurring { background: #2d2d2d; color: #777; border-color: #444; }
+    .cal-cell.cal-has-booking::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 3px; height: 3px; border-radius: 50%; background: var(--green); }
+    .cal-cell.cal-blocked.cal-has-booking::after, .cal-cell.cal-recurring.cal-has-booking::after { background: var(--yellow); }
+    .cal-legend { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--border); background: var(--bg); flex-wrap: wrap; }
+    .cal-legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.62rem; color: var(--muted); }
+    .cal-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    /* Settings cards */
+    .settings-mini-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .settings-mini-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .settings-mini-sub { font-size: 0.68rem; color: var(--muted); margin-top: 8px; }
+    /* Recurring day buttons */
+    .rec-day-btn { padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 7px; font-family: 'Poppins', sans-serif; font-size: 0.72rem; font-weight: 600; cursor: pointer; background: var(--white); color: var(--muted); transition: all 0.15s; }
+    .rec-day-btn:hover { border-color: var(--crimson); color: var(--crimson); }
+    .rec-day-btn.active { background: var(--crimson); color: var(--white); border-color: var(--crimson-mid); }
+    /* Time modal */
+    .time-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+    .time-modal-overlay.open { display: flex; }
+    .time-modal { background: var(--white); border-radius: 14px; width: 100%; max-width: 420px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); }
+    .time-modal-header { background: var(--dark); padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; }
+    .time-modal-title { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .time-modal-date-label { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+    .time-modal-close { background: rgba(255,255,255,0.1); border: none; color: var(--white); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; }
+    .time-modal-body { padding: 20px; }
+    .time-option-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .block-all-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--crimson-light); border: 1.5px solid #fac5cb; border-radius: 8px; margin-bottom: 14px; }
+    .block-all-label { font-size: 0.85rem; font-weight: 600; color: var(--crimson); }
+    .block-all-btn { font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background 0.2s; color: var(--white); }
+    .time-slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 260px; overflow-y: auto; }
+    .time-slot-btn { padding: 9px 6px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.74rem; font-weight: 600; cursor: pointer; background: var(--white); color: var(--text); transition: all 0.15s; text-align: center; }
+    .time-slot-btn:hover { border-color: var(--crimson); color: var(--crimson); }
+    .time-slot-btn.blocked { background: var(--crimson); color: var(--white); border-color: var(--crimson-mid); }
+    .time-modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+    .time-save-btn { flex: 1; padding: 11px; background: var(--crimson); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .time-save-btn:hover { background: var(--crimson-mid); }
+    .time-cancel-btn { padding: 11px 16px; background: transparent; color: var(--muted); border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; cursor: pointer; }
+    @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none; } .top-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr; } .table-head, .table-row { grid-template-columns: 1.4fr 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="color-strip"></div>
+  <header class="header">
+    <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
+    <nav class="header-nav">
+      <a class="nav-link active" href="/caterer-dashboard">Dashboard</a>
+      <a class="nav-link" href="/caterer-bookings">Bookings</a>
+      <a class="nav-link" href="/caterer-products">Products</a>
+      <a class="nav-link" href="/caterer-messages">Messages</a>
+    </nav>
+    <div class="header-right">
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">
+          🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="profile-wrapper">
+        <button class="profile-btn" onclick="toggleProfileDropdown()">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <span class="profile-chevron">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="profile-info">
+            <div class="profile-name" id="dropdownName">—</div>
+            <div class="profile-email" id="dropdownEmail">—</div>
+          </div>
+          <a class="profile-menu-item" href="/caterer-account">⚙️ My Account</a>
+          <a class="profile-menu-item logout" href="/caterer-logout">🚪 Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="welcome-block fade1">
+      <p class="welcome-eyebrow">Caterer Dashboard</p>
+      <h1 class="welcome-title">Welcome back, <span id="welcomeName">—</span>!</h1>
+      <p class="welcome-sub">Here's an overview of your catering business today.</p>
+    </div>
+
+    <div class="top-row fade2">
+      <div>
+        <div class="section-header"><span class="section-title">🔴 Today's Events</span><div class="section-line"></div></div>
+        <div class="today-card" id="todayEvents">
+          <div class="today-label">Events happening today</div>
+          <div class="today-empty">No events today. 🎉</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-header"><span class="section-title">📅 Upcoming Bookings</span><div class="section-line"></div><a class="section-link" href="/caterer-bookings">View all →</a></div>
+        <div class="bookings-table">
+          <div class="table-head"><span>Customer</span><span>Event Date</span><span>Package</span><span>Amount Paid</span><span>Status</span></div>
+          <div id="bookingsBody"><div class="empty-table">No upcoming bookings.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row fade3">
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon">📋</div><a class="stat-quick-link" href="/caterer-bookings">View Bookings →</a></div>
+        <div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Bookings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon">⏳</div><a class="stat-quick-link" href="/caterer-bookings?filter=pending">Verify Payments →</a></div>
+        <div class="stat-value" id="statVerify">0</div><div class="stat-label">Awaiting Verification</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon">💬</div><a class="stat-quick-link" href="/caterer-messages">Go to Messages →</a></div>
+        <div class="stat-value" id="statMessages">0</div><div class="stat-label">Unread Messages</div>
+      </div>
+    </div>
+
+    <div class="fade4" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;align-items:start;">
+
+      <!-- LEFT: AVAILABILITY SETTINGS + CALENDAR -->
+      <div>
+        <div class="section-header" style="margin-bottom:10px;">
+          <span class="section-title">📆 Availability Calendar</span>
+          <div class="section-line"></div>
+          <span style="font-size:0.65rem;color:var(--muted);margin-left:10px;white-space:nowrap;">Click date to block</span>
+        </div>
+
+        <!-- RECURRING DAYS OFF -->
+        <div class="settings-mini-card">
+          <div class="settings-mini-label">🔁 Recurring Days Off</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="recurringDaysRow">
+            <button class="rec-day-btn" data-day="0" onclick="toggleRecurringDay(0)">Sun</button>
+            <button class="rec-day-btn" data-day="1" onclick="toggleRecurringDay(1)">Mon</button>
+            <button class="rec-day-btn" data-day="2" onclick="toggleRecurringDay(2)">Tue</button>
+            <button class="rec-day-btn" data-day="3" onclick="toggleRecurringDay(3)">Wed</button>
+            <button class="rec-day-btn" data-day="4" onclick="toggleRecurringDay(4)">Thu</button>
+            <button class="rec-day-btn" data-day="5" onclick="toggleRecurringDay(5)">Fri</button>
+            <button class="rec-day-btn" data-day="6" onclick="toggleRecurringDay(6)">Sat</button>
+          </div>
+          <div class="settings-mini-sub">These days of the week will always be blocked for new bookings.</div>
+        </div>
+
+        <!-- MAX ORDERS PER SLOT -->
+        <div class="settings-mini-card">
+          <div class="settings-mini-label">📦 Max Bookings Per Time Slot</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:inline-flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;">
+              <button onclick="changeMaxOrders(-1)" style="width:34px;height:34px;border:none;background:var(--bg);cursor:pointer;font-size:1.1rem;font-weight:700;font-family:'Poppins',sans-serif;color:var(--dark);">−</button>
+              <span id="maxOrdersDisplay" style="min-width:36px;text-align:center;font-size:1rem;font-weight:700;color:var(--dark);">1</span>
+              <button onclick="changeMaxOrders(1)" style="width:34px;height:34px;border:none;background:var(--bg);cursor:pointer;font-size:1.1rem;font-weight:700;font-family:'Poppins',sans-serif;color:var(--dark);">+</button>
+            </div>
+            <button onclick="saveMaxOrders()" style="padding:7px 16px;background:var(--crimson);color:var(--white);border:none;border-radius:7px;font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;">Save</button>
+            <span id="maxOrdersMsg" style="font-size:0.75rem;color:var(--green);font-weight:600;"></span>
+          </div>
+          <div class="settings-mini-sub">How many bookings to accept per time slot. (e.g. 2 = two customers can book the same time)</div>
+        </div>
+
+        <!-- CALENDAR -->
+        <div class="cal-wrapper">
+          <div class="cal-header">
+            <div class="cal-title">Your Availability</div>
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="calPrevMonth()">‹</button>
+              <span class="cal-month-label" id="calMonthLabel">—</span>
+              <button class="cal-nav-btn" onclick="calNextMonth()">›</button>
+            </div>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-days-row">
+              <div class="cal-day-name">Sun</div><div class="cal-day-name">Mon</div><div class="cal-day-name">Tue</div>
+              <div class="cal-day-name">Wed</div><div class="cal-day-name">Thu</div><div class="cal-day-name">Fri</div><div class="cal-day-name">Sat</div>
+            </div>
+            <div class="cal-cells" id="calCells"></div>
+          </div>
+          <div class="cal-legend">
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--crimson);"></div>Blocked</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#2d2d2d;border:1.5px solid #555;"></div>Day Off</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--tangerine-light);border:1.5px solid var(--tangerine);"></div>Partial</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--yellow-light);border:1.5px solid var(--yellow);"></div>Today</div>
+            <div class="cal-legend-item"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;flex-shrink:0;margin-right:2px;"></span>Booked</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: BUSINESS INSIGHTS -->
+      <div>
+        <div class="section-header" style="margin-bottom:10px;"><span class="section-title">Business Insights</span><div class="section-line"></div></div>
+        <div class="insights-card" style="margin-bottom:10px;">
+          <div class="insight-row"><div class="insight-label">💰 Total Revenue</div><div class="insight-value orange" id="statRevenue">₱0</div></div>
+          <div class="insight-row"><div class="insight-label">📈 This Month</div><div class="insight-value" id="statMonthly">₱0</div></div>
+          <div class="insight-row"><div class="insight-label">✅ Fully Paid</div><div class="insight-value green" id="statPaid">0</div></div>
+          <div class="insight-row"><div class="insight-label">🧾 Uncollected Balance</div><div class="insight-value orange" id="statUncollected">₱0</div></div>
+        </div>
+        <div class="insights-card">
+          <div class="insight-row"><div class="insight-label">⭐ Average Rating</div><div><div class="insight-value" id="avgRating">No reviews</div><div class="stars-sm" id="avgStars">☆☆☆☆☆</div></div></div>
+          <div class="insight-row"><div class="insight-label">🍽️ Most Booked Package</div><div style="text-align:right;"><div class="insight-value" style="font-size:0.82rem;" id="topPackage">—</div><div style="font-size:0.7rem;color:var(--muted);" id="topPackageSub">No bookings yet</div></div></div>
+          <div class="insight-row"><div class="insight-label">📅 Events This Week</div><div class="insight-value" id="thisWeek">0</div></div>
+          <div class="insight-row"><div class="insight-label">📊 Fully Paid Rate</div><div class="insight-value green" id="completionRate">0%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIME SLOT MODAL -->
+    <div class="time-modal-overlay" id="timeModal">
+      <div class="time-modal">
+        <div class="time-modal-header">
+          <div><div class="time-modal-title">Set Availability</div><div class="time-modal-date-label" id="timeModalDateLabel">—</div></div>
+          <button class="time-modal-close" onclick="closeTimeModal()">✕</button>
+        </div>
+        <div class="time-modal-body">
+          <div class="block-all-row">
+            <div class="block-all-label">🚫 Block entire day</div>
+            <button class="block-all-btn" id="blockAllBtn" onclick="toggleBlockAllDay()">Block All</button>
+          </div>
+          <div class="time-option-label">Or block specific time slots:</div>
+          <div class="time-slots-grid" id="timeSlotsGrid"></div>
+        </div>
+        <div class="time-modal-footer">
+          <button class="time-cancel-btn" onclick="closeTimeModal()">Cancel</button>
+          <button class="time-save-btn" onclick="saveTimeSlots()">Save Availability</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    var sessionBusinessName = '';
+
+    async function loadProfile() {
+      try {
+        var res = await fetch('/caterer-session'); var data = await res.json();
+        if (!data.loggedIn) { window.location.href = '/caterer-login'; return; }
+        var avatarEl = document.getElementById('profileAvatar');
+        if (data.photo) { avatarEl.style.background='none'; avatarEl.style.padding='0'; avatarEl.style.overflow='hidden'; avatarEl.innerHTML='<img src="'+data.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
+        else { avatarEl.textContent = data.businessName.charAt(0).toUpperCase(); }
+        document.getElementById('welcomeName').textContent = data.businessName;
+        document.getElementById('dropdownName').textContent = data.businessName;
+        document.getElementById('dropdownEmail').textContent = data.email;
+        sessionBusinessName = data.businessName;
+        loadUnreadMessages();
+      } catch(e) {}
+    }
+
+    async function loadDashboard() {
+      try {
+        var sessionRes = await fetch('/caterer-session'); var session = await sessionRes.json();
+        if (!session.loggedIn) return;
+        var all = await (await fetch('/bookings')).json();
+        var reviews = await (await fetch('/reviews?caterer='+encodeURIComponent(session.businessName))).json();
+        var mine = all.filter(function(b) { return b.caterer === session.businessName; });
+        var today = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'})); today.setHours(0,0,0,0);
+        var todayStr = today.toISOString().split('T')[0];
+        var nowMonth = today.getMonth(); var nowYear = today.getFullYear();
+
+        document.getElementById('statTotal').textContent = mine.length;
+        document.getElementById('statVerify').textContent = mine.filter(function(b) { return !b.verified && (b.status==='Partially Paid'||b.status==='Fully Paid'||b.status==='Pending Payment'); }).length;
+
+        var todayEvents = mine.filter(function(b) { return b.date===todayStr; });
+        var todayBox = document.getElementById('todayEvents');
+        if (todayEvents.length===0) { todayBox.innerHTML='<div class="today-label">Events happening today</div><div class="today-empty">No events today. 🎉 Enjoy your day!</div>'; }
+        else { var html='<div class="today-label">Events happening today</div>'; todayEvents.forEach(function(b){html+='<div class="today-event"><div class="today-event-name">'+(b.sender||'Customer')+' — '+(b.packageName||'—')+'</div><div class="today-event-detail">⏰ '+(b.time||'—')+' · '+(b.eventType||'—')+'</div></div>';}); todayBox.innerHTML=html; }
+
+        var upcoming = mine.filter(function(b){return new Date(b.date+'T00:00:00')>=today;}).sort(function(a,b){return new Date(a.date)-new Date(b.date);}).slice(0,3);
+        var body=document.getElementById('bookingsBody');
+        if(upcoming.length===0){body.innerHTML='<div class="empty-table">No upcoming bookings.</div>';}
+        else{body.innerHTML='';upcoming.forEach(function(b){var sc=b.status==='Fully Paid'?'badge-paid':b.status==='Partially Paid'?'badge-partial':'badge-pending';var fd=b.date?new Date(b.date+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):'—';var row=document.createElement('div');row.className='table-row';row.innerHTML='<div class="customer-name">'+(b.sender||'Customer')+'</div><div>'+fd+'</div><div>'+(b.packageName||'—')+'</div><div>₱'+Number(b.amountPaid||0).toLocaleString('en-PH')+'</div><div><span class="badge '+sc+'">'+(b.status||'Pending Payment')+'</span></div>';body.appendChild(row);});}
+
+        document.getElementById('statRevenue').textContent='₱'+mine.reduce(function(s,b){return s+(Number(b.amountPaid)||0);},0).toLocaleString('en-PH');
+        document.getElementById('statMonthly').textContent='₱'+mine.filter(function(b){var d=new Date(b.createdAt);return d.getMonth()===nowMonth&&d.getFullYear()===nowYear;}).reduce(function(s,b){return s+(Number(b.amountPaid)||0);},0).toLocaleString('en-PH');
+        document.getElementById('statPaid').textContent=mine.filter(function(b){return b.status==='Fully Paid';}).length;
+        document.getElementById('statUncollected').textContent='₱'+mine.filter(function(b){return b.status==='Partially Paid';}).reduce(function(s,b){return s+((Number(b.totalAmount)||0)-(Number(b.amountPaid)||0));},0).toLocaleString('en-PH');
+
+        if(reviews.length>0){var avg=reviews.reduce(function(a,r){return a+r.rating;},0)/reviews.length;document.getElementById('avgRating').textContent=avg.toFixed(1)+' / 5';var stars='';for(var i=1;i<=5;i++)stars+=i<=Math.round(avg)?'★':'☆';document.getElementById('avgStars').textContent=stars;}
+        var pkgCount={};mine.forEach(function(b){if(b.packageName)pkgCount[b.packageName]=(pkgCount[b.packageName]||0)+1;});
+        var topPkg=Object.entries(pkgCount).sort(function(a,b){return b[1]-a[1];})[0];
+        if(topPkg){document.getElementById('topPackage').textContent=topPkg[0];document.getElementById('topPackageSub').textContent=topPkg[1]+' booking'+(topPkg[1]!==1?'s':'');}
+        var weekEnd=new Date(today);weekEnd.setDate(weekEnd.getDate()+7);
+        document.getElementById('thisWeek').textContent=mine.filter(function(b){var d=new Date(b.date+'T00:00:00');return d>=today&&d<=weekEnd;}).length;
+        var rate=mine.length>0?Math.round((mine.filter(function(b){return b.status==='Fully Paid';}).length/mine.length)*100):0;
+        document.getElementById('completionRate').textContent=rate+'%';
+        calBookingDates=mine.map(function(b){return b.date;});
+        renderCalendar();
+      } catch(e) {}
+    }
+
+    function toggleProfileDropdown(){document.getElementById('profileDropdown').classList.toggle('open');document.getElementById('notifDropdown').classList.remove('open');}
+    async function toggleNotifDropdown(){var dd=document.getElementById('notifDropdown');document.getElementById('profileDropdown').classList.remove('open');dd.classList.toggle('open');if(dd.classList.contains('open')){await fetch('/caterer-read-notifications',{method:'POST'});await loadNotifications();}}
+    document.addEventListener('click',function(e){var nw=document.querySelector('.notif-wrapper');var pw=document.querySelector('.profile-wrapper');if(nw&&!nw.contains(e.target))document.getElementById('notifDropdown').classList.remove('open');if(pw&&!pw.contains(e.target))document.getElementById('profileDropdown').classList.remove('open');});
+
+    function formatNotifTime(ts){var d=new Date(ts);return d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})+' · '+d.toLocaleDateString('en-PH',{month:'short',day:'numeric'});}
+    async function loadNotifications(){
+      try{var res=await fetch('/caterer-notifications');var data=await res.json();var badge=document.getElementById('notifBadge');var list=document.getElementById('notifList');var unread=data.filter(function(n){return !n.isRead;}).length;badge.style.display=unread>0?'inline-block':'none';badge.textContent=unread;
+      if(data.length===0){list.innerHTML='<p class="notif-empty">No notifications yet.</p>';return;}list.innerHTML='';
+      data.forEach(function(n){var a=document.createElement('a');a.className='notif-item'+(n.isRead?'':' unread');a.href='#';a.onclick=function(e){e.preventDefault();fetch('/caterer-read-notification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:n.id})}).then(function(){var text=(n.text||'').toLowerCase();if(text.includes('booking')){window.location.href='/caterer-bookings';}else if(text.includes('message')||text.includes('chat')){window.location.href='/caterer-messages';}else{window.location.href='/caterer-dashboard';}});};a.innerHTML='<div class="notif-text">'+n.text+'</div><div class="notif-time">'+formatNotifTime(n.createdAt)+'</div>';list.appendChild(a);});}catch(e){}
+    }
+
+    async function loadUnreadMessages(){try{var res=await fetch('/messages?caterer='+encodeURIComponent(sessionBusinessName));var msgs=await res.json();function toDate(ts){return ts&&ts.toDate?ts.toDate():(ts&&ts._seconds?new Date(ts._seconds*1000):new Date(ts));}var last=msgs.slice().reverse().find(function(m){return m.sender===sessionBusinessName;});var lastTime=last?toDate(last.timestamp):new Date(0);document.getElementById('statMessages').textContent=msgs.filter(function(m){return m.sender!==sessionBusinessName&&toDate(m.timestamp)>lastTime;}).length;}catch(e){}}
+
+    // ===== CALENDAR & SETTINGS =====
+    var calYear, calMonth, blockedSlots={}, recurringDays=[], currentMaxOrders=1, calBookingDates=[], selectedCalDate=null, pendingSlots={};
+    var PH_TIMES=['12:00 AM','1:00 AM','2:00 AM','3:00 AM','4:00 AM','5:00 AM','6:00 AM','7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM','8:00 PM','9:00 PM','10:00 PM','11:00 PM'];
+    var PH_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    function initCalendar(){var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));calYear=now.getFullYear();calMonth=now.getMonth();loadBlockedSlots();}
+
+    async function loadBlockedSlots(){
+      try{var res=await fetch('/caterer-blocked-slots');if(res.ok){var data=await res.json();blockedSlots=data.slots||{};recurringDays=data.recurringDays||[];currentMaxOrders=data.maxOrders||1;renderRecurringDays();document.getElementById('maxOrdersDisplay').textContent=currentMaxOrders;}}catch(e){}
+      renderCalendar();
+    }
+
+    // RECURRING DAYS
+    function renderRecurringDays(){document.querySelectorAll('.rec-day-btn').forEach(function(btn){btn.classList.toggle('active',recurringDays.indexOf(parseInt(btn.getAttribute('data-day')))!==-1);});}
+    function toggleRecurringDay(day){var idx=recurringDays.indexOf(day);if(idx===-1){recurringDays.push(day);}else{recurringDays.splice(idx,1);}renderRecurringDays();fetch('/caterer-blocked-slots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recurringDays:recurringDays})}).then(function(){renderCalendar();});}
+
+    // MAX ORDERS
+    function changeMaxOrders(delta){currentMaxOrders=Math.max(1,currentMaxOrders+delta);document.getElementById('maxOrdersDisplay').textContent=currentMaxOrders;document.getElementById('maxOrdersMsg').textContent='';}
+    async function saveMaxOrders(){try{await fetch('/caterer-blocked-slots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({maxOrders:currentMaxOrders})});var msg=document.getElementById('maxOrdersMsg');msg.textContent='✓ Saved!';setTimeout(function(){msg.textContent='';},2000);}catch(e){}}
+
+    function renderCalendar(){
+      document.getElementById('calMonthLabel').textContent=PH_MONTHS[calMonth]+' '+calYear;
+      var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+      var todayStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+      var firstDay=new Date(calYear,calMonth,1).getDay();var daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+      var cells=document.getElementById('calCells');cells.innerHTML='';
+      for(var i=0;i<firstDay;i++){var e=document.createElement('div');e.className='cal-cell cal-empty';cells.appendChild(e);}
+      for(var d=1;d<=daysInMonth;d++){
+        var dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+        var cell=document.createElement('div');cell.className='cal-cell';
+        var isPast=dateStr<todayStr;var isToday=dateStr===todayStr;
+        var dayOfWeek=new Date(calYear,calMonth,d).getDay();
+        var isRecurring=recurringDays.indexOf(dayOfWeek)!==-1;
+        var entry=blockedSlots[dateStr];
+        var isFullBlocked=entry&&(entry.allDay===true||(entry.times&&entry.times.length>=PH_TIMES.length));
+        var isPartial=entry&&!entry.allDay&&entry.times&&entry.times.length>0&&entry.times.length<PH_TIMES.length;
+        var hasBooking=calBookingDates.indexOf(dateStr)!==-1;
+        if(isPast)cell.classList.add('cal-past');
+        if(isToday)cell.classList.add('cal-today');
+        if(!isPast){if(isRecurring)cell.classList.add('cal-recurring');else if(isFullBlocked)cell.classList.add('cal-blocked');else if(isPartial)cell.classList.add('cal-partial');}
+        if(hasBooking)cell.classList.add('cal-has-booking');
+        cell.textContent=d;
+        if(!isPast){(function(ds){cell.addEventListener('click',function(){openTimeModal(ds);});})(dateStr);}
+        cells.appendChild(cell);
+      }
+    }
+
+    function calPrevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+    function calNextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+    function openTimeModal(dateStr){
+      selectedCalDate=dateStr;
+      var parts=dateStr.split('-');var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+      var dayOfWeek=d.getDay();var isRecurring=recurringDays.indexOf(dayOfWeek)!==-1;
+      var label=d.toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      if(isRecurring)label+=' (Recurring Day Off — override below)';
+      document.getElementById('timeModalDateLabel').textContent=label;
+      var existing=blockedSlots[dateStr]||{};
+      pendingSlots={allDay:existing.allDay===true||isRecurring,times:existing.times?existing.times.slice():[]};
+      renderTimeSlots();updateBlockAllBtn();
+      document.getElementById('timeModal').classList.add('open');
+    }
+
+    function closeTimeModal(){document.getElementById('timeModal').classList.remove('open');selectedCalDate=null;pendingSlots={};}
+
+    function renderTimeSlots(){var grid=document.getElementById('timeSlotsGrid');grid.innerHTML='';PH_TIMES.forEach(function(t){var btn=document.createElement('button');btn.className='time-slot-btn';btn.textContent=t;var isBlocked=pendingSlots.allDay||pendingSlots.times.indexOf(t)!==-1;if(isBlocked)btn.classList.add('blocked');if(pendingSlots.allDay){btn.style.opacity='0.5';btn.style.cursor='not-allowed';}btn.addEventListener('click',function(){if(pendingSlots.allDay)return;var idx=pendingSlots.times.indexOf(t);if(idx===-1){pendingSlots.times.push(t);btn.classList.add('blocked');}else{pendingSlots.times.splice(idx,1);btn.classList.remove('blocked');}});grid.appendChild(btn);});}
+
+    function toggleBlockAllDay(){pendingSlots.allDay=!pendingSlots.allDay;if(pendingSlots.allDay)pendingSlots.times=[];updateBlockAllBtn();renderTimeSlots();}
+    function updateBlockAllBtn(){var btn=document.getElementById('blockAllBtn');if(pendingSlots.allDay){btn.textContent='Unblock Day';btn.style.background='var(--green)';}else{btn.textContent='Block All';btn.style.background='var(--crimson)';}}
+
+    async function saveTimeSlots(){
+      if(!selectedCalDate)return;
+      var payload={};
+      if(pendingSlots.allDay){payload[selectedCalDate]={allDay:true,times:[]};}
+      else if(pendingSlots.times.length>0){payload[selectedCalDate]={allDay:false,times:pendingSlots.times};}
+      else{payload[selectedCalDate]=null;}
+      try{var res=await fetch('/caterer-blocked-slots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slots:payload})});if(res.ok){var data=await res.json();blockedSlots=data.slots||{};closeTimeModal();renderCalendar();}}catch(e){}
+    }
+
+    loadProfile();loadDashboard();loadNotifications();initCalendar();setInterval(loadNotifications,5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

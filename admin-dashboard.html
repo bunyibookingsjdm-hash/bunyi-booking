@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red:        #C0392B;
+      --red-bright: #E8472C;
+      --red-light:  rgba(232,71,44,0.10);
+      --red-border: rgba(232,71,44,0.28);
+
+      --navbar:     #ffffff;
+      --card-dark:  #1f1a18;
+
+      --bg:         #f5f5f5;
+      --card-light: #ffffff;
+
+      --text:       #1a1a1a;
+      --muted:      #777;
+      --border:     #e4e4e4;
+      --border-dark:rgba(255,255,255,0.10);
+    }
+
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: var(--navbar); border-right: 1.5px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; box-shadow: 2px 0 12px rgba(0,0,0,0.06); }
+    .sidebar-brand { padding: 22px 20px 16px; border-bottom: 1.5px solid var(--border); }
+    .brand-name { font-family: 'Syne', sans-serif; font-size: 1.55rem; font-weight: 800; color: #1a1a1a; }
+    .brand-name span { color: var(--red-bright); }
+    .brand-sub { font-size: 0.6rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.18em; margin-top: 3px; font-weight: 600; }
+    .brand-strip { height: 3px; background: linear-gradient(90deg, var(--red-bright), #a0200f); }
+
+    .sidebar-nav { flex: 1; padding: 14px 10px; }
+    .nav-section-label { font-size: 0.56rem; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 0.16em; padding: 12px 10px 5px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: #888; font-size: 0.84rem; font-weight: 500; transition: all 0.15s; cursor: pointer; border: none; background: none; width: 100%; font-family: 'DM Sans', sans-serif; margin-bottom: 2px; text-align: left; }
+    .nav-item:hover { background: var(--red-light); color: var(--red-bright); }
+    .nav-item.active { background: var(--red-light); color: var(--red-bright); font-weight: 700; border-left: 2.5px solid var(--red-bright); padding-left: 9.5px; }
+    .nav-icon { font-size: 0.95rem; width: 20px; text-align: center; }
+
+    .sidebar-footer { padding: 14px 10px; border-top: 1.5px solid var(--border); }
+    .logout-btn { display: flex; align-items: center; gap: 10px; color: #aaa; font-size: 0.84rem; font-weight: 500; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; width: 100%; padding: 9px 12px; border-radius: 8px; transition: all 0.15s; }
+    .logout-btn:hover { color: var(--red-bright); background: var(--red-light); }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    .topbar { background: var(--navbar); padding: 0 30px; height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid var(--border); position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .topbar-title { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; color: #1a1a1a; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .pill { padding: 4px 13px; border-radius: 999px; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; }
+    .pill-red  { background: var(--red-light); color: var(--red-bright); border: 1px solid var(--red-border); }
+    .pill-dark { background: rgba(255,255,255,0.07); color: #bbb; border: 1px solid rgba(255,255,255,0.12); }
+
+    /* CONTENT */
+    .content { padding: 26px 28px; flex: 1; }
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* STAT CARDS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+    .stat-card { background: var(--card-light); border: 1.5px solid var(--border); border-radius: 12px; padding: 20px 18px; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.09); }
+    .stat-card.dark-card { background: var(--card-light); border-color: var(--border); }
+    .stat-card.dark-card .stat-label { color: var(--muted); }
+    .stat-card.dark-card .stat-value { color: var(--text); }
+    .stat-card.dark-card .stat-sub   { color: var(--muted); }
+    .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+    .stat-card:nth-child(1)::after { background: var(--red-bright); }
+    .stat-card:nth-child(2)::after { background: #c0392b; }
+    .stat-card:nth-child(3)::after { background: #27ae60; }
+    .stat-card:nth-child(4)::after { background: #e67e22; }
+    .stat-icon-wrap { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; margin-bottom: 14px; }
+    .ic-red    { background: var(--red-light); }
+    .ic-green  { background: rgba(39,174,96,0.12); }
+    .ic-orange { background: rgba(230,126,34,0.12); }
+    .ic-dark   { background: var(--red-light); }
+    .stat-label { font-size: 0.64rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.11em; margin-bottom: 6px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .stat-sub   { font-size: 0.7rem; color: var(--muted); margin-top: 6px; }
+
+    /* PANELS */
+    .panels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+    .panel { background: var(--card-light); border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .panel-header { padding: 14px 18px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .panel-title { font-family: 'Syne', sans-serif; font-size: 0.86rem; font-weight: 700; color: var(--text); }
+    .panel-body { padding: 14px 18px; }
+    .panel-link { font-size: 0.74rem; font-weight: 700; color: var(--red-bright); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s; }
+    .panel-link:hover { opacity: 0.7; }
+
+    /* TABLE */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { font-size: 0.62rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.11em; padding: 8px 10px; text-align: left; border-bottom: 1.5px solid var(--border); }
+    .data-table td { padding: 11px 10px; font-size: 0.82rem; color: var(--text); border-bottom: 1px solid #f0f0f0; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: #fdf3f1; }
+
+    /* BADGES */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.65rem; font-weight: 700; }
+    .bg-green  { background: #edfbf3; color: #1a9e50; }
+    .bg-red    { background: var(--red-light); color: var(--red-bright); }
+    .bg-orange { background: rgba(230,126,34,0.12); color: #c87722; }
+    .bg-gray   { background: #f2f2f2; color: #888; }
+
+    /* FULL PANEL */
+    .full-panel { background: var(--card-light); border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .full-panel-header { padding: 14px 20px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .full-panel-title { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .full-panel-body { overflow-x: auto; }
+    .full-panel .data-table th, .full-panel .data-table td { padding: 12px 18px; }
+
+    .search-input { padding: 8px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--text); outline: none; width: 220px; background: var(--bg); transition: border-color 0.2s; }
+    .search-input:focus { border-color: var(--red-bright); box-shadow: 0 0 0 3px var(--red-light); }
+    .search-input::placeholder { color: #bbb; }
+
+    .delete-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.82rem; padding: 4px 8px; border-radius: 6px; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+    .delete-btn:hover { color: var(--red-bright); background: var(--red-light); }
+
+    /* SECTION HEADER */
+    .section-header { margin-bottom: 20px; background: #1a1a1a; border-radius: 12px; padding: 20px 24px; }
+    .section-label { font-size: 0.68rem; font-weight: 700; color: var(--red-bright); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 4px; }
+    .section-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; color: #ffffff; }
+    .section-sub { font-size: 0.79rem; color: #888; margin-top: 3px; }
+
+    .chart-container { position: relative; height: 220px; }
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .pay-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 18px; }
+    .empty-state { text-align: center; padding: 28px; color: var(--muted); font-size: 0.82rem; }
+
+    /* FILTER TABS */
+    .filter-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-tab { padding: 6px 18px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; border: 1.5px solid var(--border); background: var(--card-light); color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .filter-tab.active, .filter-tab:hover { background: var(--red-bright); color: #fff; border-color: var(--red-bright); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { opacity: 0; animation: fadeUp 0.35s ease forwards; }
+    .fade-in:nth-child(2) { animation-delay: 0.06s; }
+    .fade-in:nth-child(3) { animation-delay: 0.12s; }
+    .fade-in:nth-child(4) { animation-delay: 0.18s; }
+
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .panels-grid, .analytics-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">Bunyi<span>.</span></div>
+      <div class="brand-sub">Admin Panel</div>
+    </div>
+    <div class="brand-strip"></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</button>
+      <div class="nav-section-label">Management</div>
+      <button class="nav-item" id="nav-users" onclick="showPage('users')"><span class="nav-icon">👥</span> Customers</button>
+      <button class="nav-item" id="nav-caterers" onclick="showPage('caterers')"><span class="nav-icon">🍽️</span> Caterers</button>
+      <button class="nav-item" id="nav-bookings" onclick="showPage('bookings')"><span class="nav-icon">📅</span> Bookings</button>
+      <button class="nav-item" id="nav-payments" onclick="showPage('payments')"><span class="nav-icon">💳</span> Payments</button>
+      <div class="nav-section-label">Insights</div>
+      <button class="nav-item" id="nav-analytics" onclick="showPage('analytics')"><span class="nav-icon">📈</span> Analytics</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="adminLogout()">🚪 Log Out</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-right"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card dark-card fade-in">
+            <div class="stat-icon-wrap ic-dark">👤</div>
+            <div class="stat-label">Customers</div>
+            <div class="stat-value" id="stat-customers">—</div>
+            <div class="stat-sub">Registered accounts</div>
+          </div>
+          <div class="stat-card dark-card fade-in">
+            <div class="stat-icon-wrap ic-dark">🍽️</div>
+            <div class="stat-label">Caterers</div>
+            <div class="stat-value" id="stat-caterers">—</div>
+            <div class="stat-sub">Active businesses</div>
+          </div>
+          <div class="stat-card fade-in">
+            <div class="stat-icon-wrap ic-green">📅</div>
+            <div class="stat-label">Bookings</div>
+            <div class="stat-value" id="stat-bookings">—</div>
+            <div class="stat-sub">All time</div>
+          </div>
+          <div class="stat-card fade-in">
+            <div class="stat-icon-wrap ic-orange">💰</div>
+            <div class="stat-label">Revenue</div>
+            <div class="stat-value" id="stat-revenue">—</div>
+            <div class="stat-sub">Total collected</div>
+          </div>
+        </div>
+        <div class="panels-grid">
+          <div class="panel fade-in">
+            <div class="panel-header"><span class="panel-title">Recent Bookings</span><button class="panel-link" onclick="showPage('bookings')">View all →</button></div>
+            <div class="panel-body"><table class="data-table"><thead><tr><th>Customer</th><th>Caterer</th><th>Date</th><th>Status</th></tr></thead><tbody id="recentBookingsBody"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody></table></div>
+          </div>
+          <div class="panel fade-in">
+            <div class="panel-header"><span class="panel-title">Booking Status</span></div>
+            <div class="panel-body"><div class="chart-container"><canvas id="statusChart"></canvas></div></div>
+          </div>
+        </div>
+        <div class="panels-grid">
+          <div class="panel fade-in">
+            <div class="panel-header"><span class="panel-title">Recent Customers</span><button class="panel-link" onclick="showPage('users')">View all →</button></div>
+            <div class="panel-body"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Gender</th></tr></thead><tbody id="recentUsersBody"><tr><td colspan="3" class="empty-state">Loading...</td></tr></tbody></table></div>
+          </div>
+          <div class="panel fade-in">
+            <div class="panel-header"><span class="panel-title">Revenue by Caterer</span></div>
+            <div class="panel-body"><div class="chart-container"><canvas id="revenueChart"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="page-section" id="page-users">
+        <div class="section-header">
+          <div class="section-label">Management</div>
+          <div class="section-title">Customer Accounts</div>
+          <div class="section-sub">All registered customer accounts</div>
+        </div>
+        <div class="full-panel fade-in">
+          <div class="full-panel-header"><span class="full-panel-title">All Customers</span><input class="search-input" type="text" placeholder="🔍 Search name or email..." oninput="filterTable('usersTableBody',this.value,[0,1])"></div>
+          <div class="full-panel-body"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Gender</th><th>Phone</th><th>Joined</th><th></th></tr></thead><tbody id="usersTableBody"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- CATERERS -->
+      <div class="page-section" id="page-caterers">
+        <div class="section-header">
+          <div class="section-label">Management</div>
+          <div class="section-title">Caterer Accounts</div>
+          <div class="section-sub">All registered catering businesses</div>
+        </div>
+        <div class="full-panel fade-in">
+          <div class="full-panel-header"><span class="full-panel-title">All Caterers</span><input class="search-input" type="text" placeholder="🔍 Search caterers..." oninput="filterTable('caterersTableBody',this.value,[0,1])"></div>
+          <div class="full-panel-body"><table class="data-table"><thead><tr><th>Business Name</th><th>Email</th><th>Address</th><th>Contact</th><th>Products</th><th></th></tr></thead><tbody id="caterersTableBody"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- BOOKINGS -->
+      <div class="page-section" id="page-bookings">
+        <div class="section-header">
+          <div class="section-label">Management</div>
+          <div class="section-title">All Bookings</div>
+          <div class="section-sub">Complete booking history across the platform</div>
+        </div>
+        <div class="full-panel fade-in">
+          <div class="full-panel-header"><span class="full-panel-title">Booking Records</span><input class="search-input" type="text" placeholder="🔍 Search bookings..." oninput="filterTable('bookingsTableBody',this.value,[0,1,2])"></div>
+          <div class="full-panel-body"><table class="data-table"><thead><tr><th>Customer</th><th>Caterer</th><th>Package</th><th>Event</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody id="bookingsTableBody"><tr><td colspan="7" class="empty-state">Loading...</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div class="page-section" id="page-payments">
+        <div class="section-header">
+          <div class="section-label">Management</div>
+          <div class="section-title">Payments</div>
+          <div class="section-sub">All payment transactions on the platform</div>
+        </div>
+        <div class="pay-stats">
+          <div class="stat-card fade-in">
+            <div class="stat-icon-wrap ic-red">💰</div>
+            <div class="stat-label">Total Collected</div>
+            <div class="stat-value" id="pay-total" style="font-size:1.5rem;">—</div>
+          </div>
+          <div class="stat-card fade-in">
+            <div class="stat-icon-wrap ic-green">✅</div>
+            <div class="stat-label">Fully Paid</div>
+            <div class="stat-value" id="pay-full" style="font-size:1.5rem;">—</div>
+          </div>
+          <div class="stat-card fade-in">
+            <div class="stat-icon-wrap ic-red">⏳</div>
+            <div class="stat-label">Partially Paid</div>
+            <div class="stat-value" id="pay-partial" style="font-size:1.5rem;">—</div>
+          </div>
+        </div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterPaymentTab('all',this)">All</button>
+          <button class="filter-tab" onclick="filterPaymentTab('Fully Paid',this)">Fully Paid</button>
+          <button class="filter-tab" onclick="filterPaymentTab('Partially Paid',this)">Partially Paid</button>
+          <button class="filter-tab" onclick="filterPaymentTab('Pending',this)">Pending</button>
+        </div>
+        <div class="full-panel fade-in">
+          <div class="full-panel-header"><span class="full-panel-title">Payment Records</span><input class="search-input" type="text" placeholder="🔍 Search payments..." oninput="filterTable('paymentsTableBody',this.value,[0,1])"></div>
+          <div class="full-panel-body"><table class="data-table"><thead><tr><th>Customer</th><th>Caterer</th><th>Package</th><th>Total</th><th>Paid</th><th>Platform</th><th>Status</th><th>Verified</th></tr></thead><tbody id="paymentsTableBody"><tr><td colspan="8" class="empty-state">Loading...</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="page-section" id="page-analytics">
+        <div class="section-header">
+          <div class="section-label">Insights</div>
+          <div class="section-title">Analytics & Reports</div>
+          <div class="section-sub">Platform performance insights</div>
+        </div>
+        <div class="analytics-grid">
+          <div class="panel fade-in"><div class="panel-header"><span class="panel-title">Bookings by Event Type</span></div><div class="panel-body"><div class="chart-container"><canvas id="eventChart"></canvas></div></div></div>
+          <div class="panel fade-in"><div class="panel-header"><span class="panel-title">Payment Distribution</span></div><div class="panel-body"><div class="chart-container"><canvas id="paymentPieChart"></canvas></div></div></div>
+          <div class="panel fade-in"><div class="panel-header"><span class="panel-title">Top Caterers by Bookings</span></div><div class="panel-body"><div class="chart-container"><canvas id="catererBookingsChart"></canvas></div></div></div>
+          <div class="panel fade-in"><div class="panel-header"><span class="panel-title">Revenue by Caterer</span></div><div class="panel-body"><div class="chart-container"><canvas id="catererRevenueChart"></canvas></div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    if (sessionStorage.getItem('bunyi_admin') !== 'true') window.location.href = '/admin-login';
+
+    var allUsers = [], allCaterers = [], allBookings = [], _payTab = 'all';
+
+    function adminLogout() { sessionStorage.removeItem('bunyi_admin'); window.location.href = '/admin-login'; }
+
+    function showPage(page) {
+      document.querySelectorAll('.page-section').forEach(function(s){ s.classList.remove('active'); });
+      document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+      document.getElementById('page-'+page).classList.add('active');
+      document.getElementById('nav-'+page).classList.add('active');
+      var titles={dashboard:'Dashboard',users:'Customers',caterers:'Caterers',bookings:'Bookings',payments:'Payments',analytics:'Analytics & Reports'};
+      document.getElementById('topbarTitle').textContent = titles[page]||page;
+    }
+
+    function formatPeso(n) { return '₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2}); }
+    function formatDate(d) { if(!d) return '—'; try{return new Date(d._seconds?d._seconds*1000:d).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});}catch(e){return String(d).substring(0,10);} }
+
+    function statusBadge(s) {
+      if(s==='Fully Paid') return '<span class="badge bg-green">✓ Fully Paid</span>';
+      if(s==='Partially Paid') return '<span class="badge bg-red">⏳ Partial</span>';
+      return '<span class="badge bg-gray">'+(s||'—')+'</span>';
+    }
+
+    function filterTable(tbodyId,q,cols) {
+      document.querySelectorAll('#'+tbodyId+' tr').forEach(function(row){
+        var cells=row.querySelectorAll('td'), match=!q;
+        if(q) cols.forEach(function(i){if(cells[i]&&cells[i].textContent.toLowerCase().indexOf(q.toLowerCase())!==-1)match=true;});
+        row.style.display=match?'':'none';
+      });
+    }
+
+    function filterPaymentTab(status, btn) {
+      _payTab = status;
+      document.querySelectorAll('.filter-tab').forEach(function(t){ t.classList.remove('active'); });
+      btn.classList.add('active');
+      renderPaymentsTable();
+    }
+
+    Chart.defaults.font.family='DM Sans';
+    Chart.defaults.color='#aaa';
+
+    async function loadData() {
+      try {
+        var [uRes,cRes,bRes]=await Promise.all([fetch('/admin-users'),fetch('/admin-caterers'),fetch('/admin-bookings')]);
+        allUsers=uRes.ok?await uRes.json():[];
+        allCaterers=cRes.ok?await cRes.json():[];
+        allBookings=bRes.ok?await bRes.json():[];
+        renderDashboard(); renderUsers(); renderCaterers(); renderBookings(); renderPayments(); renderAnalytics();
+      } catch(e){ console.error(e); }
+    }
+
+    function renderDashboard() {
+      var rev=allBookings.reduce(function(s,b){return s+(b.amountPaid||0);},0);
+      document.getElementById('stat-customers').textContent=allUsers.length;
+      document.getElementById('stat-caterers').textContent=allCaterers.length;
+      document.getElementById('stat-bookings').textContent=allBookings.length;
+      document.getElementById('stat-revenue').textContent=rev>=1000?'₱'+(rev/1000).toFixed(1)+'k':formatPeso(rev);
+
+      var recent=allBookings.slice(-5).reverse();
+      document.getElementById('recentBookingsBody').innerHTML=recent.length===0
+        ?'<tr><td colspan="4" class="empty-state">No bookings yet</td></tr>'
+        :recent.map(function(b){return '<tr><td><strong>'+(b.sender||'—')+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.date||'—')+'</td><td>'+statusBadge(b.status)+'</td></tr>';}).join('');
+
+      var recentU=allUsers.slice(-5).reverse();
+      document.getElementById('recentUsersBody').innerHTML=recentU.length===0
+        ?'<tr><td colspan="3" class="empty-state">No users yet</td></tr>'
+        :recentU.map(function(u){return '<tr><td><strong>'+(u.name||'—')+'</strong></td><td style="color:var(--muted)">'+(u.email||'—')+'</td><td>'+(u.gender||'—')+'</td></tr>';}).join('');
+
+      var fp=allBookings.filter(function(b){return b.status==='Fully Paid';}).length;
+      var pp=allBookings.filter(function(b){return b.status==='Partially Paid';}).length;
+      new Chart(document.getElementById('statusChart'),{type:'doughnut',data:{labels:['Fully Paid','Partially Paid'],datasets:[{data:fp+pp>0?[fp,pp]:[1],backgroundColor:fp+pp>0?['#27ae60','#E8472C']:['#eee'],borderWidth:2,borderColor:'#fff',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:11},color:'#888'}}}}});
+
+      var catR={}; allBookings.forEach(function(b){if(b.caterer)catR[b.caterer]=(catR[b.caterer]||0)+(b.amountPaid||0);});
+      var rL=Object.keys(catR),rD=rL.map(function(k){return catR[k];});
+      if(!rL.length){rL=['No data'];rD=[0];}
+      new Chart(document.getElementById('revenueChart'),{type:'bar',data:{labels:rL,datasets:[{label:'Revenue',data:rD,backgroundColor:'#E8472C',borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}});
+    }
+
+    function renderUsers() {
+      var tb=document.getElementById('usersTableBody');
+      if(!allUsers.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No customers found</td></tr>';return;}
+      tb.innerHTML=allUsers.map(function(u,i){return '<tr><td><strong>'+(u.name||'—')+'</strong></td><td style="color:var(--muted)">'+(u.email||'—')+'</td><td>'+(u.gender||'—')+'</td><td>'+(u.phone||'—')+'</td><td style="color:var(--muted);font-size:0.78rem;">'+formatDate(u.createdAt)+'</td><td><button class="delete-btn" onclick="confirmDelete(\'user\','+i+')">🗑️ Remove</button></td></tr>';}).join('');
+    }
+
+    function renderCaterers() {
+      var tb=document.getElementById('caterersTableBody');
+      if(!allCaterers.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No caterers found</td></tr>';return;}
+      tb.innerHTML=allCaterers.map(function(c,i){var pk=(c.packages||[]).length;return '<tr><td><strong>'+(c.name||c.businessName||'—')+'</strong></td><td style="color:var(--muted)">'+(c.email||'—')+'</td><td style="color:var(--muted)">'+(c.location||c.businessAddress||'—')+'</td><td>'+(c.contactNumber||'—')+'</td><td><span class="badge bg-green">'+pk+' items</span></td><td><button class="delete-btn" onclick="confirmDelete(\'caterer\','+i+')">🗑️ Remove</button></td></tr>';}).join('');
+    }
+
+    function renderBookings() {
+      var tb=document.getElementById('bookingsTableBody');
+      if(!allBookings.length){tb.innerHTML='<tr><td colspan="7" class="empty-state">No bookings found</td></tr>';return;}
+      tb.innerHTML=[...allBookings].reverse().map(function(b){return '<tr><td><strong>'+(b.sender||'—')+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.packageName||'—')+'</td><td><span class="badge bg-orange">'+(b.eventType||'—')+'</span></td><td style="color:var(--muted)">'+(b.date||'—')+'</td><td style="font-weight:700;color:var(--red-bright)">'+formatPeso(b.totalAmount)+'</td><td>'+statusBadge(b.status)+'</td></tr>';}).join('');
+    }
+
+    function renderPayments() {
+      var total=allBookings.reduce(function(s,b){return s+(b.amountPaid||0);},0);
+      var fp=allBookings.filter(function(b){return b.status==='Fully Paid';}).length;
+      var pp=allBookings.filter(function(b){return b.status==='Partially Paid';}).length;
+      document.getElementById('pay-total').textContent=formatPeso(total);
+      document.getElementById('pay-full').textContent=fp;
+      document.getElementById('pay-partial').textContent=pp;
+      renderPaymentsTable();
+    }
+
+    function renderPaymentsTable() {
+      var tb=document.getElementById('paymentsTableBody');
+      var data=[...allBookings].reverse();
+      if(_payTab!=='all') data=data.filter(function(b){return b.status===_payTab;});
+      if(!data.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No payments found</td></tr>';return;}
+      tb.innerHTML=data.map(function(b){return '<tr><td><strong>'+(b.sender||'—')+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.packageName||'—')+'</td><td>'+formatPeso(b.totalAmount)+'</td><td style="font-weight:700;color:var(--red-bright)">'+formatPeso(b.amountPaid)+'</td><td>'+(b.platform||'—')+'</td><td>'+statusBadge(b.status)+'</td><td>'+(b.verified?'<span class="badge bg-green">✓ Verified</span>':'<span class="badge bg-red">Pending</span>')+'</td></tr>';}).join('');
+    }
+
+    function renderAnalytics() {
+      var eC={}; allBookings.forEach(function(b){var e=b.eventType||'Other';eC[e]=(eC[e]||0)+1;});
+      var eL=Object.keys(eC),eD=eL.map(function(k){return eC[k];});
+      if(!eL.length){eL=['No data'];eD=[0];}
+      new Chart(document.getElementById('eventChart'),{type:'bar',data:{labels:eL,datasets:[{label:'Bookings',data:eD,backgroundColor:'#E8472C',borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f2f2f2'}},x:{grid:{display:false}}}}});
+
+      var fp2=allBookings.filter(function(b){return b.status==='Fully Paid';}).length;
+      var pp2=allBookings.filter(function(b){return b.status==='Partially Paid';}).length;
+      new Chart(document.getElementById('paymentPieChart'),{type:'doughnut',data:{labels:['Fully Paid','Partially Paid'],datasets:[{data:fp2+pp2>0?[fp2,pp2]:[1],backgroundColor:fp2+pp2>0?['#27ae60','#E8472C']:['#eee'],borderWidth:2,borderColor:'#fff',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:11},color:'#888'}}}}});
+
+      var cB={}; allBookings.forEach(function(b){cB[b.caterer]=(cB[b.caterer]||0)+1;});
+      var cBL=Object.keys(cB),cBD=cBL.map(function(k){return cB[k];});
+      if(!cBL.length){cBL=['No data'];cBD=[0];}
+      new Chart(document.getElementById('catererBookingsChart'),{type:'bar',data:{labels:cBL,datasets:[{label:'Bookings',data:cBD,backgroundColor:'#c0392b',borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f2f2f2'}},x:{grid:{display:false}}}}});
+
+      var cR={}; allBookings.forEach(function(b){cR[b.caterer]=(cR[b.caterer]||0)+(b.amountPaid||0);});
+      var cRL=Object.keys(cR),cRD=cRL.map(function(k){return cR[k];});
+      if(!cRL.length){cRL=['No data'];cRD=[0];}
+      new Chart(document.getElementById('catererRevenueChart'),{type:'bar',data:{labels:cRL,datasets:[{label:'Revenue',data:cRD,backgroundColor:'#e67e22',borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f2f2f2'}},x:{grid:{display:false}}}}});
+    }
+
+    function confirmDelete(type,index) {
+      if(!confirm('Remove this '+type+'? This cannot be undone.')) return;
+      fetch('/admin-delete-'+type,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:index})})
+        .then(function(r){return r.json();}).then(function(){loadData();}).catch(function(e){alert('Error: '+e.message);});
+    }
+
+    loadData();
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+
+

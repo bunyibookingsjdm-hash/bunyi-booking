@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bunyi – Catering Booking Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --crimson: #D72638;
+      --crimson-mid: #b01e2d;
+      --crimson-light: #fde8eb;
+      --yellow: #F7B731;
+      --yellow-light: #fef9e7;
+      --tangerine: #F26419;
+      --tangerine-light: #fef0e6;
+      --white: #ffffff;
+      --bg: #f8f8f8;
+      --border: #e8e8e8;
+      --muted: #888;
+      --text: #333;
+      --dark: #1A1A1A;
+      --orange: #E8450A;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER — dark, matching rest of site */
+    .header {
+      background: var(--dark);
+      padding: 0 48px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+    .brand {
+      font-size: 1.25rem; font-weight: 700;
+      color: var(--white); text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+    .brand span { color: var(--orange); }
+    .header-login {
+      padding: 8px 22px;
+      background: var(--orange);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .header-login:hover { background: #c93a08; transform: translateY(-1px); }
+
+    /* HERO */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 24px;
+      background: linear-gradient(160deg, var(--tangerine) 0%, var(--crimson) 60%, #a01020 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 15% 50%, rgba(0,0,0,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 85% 20%, rgba(247,183,49,0.2) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 90%, rgba(0,0,0,0.1) 0%, transparent 50%);
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+    .hero-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: var(--white);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .hero-title span { color: var(--yellow); }
+    .hero-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.7;
+      margin-bottom: 40px;
+      font-weight: 300;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-btn {
+      display: inline-block;
+      padding: 15px 40px;
+      background: var(--white);
+      color: var(--crimson);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .hero-btn:hover { background: var(--yellow); color: var(--dark); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.25); }
+
+    /* FEATURES */
+    .features { padding: 72px 24px; background: var(--bg); }
+    .features-inner { max-width: 960px; margin: 0 auto; }
+    .features-label {
+      text-align: center; font-size: 0.72rem; font-weight: 600;
+      color: var(--crimson); text-transform: uppercase;
+      letter-spacing: 0.14em; margin-bottom: 10px;
+    }
+    .features-title { text-align: center; font-size: 1.8rem; font-weight: 700; color: var(--dark); margin-bottom: 48px; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature-card {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 28px 24px; text-align: center;
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+    }
+    .feature-card:nth-child(1):hover { box-shadow: 0 8px 28px rgba(215,38,56,0.12); transform: translateY(-3px); border-color: var(--crimson); }
+    .feature-card:nth-child(2):hover { box-shadow: 0 8px 28px rgba(242,100,25,0.12); transform: translateY(-3px); border-color: var(--tangerine); }
+    .feature-card:nth-child(3):hover { box-shadow: 0 8px 28px rgba(247,183,49,0.15); transform: translateY(-3px); border-color: var(--yellow); }
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin: 0 auto 16px;
+    }
+    .feature-card:nth-child(1) .feature-icon { background: var(--crimson-light); }
+    .feature-card:nth-child(2) .feature-icon { background: var(--tangerine-light); }
+    .feature-card:nth-child(3) .feature-icon { background: var(--yellow-light); }
+    .feature-title { font-size: 0.95rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .feature-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.6; }
+
+    /* CTA */
+    .cta {
+      background: linear-gradient(135deg, var(--tangerine) 0%, var(--crimson) 60%, #a01020 100%);
+      padding: 72px 24px; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 80% 30%, rgba(247,183,49,0.2), transparent 55%),
+        radial-gradient(ellipse at 20% 70%, rgba(0,0,0,0.1), transparent 50%);
+    }
+    .cta-title { font-size: 1.8rem; font-weight: 700; color: var(--white); margin-bottom: 12px; position: relative; z-index: 1; }
+    .cta-title span { color: var(--yellow); }
+    .cta-sub { font-size: 0.92rem; color: rgba(255,255,255,0.8); margin-bottom: 32px; font-weight: 300; position: relative; z-index: 1; }
+    .cta-btn {
+      display: inline-block; padding: 14px 36px; background: var(--white);
+      color: var(--crimson); border-radius: 10px; font-size: 0.92rem; font-weight: 700;
+      text-decoration: none; transition: background 0.2s, transform 0.15s, color 0.2s;
+      position: relative; z-index: 1; box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+    }
+    .cta-btn:hover { background: var(--yellow); color: var(--dark); transform: translateY(-1px); }
+
+    /* FOOTER */
+    .footer {
+      background: var(--dark); padding: 24px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-brand { font-size: 1rem; font-weight: 700; color: #555; }
+    .footer-brand span { color: var(--crimson); }
+    .footer-copy { font-size: 0.78rem; color: #444; }
+
+    @media (max-width: 700px) {
+      .header { padding: 0 20px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .footer { flex-direction: column; gap: 8px; text-align: center; padding: 20px; }
+      .hero { padding: 60px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="/" class="brand">Bunyi<span>.</span></a>
+    <a href="/select-role" class="header-login">Log In →</a>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-tag">✦ Catering Booking Platform</div>
+      <h1 class="hero-title">Book Your Perfect<br><span>Catering Service</span></h1>
+      <p class="hero-sub">Connect with trusted local caterers for your next event. Easy booking, transparent pricing, and seamless communication — all in one place.</p>
+      <a href="/select-role" class="hero-btn">Get Started →</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="features-inner">
+      <p class="features-label">Why Bunyi?</p>
+      <h2 class="features-title">Everything you need to book catering</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🍽️</div>
+          <div class="feature-title">Browse Caterers</div>
+          <div class="feature-desc">Explore a curated list of professional caterers with detailed packages and pricing.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📅</div>
+          <div class="feature-title">Easy Booking</div>
+          <div class="feature-desc">Book your preferred caterer in minutes. Pick a date, time, and package that fits your event.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <div class="feature-title">Direct Messaging</div>
+          <div class="feature-desc">Chat directly with your caterer for faster coordination and peace of mind.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <h2 class="cta-title">Ready to book your <span>perfect event?</span></h2>
+    <p class="cta-sub">Join hundreds of customers who trust Bunyi for their catering needs.</p>
+    <a href="/select-role" class="cta-btn">Start Booking Now →</a>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-brand">Bunyi<span>.</span></div>
+    <div class="footer-copy">© 2026 Bunyi Booking. All rights reserved.</div>
+  </footer>
+
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js?autoOpenChatIn=1'></script>
+</body>
+</html>
+

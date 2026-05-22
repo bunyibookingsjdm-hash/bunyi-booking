@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings – Bunyi Caterer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #fff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333; --green: #16a34a; --green-light: #f0fdf4;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --yellow: #F7B731; --tangerine: #F26419; --tangerine-light: #fef0e6;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--yellow)); }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(215,38,56,0.3); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; }
+    .header-brand span { color: var(--crimson); }
+    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover, .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 1rem; position: relative; transition: background 0.2s; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: -3px; right: -3px; background: var(--yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 2px 5px; min-width: 16px; text-align: center; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+    .notif-empty { padding: 24px 16px; font-size: 0.83rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--crimson-light); }
+    .notif-text { font-size: 0.83rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .profile-wrapper { position: relative; }
+    .profile-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; height: 38px; border-radius: 8px; padding: 0 12px; display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.82rem; font-weight: 500; font-family: 'Poppins', sans-serif; transition: background 0.2s; }
+    .profile-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .profile-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .profile-chevron { font-size: 0.6rem; opacity: 0.6; }
+    .profile-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 200px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .profile-dropdown.open { display: block; }
+    .profile-info { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .profile-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .profile-email { font-size: 0.72rem; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-menu-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; text-decoration: none; font-size: 0.83rem; color: var(--text); font-weight: 500; transition: background 0.15s; }
+    .profile-menu-item:hover { background: var(--bg); }
+    .profile-menu-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .profile-menu-item.logout:hover { background: var(--crimson-light); }
+    .main { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+    .page-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px; }
+    .page-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); margin-bottom: 20px; }
+    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-btn { padding: 7px 16px; border: 1.5px solid var(--border); border-radius: 999px; font-family: 'Poppins', sans-serif; font-size: 0.78rem; font-weight: 600; color: var(--muted); background: var(--white); cursor: pointer; transition: all 0.2s; }
+    .filter-btn:hover, .filter-btn.active { border-color: var(--orange); color: var(--orange); background: var(--orange-light); }
+    .results-count { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+    .booking-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.2s; }
+    .booking-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
+    .card-top { padding: 13px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .card-top.has-payment { background: #1a1a1a; }
+    .card-top.no-payment { background: #2a2a2a; }
+    .card-top.is-past { background: #3a3a3a; }
+    .card-customer { font-size: 0.95rem; font-weight: 700; color: var(--white); }
+    .card-top-right { display: flex; align-items: center; gap: 8px; }
+    .status-badge { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 11px; border-radius: 999px; }
+    .badge-pending { background: #fffbeb; color: #b45309; }
+    .badge-partial { background: var(--orange-light); color: var(--orange); }
+    .badge-paid { background: var(--green-light); color: var(--green); }
+    .badge-verified { background: #dcfce7; color: #15803d; }
+    .badge-past { background: #f1f5f9; color: #64748b; }
+    .card-body { padding: 16px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .card-field-label { font-size: 0.66rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .card-field-value { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+    .card-footer { border-top: 1px solid var(--border); padding: 12px 20px; background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .footer-amounts { display: flex; gap: 24px; }
+    .footer-item-label { font-size: 0.66rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+    .footer-item-value { font-size: 0.92rem; font-weight: 700; }
+    .footer-item-value.green { color: var(--green); }
+    .footer-item-value.orange { color: var(--orange); }
+    .footer-item-value.muted { color: var(--muted); }
+    .verify-btn { padding: 8px 18px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+    .verify-btn:hover { background: #c93a08; }
+    .verify-btn:disabled { background: var(--green); cursor: default; }
+    .verified-tag { font-size: 0.75rem; font-weight: 600; color: var(--green); display: flex; align-items: center; gap: 4px; }
+    .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { opacity: 0; animation: fadeUp 0.35s ease forwards; }
+    @media (max-width: 700px) { .header { padding: 0 16px; } .header-nav { display: none; } .card-body { grid-template-columns: 1fr 1fr; } .footer-amounts { flex-wrap: wrap; gap: 12px; } }
+  </style>
+</head>
+<body>
+  <div class="color-strip"></div>
+  <header class="header">
+    <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
+    <nav class="header-nav">
+      <a class="nav-link" href="/caterer-dashboard">Dashboard</a>
+      <a class="nav-link active" href="/caterer-bookings">Bookings</a>
+      <a class="nav-link" href="/caterer-products">Products</a>
+      <a class="nav-link" href="/caterer-messages">Messages</a>
+      <a class="nav-link" href="/caterer-payments">Payments</a>
+    </nav>
+    <div class="header-right">
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown(event)" title="Notifications">
+          🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="profile-wrapper">
+        <button class="profile-btn" onclick="toggleProfileDropdown()">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <span class="profile-chevron">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="profile-info">
+            <div class="profile-name" id="dropdownName">—</div>
+            <div class="profile-email" id="dropdownEmail">—</div>
+          </div>
+          <a class="profile-menu-item" href="/caterer-account">⚙️ My Account</a>
+          <a class="profile-menu-item logout" href="/caterer-logout">🚪 Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <p class="page-eyebrow">Caterer Portal</p>
+    <h1 class="page-title">📋 Bookings</h1>
+    <div class="filter-bar">
+        <button class="filter-btn active" id="btnAll" onclick="applyFilter('all', this)">All</button>
+        <button class="filter-btn" id="btnPartial" onclick="applyFilter('partial', this)">Partially Paid</button>
+        <button class="filter-btn" id="btnFull" onclick="applyFilter('full', this)">Fully Paid</button>
+        <button class="filter-btn" id="btnPast" onclick="applyFilter('past', this)">📂 Past Bookings</button>
+    </div>  
+    <div class="results-count" id="resultsCount"></div>
+    <div id="bookingsList"><p style="color:var(--muted);font-size:0.88rem;">Loading...</p></div>
+  </main>
+
+  <script>
+    let allBookings = [];
+    let myBusinessName = '';
+    let currentFilter = 'all';
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function buildCard(b, globalIndex) {
+      const total = parseFloat(b.totalAmount) || 0;
+      const paid = parseFloat(b.amountPaid) || 0;
+      const remaining = total - paid;
+      const hasPayment = b.status === 'Partially Paid' || b.status === 'Fully Paid';
+      const today = new Date(); today.setHours(0,0,0,0);
+      const isPast = b.date && new Date(b.date + 'T00:00:00') < today;
+      const topClass = isPast ? 'is-past' : hasPayment ? 'has-payment' : 'no-payment';
+
+      let badgeClass = 'badge-pending', badgeText = 'Pending Payment';
+      if (b.status === 'Fully Paid') { badgeClass = 'badge-paid'; badgeText = 'Fully Paid'; }
+      else if (b.status === 'Partially Paid') { badgeClass = 'badge-partial'; badgeText = 'Partially Paid'; }
+
+      const pastBadge = isPast ? '<span class="status-badge badge-past">Past</span>' : '';
+      const verifiedBadge = b.verified ? '<span class="status-badge badge-verified">✓ Verified</span>' : '';
+
+      let verifyBtn = '';
+      if (hasPayment && !b.verified) {
+        verifyBtn = '<button class="verify-btn" onclick="verifyBooking(' + globalIndex + ', this)">Verify Payment</button>';
+      } else if (b.verified) {
+        verifyBtn = '<span class="verified-tag">✅ Payment Verified</span>';
+      }
+
+      return '<div class="booking-card fade-in">'
+        + '<div class="card-top ' + topClass + '">'
+        + '<div class="card-customer">' + (b.sender || 'Customer') + '</div>'
+        + '<div class="card-top-right">' + pastBadge + '<span class="status-badge ' + badgeClass + '">' + badgeText + '</span>' + verifiedBadge + '</div>'
+        + '</div>'
+        + '<div class="card-body">'
+        + '<div><div class="card-field-label">Package</div><div class="card-field-value">' + (b.packageName || '—') + '</div></div>'
+        + '<div><div class="card-field-label">Event Type</div><div class="card-field-value">' + (b.eventType || '—') + '</div></div>'
+        + '<div><div class="card-field-label">Event Date</div><div class="card-field-value">' + formatDate(b.date) + '</div></div>'
+async function loadNotifications() {
+      try {
+        const res = await fetch('/caterer-notifications');
+        const data = await res.json();
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        const unread = data.filter(n => !n.isRead).length;
+        badge.style.display = unread > 0 ? 'inline-block' : 'none';
+        badge.textContent = unread;
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(function(n) {
+          const a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.style.cursor = 'pointer';
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          a.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              await fetch('/caterer-read-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: n.id })
+              });
+            } catch(err) {}
+            const text = (n.text || '').toLowerCase();
+            if (text.includes('payment')) window.location.href = '/caterer-payments';
+            else if (text.includes('booking')) window.location.href = '/caterer-bookings';
+            else if (text.includes('message') || text.includes('chat')) window.location.href = '/caterer-messages';
+            else window.location.href = '/caterer-dashboard';
+          });
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+        + '</div>'
+        + '<div class="card-footer">'
+        + '<div class="footer-amounts">'
+        + '<div><div class="footer-item-label">Total Amount</div><div class="footer-item-value muted">₱' + total.toFixed(2) + '</div></div>'
+        + '<div><div class="footer-item-label">Amount Paid</div><div class="footer-item-value green">₱' + paid.toFixed(2) + '</div></div>'
+        + '<div><div class="footer-item-label">Remaining</div><div class="footer-item-value ' + (remaining <= 0 ? 'green' : 'orange') + '">₱' + remaining.toFixed(2) + '</div></div>'
+        + '</div>'
+        + verifyBtn
+        + '</div>'
+        + '</div>';
+    }
+
+    async function verifyBooking(globalIndex, btn) {
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      try {
+        const mine = allBookings.filter(b => b.caterer === myBusinessName);
+        const mineIndex = mine.findIndex((b) => allBookings.indexOf(b) === globalIndex);
+        const res = await fetch('/caterer-verify-booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: mineIndex })
+        });
+        const data = await res.json();
+        if (data.success) {
+          allBookings[globalIndex].verified = true;
+          renderBookings();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Verify Payment';
+        }
+      } catch(e) {
+        btn.disabled = false;
+        btn.textContent = 'Verify Payment';
+      }
+    }
+
+    function applyFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderBookings();
+    }
+
+    function renderBookings() {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const mine = allBookings
+        .map((b, i) => ({ ...b, _globalIndex: i }))
+        .filter(b => b.caterer === myBusinessName);
+
+      let filtered = [...mine].reverse();
+      if (currentFilter === 'pending') filtered = filtered.filter(b => b.status === 'Pending Payment');
+      else if (currentFilter === 'partial') filtered = filtered.filter(b => b.status === 'Partially Paid');
+      else if (currentFilter === 'full') filtered = filtered.filter(b => b.status === 'Fully Paid');
+      else if (currentFilter === 'past') filtered = filtered.filter(b => new Date(b.date + 'T00:00:00') < today);
+
+      document.getElementById('resultsCount').textContent = filtered.length + ' booking' + (filtered.length !== 1 ? 's' : '') + ' found';
+      const list = document.getElementById('bookingsList');
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No bookings found for this filter.</p></div>';
+        return;
+      }
+      list.innerHTML = filtered.map(b => buildCard(b, b._globalIndex)).join('');
+    }
+
+    async function loadBookings() {
+      try {
+        const sessionRes = await fetch('/caterer-session');
+        const session = await sessionRes.json();
+        if (!session.loggedIn) { window.location.href = '/caterer-login'; return; }
+        myBusinessName = session.businessName;
+        const avatarEl = document.getElementById('profileAvatar');
+        if (session.photo) {
+          avatarEl.style.background = 'none';
+          avatarEl.style.padding = '0';
+          avatarEl.style.overflow = 'hidden';
+          avatarEl.innerHTML = '<img src="' + session.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        } else {
+          avatarEl.textContent = session.businessName.charAt(0).toUpperCase();
+        }
+        document.getElementById('dropdownName').textContent = session.businessName;
+        document.getElementById('dropdownEmail').textContent = session.email;
+        const res = await fetch('/bookings');
+        allBookings = await res.json();
+        const params = new URLSearchParams(window.location.search);
+        const f = params.get('filter');
+        if (f === 'partial') applyFilter('partial', document.getElementById('btnPartial'));
+        else if (f === 'full') applyFilter('full', document.getElementById('btnFull'));
+        else if (f === 'pending') applyFilter('pending', document.getElementById('btnPending'));
+        else if (f === 'past') applyFilter('past', document.getElementById('btnPast'));
+        else renderBookings();
+      } catch(e) {}
+    }
+
+    function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
+    function toggleNotifDropdown(e) { if (e) e.stopPropagation(); document.getElementById('notifDropdown').classList.toggle('open'); document.getElementById('profileDropdown').classList.remove('open'); }
+    document.addEventListener('click', function(e) {
+      const nw = document.querySelector('.notif-wrapper');
+      const pw = document.querySelector('.profile-wrapper');
+      if (nw && !nw.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+      if (pw && !pw.contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
+    });
+    function formatNotifTime(ts) { const d = new Date(ts); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/caterer-notifications');
+        const data = await res.json();
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        const unread = data.filter(n => !n.isRead).length;
+        badge.style.display = unread > 0 ? 'inline-block' : 'none';
+        badge.textContent = unread;
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(n => {
+          const a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = async (e) => {
+          e.preventDefault();
+
+          await fetch('/caterer-read-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: n.id })
+          });
+
+          var text = (n.text || '').toLowerCase();
+
+          if (text.includes('payment')) {
+            window.location.href = '/caterer-payments';
+
+          } else if (text.includes('booking')) {
+            window.location.href = '/caterer-bookings';
+
+          } else if (text.includes('message') || text.includes('chat')) {
+            window.location.href = '/caterer-messages';
+
+          } else {
+            window.location.href = '/caterer-dashboard';
+          }
+        };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+
+    loadBookings();
+    loadNotifications();
+    setInterval(loadNotifications, 5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

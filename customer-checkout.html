@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #fff; --bg: #F8F8F8; --border: #e8e8e8; --muted: #888; --text: #333; --green: #16a34a; --green-light: #f0fdf4; --red: #e53e3e;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --notif-yellow: #F7B731; --tangerine: #F26419;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--notif-yellow)); }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; justify-self: start; }
+    .header-brand span { color: var(--crimson); }
+    .header-center { display: flex; align-items: center; gap: 2px; justify-content: center; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 7px 14px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.18); }
+    .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); border-radius: 6px; }
+    .header-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .cart-btn { background: rgba(255,255,255,0.14); border: none; cursor: pointer; font-size: 1.1rem; color: var(--white); display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s; position: relative; text-decoration: none; }
+    .cart-btn:hover { background: rgba(255,255,255,0.22); }
+    .cart-badge { position: absolute; top: 4px; right: 4px; background: var(--green); color: #fff; font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; display: none; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s, color 0.2s; position: relative; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: 4px; right: 4px; background: var(--notif-yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; font-family: 'Poppins', sans-serif; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 13px 15px 9px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 22px 15px; font-size: 0.82rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 11px 15px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; cursor: pointer; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--orange-light); }
+    .notif-text { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+    .account-wrapper { position: relative; }
+    .account-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: none; cursor: pointer; padding: 0 12px; height: 38px; border-radius: 8px; transition: background 0.2s; font-family: 'Poppins', sans-serif; }
+    .account-btn:hover { background: rgba(255,255,255,0.14); }
+    .account-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--white); flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .account-chevron { color: #aaa; font-size: 0.6rem; opacity: 0.6; }
+    .account-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 220px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .account-dropdown.open { display: block; }
+    .account-dropdown-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .account-dropdown-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .account-dropdown-email { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .account-dropdown-item { display: flex; align-items: center; gap: 9px; padding: 11px 16px; font-size: 0.84rem; color: var(--text); text-decoration: none; transition: background 0.15s; font-family: 'Poppins', sans-serif; font-weight: 500; }
+    .account-dropdown-item:hover { background: var(--bg); }
+    .account-dropdown-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .account-dropdown-item.logout:hover { background: var(--crimson-light); }
+    @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } }
+    @media (max-width: 480px) { .header-center { display: none; } }
+    .main { max-width: 900px; margin: 0 auto; padding: 44px 24px 80px; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 20px; transition: color 0.2s; }
+    .back-link:hover { color: var(--orange); }
+    .page-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px; }
+    .page-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); margin-bottom: 28px; }
+    .cart-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 24px; }
+    .cart-table { width: 100%; border-collapse: collapse; }
+    .cart-table thead tr { background: var(--dark); }
+    .cart-table thead th { padding: 13px 18px; text-align: left; font-size: 0.72rem; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; }
+    .cart-table thead th:last-child { text-align: right; }
+    .cart-table thead th.center { text-align: center; }
+    .cart-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    .cart-table tbody tr:last-child { border-bottom: none; }
+    .cart-table tbody tr:hover { background: #fafafa; }
+    .cart-table td { padding: 14px 18px; vertical-align: middle; }
+    .cart-table td.center { text-align: center; }
+    .cart-table td.right { text-align: right; }
+    .product-cell { display: flex; align-items: center; gap: 12px; }
+    .product-thumb { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border); }
+    .product-thumb-placeholder { width: 54px; height: 54px; border-radius: 8px; background: linear-gradient(135deg, #1A1A1A, #2d2d2d); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; border: 1px solid var(--border); }
+    .product-info { min-width: 0; }
+    .item-name { font-size: 0.92rem; font-weight: 600; color: var(--dark); margin-bottom: 2px; }
+    .item-caterer { font-size: 0.74rem; color: var(--muted); }
+    .item-price { font-size: 0.9rem; color: var(--text); font-weight: 500; }
+    .item-total { font-size: 0.95rem; font-weight: 700; color: var(--orange); }
+    .qty-control { display: inline-flex; align-items: center; gap: 0; border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .qty-btn { width: 32px; height: 32px; border: none; background: var(--bg); cursor: pointer; font-size: 1rem; font-weight: 600; color: var(--dark); display: flex; align-items: center; justify-content: center; transition: background 0.15s; font-family: 'Poppins', sans-serif; }
+    .qty-btn:hover { background: var(--border); }
+    .qty-btn.minus:hover { background: #fff0eb; color: var(--red); }
+    .qty-display { width: 40px; height: 32px; border: none; border-left: 1.5px solid var(--border); border-right: 1.5px solid var(--border); text-align: center; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--dark); background: var(--white); outline: none; }
+    .qty-display::-webkit-inner-spin-button, .qty-display::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .remove-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; padding: 4px 6px; border-radius: 5px; transition: color 0.15s, background 0.15s; }
+    .remove-btn:hover { color: var(--red); background: #fff0f0; }
+    .cart-empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
+    .cart-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .cart-empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin-bottom: 6px; }
+    .cart-empty-state p { font-size: 0.86rem; margin-bottom: 20px; }
+    .browse-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+    .browse-btn:hover { background: #c93a08; }
+    .summary-box { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .summary-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .summary-label { font-size: 0.84rem; color: var(--muted); font-weight: 500; }
+    .summary-value { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+    .summary-divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .summary-total-row { display: flex; align-items: center; justify-content: space-between; }
+    .summary-total-label { font-size: 1rem; font-weight: 700; color: var(--dark); }
+    .summary-total-label span { font-size: 0.78rem; font-weight: 500; color: var(--muted); margin-left: 6px; }
+    .summary-total-price { font-size: 1.4rem; font-weight: 700; color: var(--orange); }
+    .book-now-btn { width: 100%; margin-top: 18px; padding: 14px; background: var(--orange); color: var(--white); border: none; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 0.96rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .book-now-btn:hover { background: #c93a08; transform: translateY(-1px); }
+    .book-now-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    .book-note { font-size: 0.74rem; color: var(--muted); text-align: center; margin-top: 10px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .event-details-box { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .event-details-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .event-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .event-form-group { display: flex; flex-direction: column; gap: 5px; }
+    .event-form-group label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .event-form-group select, .event-form-group input { padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; }
+    .event-form-group select:focus, .event-form-group input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.1); }
+    .other-event-group { display: none; grid-column: 1 / -1; }
+    @media (max-width: 600px) { .event-form-grid { grid-template-columns: 1fr; } }
+    .fade-in { opacity: 0; animation: fadeUp 0.4s ease forwards; }
+    @media (max-width: 640px) {
+      .cart-table thead th:nth-child(2), .cart-table td:nth-child(2) { display: none; }
+      .cart-table thead th:nth-child(4), .cart-table td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="color-strip"></div>
+  <header class="header">
+    <a href="/dashboard" class="header-brand">Bunyi<span>.</span></a>
+    <nav class="header-center">
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <a href="/browse" class="nav-link">Browse</a>
+      <a href="/chats" class="nav-link">Messages</a>
+    </nav>
+    <div class="header-right">
+      <a href="/cart" class="cart-btn" title="My Cart">
+        🛒 <span class="cart-badge" id="cartBadge">0</span>
+      </a>
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="account-wrapper">
+        <button class="account-btn" onclick="toggleAccountDropdown()">
+          <div class="account-avatar" id="accountAvatar">?</div>
+          <span class="account-chevron">▾</span>
+        </button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-dropdown-header">
+            <div class="account-dropdown-name" id="accountDropdownName">—</div>
+            <div class="account-dropdown-email" id="accountDropdownEmail">—</div>
+          </div>
+          <a href="/account" class="account-dropdown-item">👤 My Account</a>
+          <a href="/logout" class="account-dropdown-item logout">🚪 Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <a href="/browse" class="back-link">← Back to Browse</a>
+    <p class="page-eyebrow">Checkout</p>
+    <h1 class="page-title">🛒 My Cart</h1>
+    <div id="cartContent"></div>
+  </main>
+
+  <script>
+    let cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
+    cart = cart.map(item => ({ ...item, qty: item.qty || 1 }));
+
+    let pkgImageMap = {};
+
+    async function loadCatererImages() {
+      try {
+        const res = await fetch('/caterers');
+        const caterers = await res.json();
+        caterers.forEach(function(c) {
+          (c.packages || []).forEach(function(p) {
+            pkgImageMap[c.name + '||' + p.name] = p.image || null;
+          });
+        });
+      } catch(e) {}
+    }
+
+    function getPackageImage(catererName, pkgName) {
+      if (pkgImageMap[catererName + '||' + pkgName]) return pkgImageMap[catererName + '||' + pkgName];
+      var baseName = pkgName.replace(/\s*\(.*\)\s*$/, '').trim();
+      return pkgImageMap[catererName + '||' + baseName] || null;
+    }
+
+    function saveCart() { sessionStorage.setItem('bunyi_cart', JSON.stringify(cart)); }
+    function formatPeso(n) { return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2 }); }
+
+    function renderCart() {
+      const container = document.getElementById('cartContent');
+      const badge = document.getElementById('cartBadge');
+      const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+      badge.textContent = totalItems;
+      badge.style.display = totalItems > 0 ? 'inline-block' : 'none';
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="cart-empty-state fade-in">
+            <div class="cart-empty-icon">🛒</div>
+            <h3>Your cart is empty</h3>
+            <p>Browse caterers and add packages to your cart.</p>
+            <a href="/browse" class="browse-btn">Browse Caterers →</a>
+          </div>`;
+        return;
+      }
+
+      const grandTotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+      const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+
+      const tableRows = cart.map((item, idx) => {
+        const lineTotal = item.price * item.qty;
+        const imgSrc = getPackageImage(item.catererName, item.pkgName);
+        const imgHTML = imgSrc
+          ? `<img class="product-thumb" src="${imgSrc}" alt="${item.pkgName}">`
+          : `<div class="product-thumb-placeholder">🍽️</div>`;
+        return `
+          <tr id="row-${idx}">
+            <td>
+              <div class="product-cell">
+                ${imgHTML}
+                <div class="product-info">
+                  <div class="item-name">${item.pkgName}</div>
+                  <div class="item-caterer">by ${item.catererName}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="item-price">${formatPeso(item.price)}<span style="font-size:0.7rem;color:var(--muted);font-weight:400;"> /head</span></span></td>
+            <td class="center">
+              <div class="qty-control">
+                <button class="qty-btn minus" onclick="changeQty(${idx}, -1)">−</button>
+                <input class="qty-display" type="number" value="${item.qty}" min="0" onchange="setQty(${idx}, this.value)">
+                <button class="qty-btn" onclick="changeQty(${idx}, 1)">+</button>
+              </div>
+            </td>
+            <td class="right"><span class="item-total">${formatPeso(lineTotal)}</span></td>
+            <td class="center">
+              <button class="remove-btn" onclick="removeItem(${idx})" title="Remove">🗑️</button>
+            </td>
+          </tr>`;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="cart-card fade-in">
+          <table class="cart-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Unit Price</th>
+                <th class="center">Quantity</th>
+                <th style="text-align:right;">Total Price</th>
+                <th class="center"></th>
+              </tr>
+            </thead>
+            <tbody id="cartTableBody">${tableRows}</tbody>
+          </table>
+        </div>
+
+        <div class="event-details-box fade-in" style="animation-delay:0.08s;">
+          <div class="event-details-title">📋 Event Details</div>
+          <div class="event-form-grid">
+            <div class="event-form-group">
+              <label>Event Type</label>
+              <select id="eventType" onchange="toggleOtherEvent()">
+                <option value="">Select type...</option>
+                <option>Birthday</option>
+                <option>Wedding</option>
+                <option>Christening</option>
+                <option>Debut</option>
+                <option>Reunion</option>
+                <option>Funeral</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="event-form-group">
+              <label>Pickup Date</label>
+              <input type="date" id="pickupDate" onchange="onDateChange(this.value)">
+            </div>
+            <div class="event-form-group">
+              <label>Pickup Time</label>
+              <select id="pickupTime">
+                <option value="">Select time...</option>
+                <option value="00:00">12:00 AM</option>
+                <option value="01:00">1:00 AM</option>
+                <option value="02:00">2:00 AM</option>
+                <option value="03:00">3:00 AM</option>
+                <option value="04:00">4:00 AM</option>
+                <option value="05:00">5:00 AM</option>
+                <option value="06:00">6:00 AM</option>
+                <option value="07:00">7:00 AM</option>
+                <option value="08:00">8:00 AM</option>
+                <option value="09:00">9:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="12:00">12:00 PM</option>
+                <option value="13:00">1:00 PM</option>
+                <option value="14:00">2:00 PM</option>
+                <option value="15:00">3:00 PM</option>
+                <option value="16:00">4:00 PM</option>
+                <option value="17:00">5:00 PM</option>
+                <option value="18:00">6:00 PM</option>
+                <option value="19:00">7:00 PM</option>
+                <option value="20:00">8:00 PM</option>
+                <option value="21:00">9:00 PM</option>
+                <option value="22:00">10:00 PM</option>
+                <option value="23:00">11:00 PM</option>
+              </select>
+            </div>
+            <div class="event-form-group other-event-group" id="otherEventGroup">
+              <label>Please Specify</label>
+              <input type="text" id="otherEvent" placeholder="Describe your event">
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-box fade-in" style="animation-delay:0.1s;">
+          <div class="summary-row">
+            <span class="summary-label">Number of Orders</span>
+            <span class="summary-value">${cart.length} order${cart.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total Items</span>
+            <span class="summary-value">${totalQty} item${totalQty !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-total-row">
+            <div class="summary-total-label">Total <span>(${cart.length} item${cart.length !== 1 ? 's' : ''})</span></div>
+            <div class="summary-total-price">${formatPeso(grandTotal)}</div>
+          </div>
+          <button class="book-now-btn" onclick="bookNow()">📅 Book Now</button>
+          <p class="book-note">You will be taken to the booking page for the first item in your cart.</p>
+        </div>`;
+
+      const pd = document.getElementById('pickupDate');
+      if (pd) pd.min = new Date().toISOString().split('T')[0];
+
+      // Apply blocked slots immediately after DOM is built
+      applyBlockedSlots();
+    }
+
+    function changeQty(idx, delta) {
+      const newQty = cart[idx].qty + delta;
+      if (newQty <= 0) { removeItem(idx); } else { cart[idx].qty = newQty; saveCart(); renderCart(); }
+    }
+    function setQty(idx, val) {
+      const newQty = parseInt(val);
+      if (isNaN(newQty) || newQty <= 0) { removeItem(idx); } else { cart[idx].qty = newQty; saveCart(); renderCart(); }
+    }
+    function removeItem(idx) { cart.splice(idx, 1); saveCart(); renderCart(); }
+
+    function toggleOtherEvent() {
+      const val = document.getElementById('eventType').value;
+      const grp = document.getElementById('otherEventGroup');
+      if (grp) grp.style.display = val === 'Other' ? 'flex' : 'none';
+    }
+
+    // ── Called inline from the date input's onchange ──
+    function onDateChange(dateStr) {
+      const blocked = window._blockedSlots || {};
+      const recurringDays = window._recurringDays || [];
+      const entry = blocked[dateStr] || {};
+      // Check recurring day of week
+      if (dateStr) {
+        const parts = dateStr.split('-');
+        const dow = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])).getDay();
+        if (recurringDays.indexOf(dow) !== -1) {
+          alert('❌ This day is a recurring day off for this caterer. Please choose another date.');
+          document.getElementById('pickupDate').value = '';
+          updateTimeSlots('');
+          return;
+        }
+      }
+      if (entry.allDay) {
+        alert('❌ This date is fully unavailable. Please choose another date.');
+        document.getElementById('pickupDate').value = '';
+        updateTimeSlots('');
+        return;
+      }
+      updateTimeSlots(dateStr);
+    }
+
+    // ── Disable/enable time options based on blocked slots for the given date ──
+    // Convert HH:MM value to AM/PM string to match dashboard blocked slots format
+    function toAmPm(val) {
+      if (!val) return '';
+      var parts = val.split(':');
+      var h = parseInt(parts[0]);
+      var m = parts[1] || '00';
+      var ampm = h >= 12 ? 'PM' : 'AM';
+      var h12 = h % 12 || 12;
+      return h12 + ':' + m + ' ' + ampm;
+    }
+
+    function updateTimeSlots(dateStr) {
+      const timeSelect = document.getElementById('pickupTime');
+      if (!timeSelect) return;
+      const blocked = window._blockedSlots || {};
+      const entry = blocked[dateStr] || {};
+      const blockedTimes = entry.times || [];
+
+      Array.from(timeSelect.options).forEach(function(opt) {
+        if (!opt.value) return; // skip placeholder
+        const ampm = toAmPm(opt.value); // convert "00:00" → "12:00 AM" for matching
+        const isBlocked = entry.allDay || blockedTimes.includes(ampm);
+        opt.disabled = isBlocked;
+        const baseLabel = opt.text.replace(' (Unavailable)', '');
+        opt.text = isBlocked ? baseLabel + ' (Unavailable)' : baseLabel;
+      });
+
+      // If the currently selected time is now blocked, clear it
+      if (timeSelect.value && timeSelect.options[timeSelect.selectedIndex] && timeSelect.options[timeSelect.selectedIndex].disabled) {
+        timeSelect.value = '';
+      }
+    }
+
+    // ── Apply blocked slots to the current date value immediately ──
+    function applyBlockedSlots() {
+      const dateInput = document.getElementById('pickupDate');
+      if (!dateInput) return;
+      const dateStr = dateInput.value;
+      if (dateStr) {
+        onDateChange(dateStr);
+      } else {
+        // No date selected yet — still reset all time options to clean state
+        updateTimeSlots('');
+      }
+    }
+
+    // ── Fetch blocked slots from server for this caterer ──
+    async function fetchAndApplyBlockedSlots(catererName) {
+      try {
+        const res = await fetch('/blocked-slots?caterer=' + encodeURIComponent(catererName));
+        if (!res.ok) return;
+        const data = await res.json();
+        // New format: { slots, recurringDays, maxOrders }
+        window._blockedSlots = data.slots || data; // fallback if old format
+        window._recurringDays = data.recurringDays || [];
+        // Apply immediately to current DOM state
+        applyBlockedSlots();
+      } catch(e) {}
+    }
+
+    function isWithinOneWeek(dateStr) {
+      if (!dateStr) return false;
+      const eventDate = new Date(dateStr + 'T00:00:00');
+      const today = new Date(); today.setHours(0,0,0,0);
+      const diffDays = (eventDate - today) / (1000 * 60 * 60 * 24);
+      return diffDays <= 7;
+    }
+
+    function bookNow() {
+      if (cart.length === 0) return;
+      const eventType  = document.getElementById('eventType')  ? document.getElementById('eventType').value  : '';
+      const pickupDate = document.getElementById('pickupDate') ? document.getElementById('pickupDate').value : '';
+      const pickupTime = document.getElementById('pickupTime') ? document.getElementById('pickupTime').value : '';
+      const otherEvent = document.getElementById('otherEvent') ? document.getElementById('otherEvent').value : '';
+      if (!eventType)  { alert('Please select an event type.'); return; }
+      if (!pickupDate) { alert('Please select a pickup date.'); return; }
+      if (!pickupTime) { alert('Please select a pickup time.'); return; }
+      const today = new Date().toISOString().split('T')[0];
+      if (pickupDate < today) { alert('Pickup date cannot be in the past.'); return; }
+      // Final guard: block if recurring day or blocked slot
+      const blocked = window._blockedSlots || {};
+      const recurringDays = window._recurringDays || [];
+      const parts = pickupDate.split('-');
+      const dow = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])).getDay();
+      if (recurringDays.indexOf(dow) !== -1) {
+        alert('❌ This day is a recurring day off for this caterer. Please choose another date.');
+        return;
+      }
+      const entry = blocked[pickupDate] || {};
+      const blockedTimes = entry.times || [];
+      if (entry.allDay || blockedTimes.includes(toAmPm(pickupTime))) {
+        alert('❌ The selected date/time is unavailable. Please choose another.');
+        return;
+      }
+      const finalEventType = eventType === 'Other' ? otherEvent : eventType;
+      const grandTotal = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
+      const within = isWithinOneWeek(pickupDate);
+      const paymentType = within ? 'full' : 'down';
+      const amountToPay = within ? grandTotal : grandTotal * 0.5;
+      sessionStorage.setItem('bunyi_cart', JSON.stringify(cart));
+      sessionStorage.setItem('bunyi_checkout', JSON.stringify({ eventType: finalEventType, date: pickupDate, time: pickupTime, grandTotal: grandTotal, paymentType: paymentType, amountToPay: amountToPay }));
+      const first = cart[0];
+      window.location.href = '/book?caterer=' + encodeURIComponent(first.catererName)
+        + '&package=' + encodeURIComponent(first.pkgName)
+        + '&price=' + first.price
+        + '&eventType=' + encodeURIComponent(finalEventType)
+        + '&date=' + pickupDate
+        + '&time=' + pickupTime
+        + '&grandTotal=' + grandTotal
+        + '&paymentType=' + paymentType
+        + '&cartItems=' + encodeURIComponent(JSON.stringify(cart));
+    }
+
+    async function loadUserInfo() {
+      try {
+        const res = await fetch('/session-user'); const data = await res.json();
+        if (data && data.name) {
+          const avatarEl = document.getElementById('accountAvatar');
+          if (data.photo) {
+            avatarEl.style.background = 'none';
+            avatarEl.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          } else {
+            avatarEl.textContent = data.name.charAt(0).toUpperCase();
+          }
+          document.getElementById('accountDropdownName').textContent = data.name;
+          document.getElementById('accountDropdownEmail').textContent = data.email || '';
+        }
+      } catch(e) {}
+    }
+
+    function formatNotifTime(ts) {
+      const d = ts && ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+    }
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/notifications'); const data = await res.json();
+        const badge = document.getElementById('notifBadge'); const list = document.getElementById('notifList');
+        const unread = data.filter(n => !n.isRead).length;
+        if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread; } else { badge.style.display = 'none'; }
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(n => {
+          const a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = async (e) => {
+            e.preventDefault();
+            await fetch('/read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) });
+            const text = (n.text || '').toLowerCase();
+            if (n.type === 'reminder' || text.includes('remaining balance') || text.includes('balance due') || text.includes('partially paid') || text.includes('due')) {
+              window.location.href = '/dashboard';
+            } else if (n.type === 'message' || text.includes('message') || text.includes('chat')) {
+              window.location.href = '/chats';
+            } else {
+              window.location.href = '/events';
+            }
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+    async function toggleNotifDropdown() {
+      const dd = document.getElementById('notifDropdown');
+      const ad = document.getElementById('accountDropdown');
+      if (ad) ad.classList.remove('open');
+      dd.classList.toggle('open');
+      if (dd.classList.contains('open')) { await loadNotifications(); }
+    }
+    function toggleAccountDropdown() {
+      const nd = document.getElementById('notifDropdown');
+      const ad = document.getElementById('accountDropdown');
+      if (nd) nd.classList.remove('open');
+      ad.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); }
+      const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); }
+    });
+
+    loadCatererImages().then(async function() {
+      // Fetch blocked slots FIRST so data is ready before any date interaction
+      if (cart.length > 0) {
+        await fetchAndApplyBlockedSlots(cart[0].catererName);
+      }
+      renderCart();
+    });
+    loadUserInfo();
+    loadNotifications();
+    setInterval(loadNotifications, 5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

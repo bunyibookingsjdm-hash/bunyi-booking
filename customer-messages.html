@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages – Bunyi Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #ffffff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888888; --text: #333333;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --notif-yellow: #F7B731; --tangerine: #F26419;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--notif-yellow)); flex-shrink: 0; }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.18); flex-shrink: 0; }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; justify-self: start; }
+    .header-brand span { color: var(--crimson); }
+    .header-center { display: flex; align-items: center; gap: 2px; justify-content: center; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 7px 14px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.18); }
+    .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); border-radius: 6px; }
+    .header-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .cart-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s; position: relative; text-decoration: none; }
+    .cart-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .cart-badge { position: absolute; top: 4px; right: 4px; background: #16a34a; color: #fff; font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; display: none; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s, color 0.2s; position: relative; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: 4px; right: 4px; background: var(--notif-yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; font-family: 'Poppins', sans-serif; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 13px 15px 9px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 22px 15px; font-size: 0.82rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 11px 15px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; cursor: pointer; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--orange-light); }
+    .notif-text { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+    .account-wrapper { position: relative; }
+    .account-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: none; cursor: pointer; padding: 0 12px; height: 38px; border-radius: 8px; transition: background 0.2s; font-family: 'Poppins', sans-serif; }
+    .account-btn:hover { background: rgba(255,255,255,0.14); }
+    .account-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--white); flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .account-chevron { color: #aaa; font-size: 0.6rem; opacity: 0.6; }
+    .account-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 220px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .account-dropdown.open { display: block; }
+    .account-dropdown-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .account-dropdown-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .account-dropdown-email { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .account-dropdown-item { display: flex; align-items: center; gap: 9px; padding: 11px 16px; font-size: 0.84rem; color: var(--text); text-decoration: none; transition: background 0.15s; font-family: 'Poppins', sans-serif; font-weight: 500; }
+    .account-dropdown-item:hover { background: var(--bg); }
+    .account-dropdown-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .account-dropdown-item.logout:hover { background: var(--crimson-light); }
+    @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } }
+    @media (max-width: 480px) { .header-center { display: none; } }
+    .chats-layout { flex: 1; display: flex; overflow: hidden; }
+    .sidebar { width: 300px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+    .sidebar-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); font-size: 1rem; font-weight: 700; color: var(--dark); }
+    .chat-layout { display: flex; flex: 1; overflow: hidden; }
+    .chat-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--white); display: flex; flex-direction: column; overflow: hidden; }
+    .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--white); flex-shrink: 0; }
+    .messages-search { position: relative; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 11px; font-size: 0.85rem; pointer-events: none; opacity: 0.45; }
+    .messages-search input { width: 100%; padding: 9px 14px 9px 34px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; color: var(--dark); background: var(--bg); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .messages-search input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.1); background: var(--white); }
+    .messages-search input::placeholder { color: var(--muted); font-size: 0.8rem; }
+    .sidebar-list { overflow-y: auto; flex: 1; }
+    .convo-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; text-decoration: none; }
+    .convo-item:hover { background: var(--bg); }
+    .convo-item.active { background: var(--orange-light); border-left: 3px solid var(--orange); }
+    .convo-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--orange); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+    .convo-info { flex: 1; min-width: 0; }
+    .convo-name { font-size: 0.88rem; font-weight: 600; color: var(--dark); margin-bottom: 2px; }
+    .convo-preview { font-size: 0.78rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .convo-time { font-size: 0.68rem; color: var(--muted); flex-shrink: 0; }
+    .sidebar-empty { padding: 32px 20px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+    .chat-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+    .empty-panel { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); font-size: 0.9rem; gap: 10px; }
+    .empty-panel .icon { font-size: 2.5rem; }
+    .active-chat-wrap { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    .chat-topbar { padding: 14px 20px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .chat-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--orange); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; }
+    .chat-caterer-name { font-size: 0.95rem; font-weight: 700; color: var(--dark); }
+    .chat-status { font-size: 0.75rem; color: var(--muted); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .msg-row { display: flex; flex-direction: column; max-width: 68%; }
+    .msg-row.me { align-self: flex-end; align-items: flex-end; }
+    .msg-row.them { align-self: flex-start; align-items: flex-start; }
+    .bubble { padding: 10px 14px; border-radius: 18px; font-size: 0.9rem; line-height: 1.5; word-break: break-word; }
+    .msg-row.me .bubble { background: var(--orange); color: #fff; border-bottom-right-radius: 4px; }
+    .msg-row.them .bubble { background: var(--white); color: var(--dark); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg-time { font-size: 0.68rem; color: var(--muted); margin-top: 3px; padding: 0 4px; }
+    .chat-input-bar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: var(--white); border-top: 1px solid var(--border); flex-shrink: 0; }
+    .chat-input-bar input { flex: 1; padding: 11px 18px; border: 1.5px solid var(--border); border-radius: 24px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; background: var(--bg); outline: none; transition: border-color 0.2s; color: var(--dark); }
+    .chat-input-bar input:focus { border-color: var(--orange); }
+    .send-btn { width: 42px; height: 42px; background: var(--orange); color: #fff; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; flex-shrink: 0; transition: background 0.2s, transform 0.15s; }
+    .send-btn:hover { background: #c93a08; transform: scale(1.06); }
+    @media (max-width: 640px) { .sidebar { width: 72px; } .convo-info, .convo-time { display: none; } .convo-item { justify-content: center; padding: 12px; } }
+  </style>
+</head>
+<body>
+  <div class="color-strip"></div>
+  <header class="header">
+    <a href="/dashboard" class="header-brand">Bunyi<span>.</span></a>
+    <nav class="header-center">
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <a href="/browse" class="nav-link">Browse</a>
+      <a href="/chats" class="nav-link active">Messages</a>
+    </nav>
+    <div class="header-right">
+      <a href="/cart" class="cart-btn" title="My Cart">
+        🛒 <span class="cart-badge" id="cartBadge">0</span>
+      </a>
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="account-wrapper">
+        <button class="account-btn" onclick="toggleAccountDropdown()">
+          <div class="account-avatar" id="accountAvatar">?</div>
+          <span class="account-chevron">▾</span>
+        </button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-dropdown-header">
+            <div class="account-dropdown-name" id="accountDropdownName">—</div>
+            <div class="account-dropdown-email" id="accountDropdownEmail">—</div>
+          </div>
+          <a href="/account" class="account-dropdown-item">👤 My Account</a>
+          <a href="/logout" class="account-dropdown-item logout">🚪 Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="chats-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="messages-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="catererSearch" placeholder="Search caterers..." oninput="filterCaterers()">
+        </div>
+      </div>
+      <div class="sidebar-list" id="sidebarList"></div>
+    </aside>
+    <div class="chat-panel">
+      <div class="empty-panel" id="emptyPanel">
+        <span class="icon">💬</span>
+        <span>Select a conversation to start chatting</span>
+      </div>
+      <div class="active-chat-wrap" id="activeChatWrap">
+        <div class="chat-topbar">
+          <div class="chat-avatar" id="panelAvatar"></div>
+          <div>
+            <div class="chat-caterer-name" id="panelName"></div>
+            <div class="chat-status">Catering Service</div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatBox"></div>
+        <div class="chat-input-bar">
+          <input type="text" id="msgInput" placeholder="Type a message..." maxlength="300">
+          <button class="send-btn" onclick="sendMessage()" title="Send">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeCaterer = urlParams.get('caterer') || '';
+
+    function formatTime(ts) { const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
+    function formatPreviewTime(ts) { const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); const now = new Date(); if ((now - d) / 3600000 < 24) return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
+
+    async function loadSidebar() {
+      const res = await fetch('/chats-data');
+      const data = await res.json();
+      const list = document.getElementById('sidebarList');
+      if (data.length === 0) { list.innerHTML = '<p class="sidebar-empty">No conversations yet.</p>'; return; }
+      list.innerHTML = '';
+      data.forEach(c => {
+        const a = document.createElement('a');
+        a.className = 'convo-item' + (c.caterer === activeCaterer ? ' active' : '');
+        a.href = '#';
+        a.onclick = (e) => { e.preventDefault(); openChat(c.caterer); };
+        a.innerHTML = `<div class="convo-avatar">${c.caterer.charAt(0).toUpperCase()}</div><div class="convo-info"><div class="convo-name">${c.caterer}</div><div class="convo-preview">${c.lastMessage}</div></div><div class="convo-time">${formatPreviewTime(c.lastTime)}</div>`;
+        list.appendChild(a);
+      });
+    }
+
+    async function openChat(caterer) {
+      activeCaterer = caterer;
+      document.getElementById('emptyPanel').style.display = 'none';
+      const wrap = document.getElementById('activeChatWrap');
+      wrap.style.display = 'flex';
+      document.getElementById('panelAvatar').textContent = caterer.charAt(0).toUpperCase();
+      document.getElementById('panelName').textContent = caterer;
+      document.querySelectorAll('.convo-item').forEach(el => { el.classList.toggle('active', el.querySelector('.convo-name')?.textContent === caterer); });
+      await loadMessages();
+      const box = document.getElementById('chatBox');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadMessages() {
+      if (!activeCaterer) return;
+      const res = await fetch('/messages?caterer=' + encodeURIComponent(activeCaterer));
+      const data = await res.json();
+      const box = document.getElementById('chatBox');
+      const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
+      box.innerHTML = '';
+      if (data.length === 0) { box.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.85rem;margin:auto;">No messages yet. Say hello!</p>'; return; }
+      let lastDateStr = '';
+      data.forEach(m => {
+        // Parse Firestore timestamp correctly
+        const ts = m.timestamp && m.timestamp.toDate ? m.timestamp.toDate() : (m.timestamp && m.timestamp._seconds ? new Date(m.timestamp._seconds * 1000) : new Date(m.timestamp));
+        // Add date separator when date changes
+        const dateStr = ts.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+        if (dateStr !== lastDateStr) {
+          lastDateStr = dateStr;
+          const sep = document.createElement('div');
+          sep.style.cssText = 'text-align:center;font-size:0.68rem;color:var(--muted);font-weight:600;margin:12px 0 8px;position:relative;';
+          sep.innerHTML = '<span style="background:var(--bg);padding:0 10px;position:relative;z-index:1;">' + dateStr + '</span><div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0;"></div>';
+          box.appendChild(sep);
+        }
+        const timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+        const div = document.createElement('div');
+        div.className = 'msg-row ' + (m.sender === 'Customer' ? 'me' : 'them');
+        div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
+        box.appendChild(div);
+      });
+      if (wasAtBottom) box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
+      if (!text || !activeCaterer) return;
+      await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: activeCaterer, sender: 'Customer', text }) });
+      input.value = '';
+      await loadMessages();
+      await loadSidebar();
+      document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+    }
+
+    document.getElementById('msgInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+    function loadCartBadge() {
+      try {
+        const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
+        const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        const badge = document.getElementById('cartBadge');
+        badge.textContent = total;
+        badge.style.display = total > 0 ? 'inline-block' : 'none';
+      } catch(e) {}
+    }
+
+    async function loadUserInfo() {
+      try {
+        const res = await fetch('/session-user');
+        const data = await res.json();
+        if (data && data.name) {
+          const avatarEl = document.getElementById('accountAvatar');
+          if (data.photo) {
+            avatarEl.style.background = 'none';
+            avatarEl.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          } else {
+            avatarEl.textContent = data.name.charAt(0).toUpperCase();
+          }
+          document.getElementById('accountDropdownName').textContent = data.name;
+          document.getElementById('accountDropdownEmail').textContent = data.email || '';
+        }
+      } catch(e) {}
+    }
+
+    function formatNotifTime(ts) {
+      const d = ts && ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+    }
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/notifications'); const data = await res.json();
+        const badge = document.getElementById('notifBadge'); const list = document.getElementById('notifList');
+        const unread = data.filter(n => !n.isRead).length;
+        if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread; } else { badge.style.display = 'none'; }
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(n => {
+          const a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = async (e) => {
+            e.preventDefault();
+            await fetch('/read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) });
+            const text = (n.text || '').toLowerCase();
+            if (n.type === 'reminder' || text.includes('remaining balance') || text.includes('balance due') || text.includes('partially paid') || text.includes('due')) {
+              window.location.href = '/dashboard';
+            } else if (n.type === 'message' || text.includes('message') || text.includes('chat')) {
+              window.location.href = '/chats';
+            } else {
+              window.location.href = '/events';
+            }
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+    async function toggleNotifDropdown() {
+      const dd = document.getElementById('notifDropdown');
+      const ad = document.getElementById('accountDropdown');
+      if (ad) ad.classList.remove('open');
+      dd.classList.toggle('open');
+      if (dd.classList.contains('open')) { await loadNotifications(); }
+    }
+    function toggleAccountDropdown() { const ad = document.getElementById('accountDropdown'); const nd = document.getElementById('notifDropdown'); if (nd) nd.classList.remove('open'); ad.classList.toggle('open'); }
+    document.addEventListener('click', function(e) { const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); } const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); } });
+
+    function filterCaterers() {
+      const search = document.getElementById('catererSearch').value.toLowerCase();
+      document.querySelectorAll('.convo-item').forEach(item => {
+        const name = item.querySelector('.convo-name').textContent.toLowerCase();
+        item.style.display = name.includes(search) ? 'flex' : 'none';
+      });
+    }
+
+    loadUserInfo();
+    loadCartBadge();
+    loadSidebar().then(() => { if (activeCaterer) openChat(activeCaterer); });
+    loadNotifications();
+    setInterval(() => { loadMessages(); loadSidebar(); }, 2000);
+    setInterval(loadNotifications, 5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

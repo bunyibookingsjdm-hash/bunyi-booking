@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --crimson: #D72638;
+      --crimson-mid: #b01e2d;
+      --crimson-light: #fde8eb;
+      --yellow: #F7B731;
+      --yellow-light: #fef9e7;
+      --tangerine: #F26419;
+      --tangerine-light: #fef0e6;
+      --white: #ffffff;
+      --bg: #f8f8f8;
+      --border: #e8e8e8;
+      --muted: #888888;
+      --text: #1a1a1a;
+      --dark: #1A1A1A;
+      --orange: #E8450A;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER — dark, matching rest of site */
+    .header {
+      background: var(--dark);
+      padding: 0 48px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+    .brand { font-size: 1.25rem; font-weight: 700; color: var(--white); text-decoration: none; letter-spacing: -0.01em; }
+    .brand span { color: var(--orange); }
+    .back-link { font-size: 0.82rem; color: #aaa; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+    .back-link:hover { color: var(--white); }
+
+    /* LAYOUT */
+    .auth-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 16px;
+    }
+    .auth-box {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      animation: fadeUp 0.4s ease forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CARD TOP — gradient matching select-role buttons */
+    .card-top {
+      background: linear-gradient(135deg, var(--crimson) 0%, var(--tangerine) 100%);
+      padding: 28px 32px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-top::before {
+      content: '';
+      position: absolute;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 50%;
+      top: -70px; right: -50px;
+    }
+    .card-top::after {
+      content: '';
+      position: absolute;
+      width: 90px; height: 90px;
+      background: rgba(247,183,49,0.15);
+      border-radius: 50%;
+      bottom: -30px; left: 20px;
+    }
+    .admin-pill {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 999px; padding: 3px 12px;
+      font-size: 0.62rem; color: rgba(255,255,255,0.95);
+      font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .card-brand { position: relative; z-index: 1; }
+    .card-brand-name { font-size: 1.7rem; font-weight: 700; color: #fff; line-height: 1; }
+    .card-brand-name span { color: var(--yellow); }
+    .card-brand-sub {
+      font-size: 0.68rem; color: rgba(255,255,255,0.7);
+      margin-top: 5px; text-transform: uppercase;
+      letter-spacing: 0.16em; font-weight: 500;
+    }
+
+    /* CARD BODY */
+    .card-body { padding: 28px 32px 32px; }
+    .auth-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .auth-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 24px; }
+
+    .error-msg {
+      background: var(--crimson-light); border: 1px solid rgba(215,38,56,0.3);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 0.82rem; color: var(--crimson);
+      margin-bottom: 16px; display: none; align-items: center; gap: 8px;
+    }
+    .error-msg.show { display: flex; }
+
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block; font-size: 0.7rem; font-weight: 700;
+      color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 6px;
+    }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; left: 12px; top: 50%;
+      transform: translateY(-50%); font-size: 0.85rem; pointer-events: none;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: 11px 14px 11px 36px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'Poppins', sans-serif; font-size: 0.9rem;
+      color: var(--text); background: var(--bg); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: var(--crimson);
+      box-shadow: 0 0 0 3px rgba(215,38,56,0.1);
+      background: var(--white);
+    }
+
+    .btn-submit {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--crimson) 0%, var(--tangerine) 100%);
+      color: var(--white); border: none; border-radius: 8px;
+      font-family: 'Poppins', sans-serif; font-size: 0.92rem; font-weight: 700;
+      cursor: pointer; margin-top: 6px;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px rgba(215,38,56,0.25);
+    }
+    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .divider { height: 1px; background: var(--border); margin: 22px 0; }
+    .back-footer {
+      text-align: center; font-size: 0.8rem; color: var(--muted);
+    }
+    .back-footer a { color: var(--crimson); font-weight: 600; text-decoration: none; }
+    .back-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      .header { padding: 0 20px; }
+      .card-body { padding: 24px 20px 28px; }
+      .card-top { padding: 24px 20px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <a href="/" class="brand">Bunyi<span>.</span></a>
+    <a href="/" class="back-link">← Back</a>
+  </header>
+
+  <!-- AUTH CARD -->
+  <div class="auth-wrap">
+    <div class="auth-box">
+
+      <div class="card-top">
+        <div class="admin-pill">Admin Portal</div>
+        <div class="card-brand">
+          <div class="card-brand-name">Bunyi<span>.</span></div>
+          <div class="card-brand-sub">Administrative Dashboard</div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="auth-title">Welcome back, Admin</div>
+        <div class="auth-sub">Sign in to manage the Bunyi platform.</div>
+
+        <div class="error-msg" id="errorBox">
+          ⚠️ Invalid username or password.
+        </div>
+
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" id="username" placeholder="Enter admin username">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="password" placeholder="Enter admin password">
+          </div>
+        </div>
+
+        <button class="btn-submit" onclick="adminLogin()">Sign In →</button>
+
+        <div class="divider"></div>
+        <div class="back-footer">
+          Not an admin? <a href="/select-role">Go back to role selection</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    if (sessionStorage.getItem('bunyi_admin') === 'true') window.location.href = '/admin-dashboard';
+
+    function adminLogin() {
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value.trim();
+      if (u === 'admin' && p === 'admin123') {
+        sessionStorage.setItem('bunyi_admin', 'true');
+        window.location.href = '/admin-dashboard';
+      } else {
+        document.getElementById('errorBox').classList.add('show');
+        document.getElementById('password').value = '';
+      }
+    }
+    document.addEventListener('keydown', function(e) { if (e.key === 'Enter') adminLogin(); });
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

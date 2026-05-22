@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caterer Portal – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A;
+      --white: #ffffff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333;
+    }
+    body {
+      font-family: 'Poppins', sans-serif; background: var(--bg);
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+    .header {
+      background: var(--dark); padding: 0 40px; height: 62px;
+      display: flex; align-items: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); text-decoration: none; }
+    .header-brand span { color: var(--orange); }
+    .auth-wrap {
+      flex: 1; display: flex; align-items: center;
+      justify-content: center; padding: 48px 16px;
+    }
+    .auth-box {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px; width: 100%; max-width: 480px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      animation: fadeUp 0.4s ease forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .auth-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--orange-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 16px;
+    }
+    .auth-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .auth-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+    .auth-sub { font-size: 0.83rem; color: var(--muted); margin-bottom: 24px; }
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label {
+      display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px;
+    }
+    input, textarea {
+      width: 100%; padding: 10px 13px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.9rem;
+      color: var(--dark); background: var(--white); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.1);
+    }
+    textarea { resize: vertical; min-height: 76px; }
+    .error-msg {
+      background: #fff0eb; border: 1px solid #ffd0bc; border-radius: 8px;
+      padding: 10px 14px; font-size: 0.82rem; color: #c93a08;
+      margin-bottom: 16px; display: none; align-items: center; gap: 8px;
+    }
+    .error-msg.show { display: flex; }
+    .btn-submit {
+      width: 100%; padding: 13px; background: var(--orange); color: var(--white);
+      border: none; border-radius: 8px; font-family: 'Poppins', sans-serif;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer; margin-top: 6px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-submit:hover { background: #c93a08; transform: translateY(-1px); }
+    .divider { height: 1px; background: var(--border); margin: 24px 0; }
+    .switch-hint { text-align: center; font-size: 0.82rem; color: var(--muted); }
+    .switch-hint a { color: var(--orange); font-weight: 600; text-decoration: none; cursor: pointer; }
+    .switch-hint a:hover { text-decoration: underline; }
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.8rem; color: var(--muted); text-decoration: none;
+      margin-bottom: 20px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--orange); }
+    @media (max-width: 520px) {
+      .auth-box { padding: 28px 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .header { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+ 
+  <header class="header">
+    <a href="/" class="header-brand">Bunyi<span>.</span></a>
+  </header>
+ 
+  <div class="auth-wrap">
+    <div class="auth-box">
+ 
+      <!-- LOGIN PANEL -->
+      <div class="form-panel active" id="panelLogin">
+        <div class="auth-icon">🍽️</div>
+        <p class="auth-eyebrow">Caterer Portal</p>
+        <h1 class="auth-title">Welcome back!</h1>
+        <p class="auth-sub">Sign in to manage your catering business.</p>
+ 
+        <div class="error-msg" id="loginError">
+          ⚠️ <span id="loginErrorText">Invalid email or password.</span>
+        </div>
+ 
+        <form action="/caterer-login" method="POST">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-submit">Sign In →</button>
+        </form>
+ 
+        <div class="divider"></div>
+        <div class="switch-hint">
+          Don't have an account? <a onclick="switchTo('register')">Create one here</a>
+        </div>
+      </div>
+ 
+      <!-- REGISTER PANEL -->
+      <div class="form-panel" id="panelRegister">
+        <div class="auth-icon">🍽️</div>
+        <p class="auth-eyebrow">Caterer Portal</p>
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-sub">Join Bunyi and start receiving bookings from customers.</p>
+ 
+        <div class="error-msg" id="registerError">
+          ⚠️ <span id="registerErrorText"></span>
+        </div>
+ 
+        <form action="/caterer-register" method="POST">
+          <p class="section-label">Account Info</p>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Password</label>
+              <input type="password" name="password" placeholder="Min. 6 characters" required>
+            </div>
+            <div class="form-group">
+              <label>Confirm Password</label>
+              <input type="password" name="confirmPassword" placeholder="Repeat password" required>
+            </div>
+          </div>
+ 
+          <p class="section-label">Business Info</p>
+          <div class="form-group">
+            <label>Name of Business</label>
+            <input type="text" name="businessName" placeholder="e.g. Bulacan Feast Catering" required>
+          </div>
+          <div class="form-group">
+            <label>Business Address</label>
+            <input type="text" name="businessAddress" placeholder="Street, City, Province" required>
+          </div>
+          <div class="form-group">
+            <label>Contact Number</label>
+            <input type="tel" name="contactNumber" placeholder="e.g. 09XX XXX XXXX" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" placeholder="Tell customers about your catering service..."></textarea>
+          </div>
+ 
+          <button type="submit" class="btn-submit">Create Account →</button>
+        </form>
+ 
+        <div class="divider"></div>
+        <div class="switch-hint">
+          Already have an account? <a onclick="switchTo('login')">Sign in here</a>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <script>
+    function switchTo(panel) {
+      document.getElementById('panelLogin').classList.toggle('active', panel === 'login');
+      document.getElementById('panelRegister').classList.toggle('active', panel === 'register');
+      document.querySelector('.auth-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+ 
+    const params = new URLSearchParams(window.location.search);
+    const loginErr = params.get('loginerror');
+    const regErr = params.get('error');
+ 
+    if (loginErr === '1') {
+      switchTo('login');
+      document.getElementById('loginError').classList.add('show');
+      document.getElementById('loginErrorText').textContent = 'Invalid email or password. Please try again.';
+    }
+ 
+    const regErrors = {
+      short: 'Password must be at least 6 characters.',
+      mismatch: 'Passwords do not match.',
+      exists: 'An account with this email already exists.'
+    };
+    if (regErr && regErrors[regErr]) {
+      switchTo('register');
+      document.getElementById('registerError').classList.add('show');
+      document.getElementById('registerErrorText').textContent = regErrors[regErr];
+    }
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>

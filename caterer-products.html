@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products - Bunyi Caterer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #fff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333; --green: #16a34a; --green-light: #f0fdf4;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --yellow: #F7B731; --tangerine: #F26419; --tangerine-light: #fef0e6;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--yellow)); }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(215,38,56,0.3); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; }
+    .header-brand span { color: var(--crimson); }
+    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover, .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 1rem; position: relative; transition: background 0.2s; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: -3px; right: -3px; background: var(--yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 2px 5px; min-width: 16px; text-align: center; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 24px 16px; font-size: 0.83rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--crimson-light); }
+    .notif-text { font-size: 0.83rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .profile-wrapper { position: relative; }
+    .profile-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; height: 38px; border-radius: 8px; padding: 0 12px; display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.82rem; font-weight: 500; font-family: 'Poppins', sans-serif; transition: background 0.2s; }
+    .profile-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .profile-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .profile-chevron { font-size: 0.6rem; opacity: 0.6; }
+    .profile-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 200px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .profile-dropdown.open { display: block; }
+    .profile-info { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .profile-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .profile-email { font-size: 0.72rem; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-menu-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; text-decoration: none; font-size: 0.83rem; color: var(--text); font-weight: 500; transition: background 0.15s; }
+    .profile-menu-item:hover { background: var(--bg); }
+    .profile-menu-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .profile-menu-item.logout:hover { background: var(--crimson-light); }
+    .main { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+    .page-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px; }
+    .page-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); margin-bottom: 28px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 0.9rem; font-weight: 700; color: var(--dark); }
+    .section-line { flex: 1; height: 1px; background: var(--border); margin: 0 14px; }
+    .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .add-btn:hover { background: #c93a08; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .product-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.2s, transform 0.2s; }
+    .product-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .product-img { width: 100%; height: 140px; object-fit: cover; display: block; }
+    .product-img-placeholder { width: 100%; height: 140px; background: linear-gradient(135deg, #1A1A1A, #2d2d2d); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; }
+    .product-img-placeholder span { font-size: 1.8rem; }
+    .product-img-placeholder p { font-size: 0.68rem; color: #aaa; font-family: 'Poppins', sans-serif; }
+    .product-body { padding: 12px 14px; }
+    .product-category { font-size: 0.62rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .product-name { font-size: 0.9rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+    .product-inclusions { font-size: 0.72rem; color: var(--muted); line-height: 1.4; margin-bottom: 8px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+    .product-price { font-size: 1rem; font-weight: 700; color: var(--dark); }
+    .product-price span { font-size: 0.68rem; font-weight: 400; color: var(--muted); }
+    .product-actions { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); background: var(--bg); }
+    .btn-edit { flex: 1; padding: 7px; background: var(--white); border: 1.5px solid var(--border); border-radius: 7px; font-family: 'Poppins', sans-serif; font-size: 0.75rem; font-weight: 600; color: var(--dark); cursor: pointer; transition: all 0.2s; }
+    .btn-edit:hover { border-color: var(--orange); color: var(--orange); }
+    .btn-delete { flex: 1; padding: 7px; background: var(--white); border: 1.5px solid #fecaca; border-radius: 7px; font-family: 'Poppins', sans-serif; font-size: 0.75rem; font-weight: 600; color: #e53e3e; cursor: pointer; transition: all 0.2s; }
+    .btn-delete:hover { background: #fff5f5; }
+    .empty-products { text-align: center; padding: 40px; color: var(--muted); font-size: 0.86rem; background: var(--white); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 40px; }
+    .qr-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
+    .qr-item { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; width: 140px; position: relative; }
+    .qr-img { width: 90px; height: 90px; object-fit: contain; display: block; margin: 0 auto 6px; }
+    .qr-label { font-size: 0.72rem; color: var(--muted); word-break: break-word; line-height: 1.5; }
+    .qr-delete { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; background: #e53e3e; border: none; border-radius: 50%; color: #fff; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .qr-delete:hover { background: #c53030; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--white); border-radius: 14px; width: 100%; max-width: 480px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); display: flex; flex-direction: column; max-height: 90vh; }
+    .modal-body { overflow-y: auto; flex: 1; padding: 24px; }
+    .modal-header { background: var(--dark); padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .modal-eyebrow { font-size: 0.68rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 3px; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    .modal-close { background: rgba(255,255,255,0.1); border: none; color: var(--white); font-size: 1.1rem; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+    .modal-close:hover { background: rgba(255,255,255,0.2); }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    input, select, textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.08); }
+    textarea { resize: vertical; min-height: 80px; }
+    input[type="file"] { padding: 8px; cursor: pointer; background: var(--bg); }
+    .img-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 8px; display: none; }
+    .modal-footer { display: flex; gap: 10px; padding: 0 24px 24px; }
+    .btn-cancel { flex: 1; padding: 11px; background: transparent; color: var(--muted); border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; cursor: pointer; }
+    .btn-save { flex: 2; padding: 11px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .btn-save:hover { background: #c93a08; }
+    .btn-save:disabled { background: var(--muted); cursor: not-allowed; }
+    .error-box { background: var(--orange-light); border: 1px solid #ffd0bc; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #c93a08; margin-bottom: 14px; display: none; }
+    .variant-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .variant-row input { flex: 1; padding: 8px 10px; font-size: 0.85rem; }
+    .variant-row input:last-of-type { max-width: 100px; }
+    .remove-variant-btn { width: 28px; height: 28px; border: none; background: #fecaca; color: #e53e3e; border-radius: 6px; cursor: pointer; font-size: 1rem; flex-shrink: 0; font-family: 'Poppins', sans-serif; }
+    .remove-variant-btn:hover { background: #fca5a5; }
+    .add-variant-btn { font-size: 0.78rem; font-weight: 600; color: var(--orange); background: var(--orange-light); border: 1.5px dashed var(--orange); border-radius: 7px; padding: 7px 14px; cursor: pointer; font-family: 'Poppins', sans-serif; margin-top: 4px; }
+    .add-variant-btn:hover { background: #ffd9c9; }
+    .variant-section { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+    .variant-section-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { opacity: 0; animation: fadeUp 0.4s ease forwards; }
+    @media (max-width: 700px) { .header { padding: 0 16px; } .header-nav { display: none; } .product-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="color-strip"></div>
+  <header class="header">
+    <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
+    <nav class="header-nav">
+      <a class="nav-link" href="/caterer-dashboard">Dashboard</a>
+      <a class="nav-link" href="/caterer-bookings">Bookings</a>
+      <a class="nav-link active" href="/caterer-products">Products</a>
+      <a class="nav-link" href="/caterer-messages">Messages</a>
+    </nav>
+    <div class="header-right">
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">
+          🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="profile-wrapper">
+        <button class="profile-btn" onclick="toggleProfileDropdown()">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <span class="profile-chevron">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="profile-info">
+            <div class="profile-name" id="dropdownName">—</div>
+            <div class="profile-email" id="dropdownEmail">—</div>
+          </div>
+          <a class="profile-menu-item" href="/caterer-account">⚙️ My Account</a>
+          <a class="profile-menu-item logout" href="/caterer-logout">🚪 Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <p class="page-eyebrow">Caterer Portal</p>
+    <h1 class="page-title">🍽️ Products &amp; QR Codes</h1>
+    <div class="section-header fade-in">
+      <span class="section-title">My Packages</span>
+      <div class="section-line"></div>
+      <button class="add-btn" onclick="openAddModal()">+ Add Product</button>
+    </div>
+    <div id="productGrid" class="product-grid"></div>
+    <div class="section-header fade-in">
+      <span class="section-title">📱 Payment QR Codes</span>
+      <div class="section-line"></div>
+      <span style="font-size:0.75rem;color:var(--muted);" id="qrCount">0 / 5</span>
+    </div>
+    <div id="qrGrid" class="qr-grid"></div>
+    <div id="qrAddBtn" style="display:inline-block;">
+      <button class="add-btn" onclick="openQRModal()" id="addQRBtn">+ Add QR Code</button>
+    </div>
+    <div id="qrMsg" style="font-size:0.8rem;margin-top:8px;font-weight:500;display:none;"></div>
+  </main>
+
+  <!-- QR CODE MODAL -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <div><div class="modal-eyebrow">Payment</div><div class="modal-title">Add QR Code</div></div>
+        <button class="modal-close" onclick="closeQRModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="error-box" id="qrModalError"></div>
+        <div class="form-group">
+          <label>QR Code Image *</label>
+          <div id="qrDropArea" style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color 0.2s;" onclick="document.getElementById('qrFileInput').click()" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div id="qrPreviewWrap" style="display:none;"><img id="qrImgPreview" style="max-width:100%;max-height:160px;object-fit:contain;border-radius:6px;"></div>
+            <div id="qrDropText"><span style="font-size:1.8rem;">📷</span><p style="font-size:0.8rem;color:var(--muted);margin-top:6px;">Click to choose image</p><p style="font-size:0.7rem;color:var(--muted);margin-top:2px;">PNG, JPG accepted</p></div>
+          </div>
+          <input type="file" id="qrFileInput" accept="image/*" style="display:none;" onchange="previewQRImg(this)">
+        </div>
+        <div class="form-group"><label>QR Label (e.g. GCash, Maya) *</label><input type="text" id="qrLabel" placeholder="e.g. GCash"></div>
+        <div class="form-group"><label>Recipient Name <span style="font-weight:400;text-transform:none;">(Optional)</span></label><input type="text" id="qrRecipient" placeholder="e.g. Juan Dela Cruz"></div>
+        <div class="form-group"><label>Account Number <span style="font-weight:400;text-transform:none;">(Optional)</span></label><input type="text" id="qrAccount" placeholder="e.g. 09XX XXX XXXX"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeQRModal()">Cancel</button>
+        <button class="btn-save" id="qrSaveBtn" onclick="saveQR()">Save QR Code</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD / EDIT MODAL -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div><div class="modal-eyebrow">Products</div><div class="modal-title" id="modalTitle">Add Product</div></div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="error-box" id="modalError"></div>
+        <div class="form-group"><label>Product Name *</label><input type="text" id="pkgName" placeholder="e.g. Silver Package"></div>
+        <div class="form-group"><label>Category *</label><select id="pkgCategory"><option value="Packages">Packages</option><option value="Food Trays">Food Trays</option><option value="Bilao">Bilao</option><option value="Bento / Short Orders">Bento / Short Orders</option></select></div>
+        <div class="form-group" id="priceGroup"><label>Price *</label><input type="number" id="pkgPrice" placeholder="e.g. 350" min="1"></div>
+        <div class="variant-section">
+          <div class="variant-section-label"><span>Variants (Optional)</span><span style="font-size:0.68rem;color:var(--muted);font-weight:400;">e.g. Small/Medium/Large or colors</span></div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;"><span style="flex:1;font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;">Variant Name</span><span style="width:100px;font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;">Price (₱)</span><span style="width:28px;"></span></div>
+          <div id="variantRows"></div>
+          <button type="button" class="add-variant-btn" onclick="addVariantRow()">+ Add Variant</button>
+        </div>
+        <div class="form-group"><label>Inclusions / Description *</label><textarea id="pkgInclusions" placeholder="e.g. 3 dishes + drinks + dessert"></textarea></div>
+        <div class="form-group"><label id="imgLabel">Product Photo * (Required)</label><input type="file" id="pkgImage" accept="image/*" onchange="previewImg(this)"><img id="imgPreview" class="img-preview" alt="Preview"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" id="saveBtn" onclick="saveProduct()">Save Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-header">
+        <div><div class="modal-eyebrow" style="color:#e53e3e;">Danger Zone</div><div class="modal-title">Delete Product</div></div>
+        <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+      </div>
+      <div class="modal-body"><p style="font-size:0.88rem;color:#555;line-height:1.6;">Are you sure you want to delete <strong id="deleteProductName"></strong>? This cannot be undone.</p></div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn-save" style="background:#e53e3e;" onclick="confirmDelete()">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var myBusinessName = '';
+    var myCaterer = null;
+    var editIndex = -1;
+    var deleteIndex = -1;
+    var CATEGORIES = ['Packages', 'Food Trays', 'Bilao', 'Bento / Short Orders'];
+
+    async function loadData() {
+      try {
+        var sessionRes = await fetch('/caterer-session');
+        var session = await sessionRes.json();
+        if (!session.loggedIn) { window.location.href = '/caterer-login'; return; }
+        myBusinessName = session.businessName;
+        var avatarEl = document.getElementById('profileAvatar');
+        if (session.photo) { avatarEl.style.background = 'none'; avatarEl.style.padding = '0'; avatarEl.style.overflow = 'hidden'; avatarEl.innerHTML = '<img src="' + session.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
+        else { avatarEl.textContent = session.businessName.charAt(0).toUpperCase(); }
+        document.getElementById('dropdownName').textContent = session.businessName;
+        document.getElementById('dropdownEmail').textContent = session.email;
+        var res = await fetch('/caterers');
+        var caterers = await res.json();
+        myCaterer = caterers.find(function(c) { return c.name === myBusinessName; });
+        renderProducts();
+        renderQR();
+      } catch(e) {}
+    }
+
+    function renderProducts() {
+      var grid = document.getElementById('productGrid');
+      if (!myCaterer || !myCaterer.packages || myCaterer.packages.length === 0) { grid.innerHTML = '<div class="empty-products">🍽️ No products yet. Click "Add Product" to get started!</div>'; return; }
+      var html = '';
+      CATEGORIES.forEach(function(cat) {
+        var items = myCaterer.packages.map(function(p, i) { return Object.assign({}, p, { _index: i }); }).filter(function(p) { return (p.category || 'Packages') === cat; });
+        if (items.length === 0) return;
+        items.forEach(function(p) {
+          var imgHTML = p.image ? '<img class="product-img" src="' + p.image + '" alt="product">' : '<div class="product-img-placeholder"><span>🍽️</span><p>No image</p></div>';
+          html += '<div class="product-card fade-in">' + imgHTML + '<div class="product-body">'
+            + '<div class="product-category">' + cat + '</div>'
+            + '<div class="product-name">' + p.name + '</div>'
+            + '<div class="product-inclusions">' + (p.inclusions || '') + '</div>'
+            + (p.variants && p.variants.length > 0
+                ? '<div class="product-price">₱' + Number(Math.min.apply(null, p.variants.map(function(v){ return v.price; }))).toLocaleString('en-PH') + ' <span>/ head · ' + p.variants.length + ' variants</span></div>'
+                : '<div class="product-price">₱' + Number(p.price).toLocaleString('en-PH') + ' <span>/ head</span></div>')
+            + '</div><div class="product-actions">'
+            + '<button class="btn-edit" onclick="openEditModal(' + p._index + ')">✎ Edit</button>'
+            + '<button class="btn-delete" data-index="' + p._index + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" onclick="openDeleteModal(this)">🗑 Delete</button>'
+            + '</div></div>';
+        });
+      });
+      grid.innerHTML = html;
+    }
+
+    function renderQR() {
+      var grid = document.getElementById('qrGrid');
+      var qrs = (myCaterer && myCaterer.qrCodes) ? myCaterer.qrCodes : [];
+      document.getElementById('qrCount').textContent = qrs.length + ' / 5';
+      document.getElementById('addQRBtn').style.display = qrs.length >= 5 ? 'none' : 'inline-flex';
+      if (qrs.length === 0) { grid.innerHTML = '<p style="font-size:0.82rem;color:var(--muted);">No QR codes yet.</p>'; return; }
+      grid.innerHTML = '';
+      qrs.forEach(function(qr, i) {
+        var div = document.createElement('div'); div.className = 'qr-item';
+        var info = '<strong style="color:var(--dark);font-size:0.78rem;">' + (qr.label || 'QR ' + (i+1)) + '</strong>';
+        if (qr.recipient) info += '<br><span style="color:var(--text);">' + qr.recipient + '</span>';
+        if (qr.account) info += '<br>' + qr.account;
+        div.innerHTML = '<img class="qr-img" src="' + qr.url + '" alt="QR"><div class="qr-label">' + info + '</div><button class="qr-delete" onclick="deleteQR(' + i + ')" title="Remove">✕</button>';
+        grid.appendChild(div);
+      });
+    }
+
+    function openAddModal() { editIndex=-1; document.getElementById('modalTitle').textContent='Add Product'; document.getElementById('pkgName').value=''; document.getElementById('pkgCategory').value='Packages'; document.getElementById('pkgPrice').value=''; document.getElementById('pkgInclusions').value=''; document.getElementById('pkgImage').value=''; document.getElementById('imgPreview').style.display='none'; document.getElementById('imgLabel').textContent='Product Photo * (Required)'; document.getElementById('modalError').style.display='none'; document.getElementById('variantRows').innerHTML=''; document.getElementById('priceGroup').style.display='block'; document.getElementById('productModal').classList.add('open'); }
+    function openEditModal(index) { editIndex=index; var p=myCaterer.packages[index]; document.getElementById('modalTitle').textContent='Edit Product'; document.getElementById('pkgName').value=p.name||''; document.getElementById('pkgCategory').value=p.category||'Packages'; document.getElementById('pkgPrice').value=p.price||''; document.getElementById('pkgInclusions').value=p.inclusions||''; document.getElementById('pkgImage').value=''; document.getElementById('imgLabel').textContent='Product Photo (Leave blank to keep current)'; var preview=document.getElementById('imgPreview'); if(p.image){preview.src=p.image;preview.style.display='block';}else{preview.style.display='none';} document.getElementById('modalError').style.display='none'; document.getElementById('variantRows').innerHTML=''; var variants=p.variants||[]; variants.forEach(function(v){addVariantRow(v.name,v.price);}); document.getElementById('priceGroup').style.display=variants.length>0?'none':'block'; document.getElementById('productModal').classList.add('open'); }
+    function closeModal() { document.getElementById('productModal').classList.remove('open'); }
+    function previewImg(input) { var preview=document.getElementById('imgPreview'); if(input.files&&input.files[0]){var reader=new FileReader();reader.onload=function(e){preview.src=e.target.result;preview.style.display='block';};reader.readAsDataURL(input.files[0]);} }
+    function addVariantRow(name,price) { var rows=document.getElementById('variantRows'); var div=document.createElement('div'); div.className='variant-row'; div.innerHTML='<input type="text" name="variantNames" placeholder="e.g. Small" value="'+(name||'')+'"><input type="number" name="variantPrices" placeholder="0" min="0" value="'+(price||'')+'"><button type="button" class="remove-variant-btn" onclick="removeVariantRow(this)">✕</button>'; rows.appendChild(div); document.getElementById('priceGroup').style.display=rows.children.length>0?'none':'block'; }
+    function removeVariantRow(btn) { btn.parentElement.remove(); var rows=document.getElementById('variantRows'); document.getElementById('priceGroup').style.display=rows.children.length>0?'none':'block'; }
+
+    async function saveProduct() {
+      var name=document.getElementById('pkgName').value.trim(); var category=document.getElementById('pkgCategory').value; var price=document.getElementById('pkgPrice').value.trim(); var inclusions=document.getElementById('pkgInclusions').value.trim(); var imageFile=document.getElementById('pkgImage').files[0]; var errorBox=document.getElementById('modalError'); var variantRows=document.getElementById('variantRows').children; var hasVariants=variantRows.length>0;
+      if(!name||!inclusions){errorBox.textContent='Please fill in all required fields.';errorBox.style.display='block';return;}
+      if(!hasVariants&&!price){errorBox.textContent='Please enter a price or add variants.';errorBox.style.display='block';return;}
+      if(editIndex===-1&&!imageFile){errorBox.textContent='Product photo is required.';errorBox.style.display='block';return;}
+      errorBox.style.display='none';
+      var saveBtn=document.getElementById('saveBtn'); saveBtn.disabled=true; saveBtn.textContent='Saving...';
+      var fd=new FormData(); fd.append('name',name); fd.append('category',category); fd.append('price',hasVariants?'0':price); fd.append('inclusions',inclusions); if(imageFile)fd.append('image',imageFile);
+      for(var i=0;i<variantRows.length;i++){var inputs=variantRows[i].querySelectorAll('input');fd.append('variantNames',inputs[0].value.trim());fd.append('variantPrices',inputs[1].value.trim());}
+      try { var url=editIndex===-1?'/caterer-package/add':'/caterer-package/edit'; if(editIndex!==-1)fd.append('index',editIndex); var res=await fetch(url,{method:'POST',body:fd}); var data=await res.json(); if(data.success){myCaterer.packages=data.packages;renderProducts();closeModal();}else{errorBox.textContent=data.error||'Something went wrong.';errorBox.style.display='block';} } catch(e){errorBox.textContent='Failed to save. Please try again.';errorBox.style.display='block';}
+      saveBtn.disabled=false; saveBtn.textContent='Save Product';
+    }
+
+    function openDeleteModal(btn) { deleteIndex=parseInt(btn.getAttribute('data-index')); document.getElementById('deleteProductName').textContent=btn.getAttribute('data-name'); document.getElementById('deleteModal').classList.add('open'); }
+    function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); }
+    async function confirmDelete() { try { var res=await fetch('/caterer-package',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:deleteIndex})}); var data=await res.json(); if(data.success){myCaterer.packages=data.packages;renderProducts();closeDeleteModal();} } catch(e){} }
+    function openQRModal() { document.getElementById('qrLabel').value=''; document.getElementById('qrRecipient').value=''; document.getElementById('qrAccount').value=''; document.getElementById('qrFileInput').value=''; document.getElementById('qrImgPreview').src=''; document.getElementById('qrPreviewWrap').style.display='none'; document.getElementById('qrDropText').style.display='block'; document.getElementById('qrModalError').style.display='none'; document.getElementById('qrModal').classList.add('open'); }
+    function closeQRModal() { document.getElementById('qrModal').classList.remove('open'); }
+    function previewQRImg(input) { if(!input.files||!input.files[0])return; var reader=new FileReader(); reader.onload=function(e){document.getElementById('qrImgPreview').src=e.target.result;document.getElementById('qrPreviewWrap').style.display='block';document.getElementById('qrDropText').style.display='none';}; reader.readAsDataURL(input.files[0]); }
+
+    async function saveQR() {
+      var qrs=(myCaterer&&myCaterer.qrCodes)?myCaterer.qrCodes:[]; if(qrs.length>=5){showQRMsg('Maximum 5 QR codes allowed.',false);closeQRModal();return;}
+      var input=document.getElementById('qrFileInput'); var label=document.getElementById('qrLabel').value.trim(); var recipient=document.getElementById('qrRecipient').value.trim(); var account=document.getElementById('qrAccount').value.trim(); var errorBox=document.getElementById('qrModalError');
+      if(!input.files||!input.files[0]){errorBox.textContent='Please choose a QR code image.';errorBox.style.display='block';return;}
+      if(!label){errorBox.textContent='Please enter a QR label (e.g. GCash).';errorBox.style.display='block';return;}
+      errorBox.style.display='none'; var saveBtn=document.getElementById('qrSaveBtn'); saveBtn.disabled=true; saveBtn.textContent='Saving...';
+      var fd=new FormData(); fd.append('qrImages',input.files[0]); fd.append('labels',label); if(recipient)fd.append('recipients',recipient); if(account)fd.append('accounts',account);
+      try { var res=await fetch('/caterer-qr',{method:'POST',body:fd}); var data=await res.json(); if(data.success){myCaterer.qrCodes=data.qrCodes;closeQRModal();renderQR();showQRMsg('QR code added!',true);}else{errorBox.textContent=data.error||'Upload failed.';errorBox.style.display='block';} } catch(e){errorBox.textContent='Upload failed. Please try again.';errorBox.style.display='block';}
+      saveBtn.disabled=false; saveBtn.textContent='Save QR Code';
+    }
+
+    async function deleteQR(index) { try { var res=await fetch('/caterer-qr',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:index})}); var data=await res.json(); if(data.success){myCaterer.qrCodes=data.qrCodes;renderQR();} } catch(e){} }
+    function showQRMsg(text,success) { var el=document.getElementById('qrMsg'); el.textContent=text; el.style.color=success?'var(--green)':'#c93a08'; el.style.display='block'; setTimeout(function(){el.style.display='none';},3000); }
+
+    function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
+    function toggleNotifDropdown() { document.getElementById('notifDropdown').classList.toggle('open'); document.getElementById('profileDropdown').classList.remove('open'); }
+    document.addEventListener('click', function(e) {
+      var nw=document.querySelector('.notif-wrapper'); var pw=document.querySelector('.profile-wrapper');
+      if(nw&&!nw.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+      if(pw&&!pw.contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
+    });
+    function formatNotifTime(ts) { var d=new Date(ts); return d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})+' · '+d.toLocaleDateString('en-PH',{month:'short',day:'numeric'}); }
+    async function loadNotifications() {
+      try {
+        var res = await fetch('/caterer-notifications');
+        var data = await res.json();
+        var badge = document.getElementById('notifBadge');
+        var list = document.getElementById('notifList');
+        var unread = data.filter(function(n) { return !n.isRead; }).length;
+        badge.style.display = unread > 0 ? 'inline-block' : 'none';
+        badge.textContent = unread;
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(function(n) {
+          var a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = function(e) {
+            e.preventDefault();
+            fetch('/caterer-read-notification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: n.id })
+            }).then(function() {
+              var text = (n.text || '').toLowerCase();
+              if (text.includes('booking')) {
+                window.location.href = '/caterer-bookings';
+              } else if (text.includes('message') || text.includes('chat')) {
+                window.location.href = '/caterer-messages';
+              } else {
+                window.location.href = '/caterer-dashboard';
+              }
+            });
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+
+    loadData();
+    loadNotifications();
+    setInterval(loadNotifications, 5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

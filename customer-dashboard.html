@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A;
+      --white: #fff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333;
+      --green: #16a34a; --green-light: #f0fdf4;
+      --yellow: #d97706; --yellow-light: #fffbeb;
+      --blue: #2563eb; --blue-light: #eff6ff;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --notif-yellow: #F7B731; --tangerine: #F26419;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--notif-yellow)); }
+
+    .header {
+      background: var(--dark);
+      padding: 0 40px;
+      height: 62px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; justify-self: start; }
+    .header-brand span { color: var(--crimson); }
+
+    .header-center { display: flex; align-items: center; gap: 2px; justify-content: center; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 7px 14px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.18); }
+    .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); border-radius: 6px; }
+
+    .header-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s, color 0.2s; position: relative; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: 4px; right: 4px; background: var(--notif-yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; font-family: 'Poppins', sans-serif; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 13px 15px 9px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 22px 15px; font-size: 0.82rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 11px 15px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; cursor: pointer; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--orange-light); }
+    .notif-text { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+    .account-wrapper { position: relative; }
+    .account-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: none; cursor: pointer; padding: 0 12px; height: 38px; border-radius: 8px; transition: background 0.2s; font-family: 'Poppins', sans-serif; }
+    .account-btn:hover { background: rgba(255,255,255,0.14); }
+    .account-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--white); flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .account-chevron { color: #aaa; font-size: 0.6rem; opacity: 0.6; }
+    .account-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 220px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .account-dropdown.open { display: block; }
+    .account-dropdown-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .account-dropdown-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .account-dropdown-email { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .account-dropdown-item { display: flex; align-items: center; gap: 9px; padding: 11px 16px; font-size: 0.84rem; color: var(--text); text-decoration: none; transition: background 0.15s; font-family: 'Poppins', sans-serif; font-weight: 500; }
+    .account-dropdown-item:hover { background: var(--bg); }
+    .account-dropdown-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .account-dropdown-item.logout:hover { background: var(--crimson-light); }
+
+    .main { max-width: 960px; margin: 0 auto; padding: 44px 24px 80px; }
+    .welcome-row { margin-bottom: 32px; }
+    .welcome-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
+    .welcome-title { font-size: 1.6rem; font-weight: 700; color: var(--dark); }
+    .welcome-sub { font-size: 0.84rem; color: var(--muted); margin-top: 4px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .summary-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 26px 22px 22px; text-decoration: none; display: block; transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; position: relative; overflow: hidden; }
+    .summary-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.1); transform: translateY(-3px); border-color: var(--orange); }
+    .summary-card::after { content: '→'; position: absolute; right: 18px; bottom: 20px; font-size: 1rem; color: var(--border); transition: color 0.2s; }
+    .summary-card:hover::after { color: var(--orange); }
+    .card-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; margin-bottom: 16px; }
+    .card-icon.green { background: var(--green-light); }
+    .card-icon.yellow { background: var(--yellow-light); }
+    .card-icon.blue { background: var(--blue-light); }
+    .card-count { font-size: 2.4rem; font-weight: 700; color: var(--dark); line-height: 1; margin-bottom: 5px; }
+    .card-label { font-size: 0.86rem; font-weight: 600; color: var(--text); }
+    .card-sub { font-size: 0.74rem; color: var(--muted); margin-top: 5px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .f1 { opacity: 0; animation: fadeUp 0.4s ease forwards; }
+    .f2 { opacity: 0; animation: fadeUp 0.4s ease 0.08s forwards; }
+    .cart-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s; position: relative; text-decoration: none; }
+    .cart-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .cart-badge { position: absolute; top: 4px; right: 4px; background: var(--green); color: #fff; font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; display: none; }
+    @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } .summary-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .header-center { display: none; } .summary-grid { grid-template-columns: 1fr; } }
+    .section-header { display: flex; align-items: center; margin: 32px 0 14px; }
+    .section-title { font-size: 0.88rem; font-weight: 700; color: var(--dark); white-space: nowrap; }
+    .section-line { flex: 1; height: 1px; background: var(--border); margin-left: 14px; }
+    .partial-card { background: var(--white); border: 1.5px solid #ffd0bc; border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .partial-info { display: flex; flex-direction: column; gap: 3px; }
+    .partial-title { font-size: 0.92rem; font-weight: 700; color: var(--dark); }
+    .partial-sub { font-size: 0.76rem; color: var(--muted); }
+    .partial-balance { font-size: 1.05rem; font-weight: 700; color: var(--orange); }
+    .pay-balance-btn { padding: 9px 20px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+    .pay-balance-btn:hover { background: #c93a08; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--white); border-radius: 16px; width: 100%; max-width: 440px; padding: 28px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); }
+    .modal-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+    .modal-sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; }
+    .modal-field { margin-bottom: 14px; }
+    .modal-label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+    .modal-input { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--dark); outline: none; transition: border-color 0.2s; }
+    .modal-input:focus { border-color: var(--orange); }
+    .modal-btn-row { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-submit { flex: 1; padding: 11px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .modal-submit:hover { background: #c93a08; }
+    .modal-submit:disabled { background: #ccc; cursor: not-allowed; }
+    .modal-cancel { padding: 11px 18px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; color: var(--muted); }
+    .modal-msg { font-size: 0.8rem; margin-top: 10px; font-weight: 500; }
+    .modal-msg.success { color: var(--green); }
+    .modal-msg.error { color: #e53e3e; }
+  </style>
+</head>
+<body>
+
+  <div class="color-strip"></div>
+  <header class="header">
+    <a href="/dashboard" class="header-brand">Bunyi<span>.</span></a>
+    <nav class="header-center">
+      <a href="/dashboard" class="nav-link active">Dashboard</a>
+      <a href="/browse" class="nav-link">Browse</a>
+      <a href="/chats" class="nav-link">Messages</a>
+    </nav>
+    <div class="header-right">
+      <a href="/cart" class="cart-btn" title="My Cart">
+        🛒 <span class="cart-badge" id="cartBadge">0</span>
+      </a>
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="account-wrapper">
+        <button class="account-btn" onclick="toggleAccountDropdown()">
+          <div class="account-avatar" id="accountAvatar">?</div>
+          <span class="account-chevron">▼</span>
+        </button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-dropdown-header">
+            <div class="account-dropdown-name" id="accountDropdownName">—</div>
+            <div class="account-dropdown-email" id="accountDropdownEmail">—</div>
+          </div>
+          <a href="/account" class="account-dropdown-item">👤 My Account</a>
+          <a href="/logout" class="account-dropdown-item logout">🚪 Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="welcome-row f1">
+      <p class="welcome-eyebrow">Customer Portal</p>
+      <h1 class="welcome-title">Good day! Welcome to your Dashboard.</h1>
+      <p class="welcome-sub">Here's a summary of your activity.</p>
+    </div>
+
+    <div class="summary-grid f2">
+      <a href="/events" class="summary-card">
+        <div class="card-icon green">📅</div>
+        <div class="card-count" id="countUpcoming">—</div>
+        <div class="card-label">Upcoming Events</div>
+        <div class="card-sub">Events scheduled ahead</div>
+      </a>
+      <a href="/payments?filter=pending" class="summary-card">
+        <div class="card-icon yellow">💳</div>
+        <div class="card-count" id="countPending">—</div>
+        <div class="card-label">Pending Payments</div>
+        <div class="card-sub">Balance due before event</div>
+      </a>
+    </div>
+
+    <div id="partialSection" style="display:none;">
+      <div class="section-header">
+        <span class="section-title">💳 Balance Due</span>
+        <div class="section-line"></div>
+      </div>
+      <div id="partialList"></div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="payModal">
+    <div class="modal-box">
+      <div class="modal-title">💳 Pay Remaining Balance</div>
+      <div class="modal-sub" id="payModalSub">—</div>
+      <input type="hidden" id="payBookingId">
+      <div class="modal-field">
+        <label class="modal-label">Amount Paid</label>
+        <input 
+          type="number"
+          class="modal-input"
+          id="payAmountPaid"
+          placeholder="Enter amount paid"
+          min="1"
+          step="0.01"
+          required
+        >
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Payment Platform</label>
+        <select class="modal-input" id="payPlatform">
+          <option value="GCash">GCash</option>
+          <option value="Maya">Maya</option>
+          <option value="Other">Other</option>
+        </select>
+        <div class="other-platform-box" id="otherPlatformBox" style="display:none; margin-top:10px;">
+          <input type="text" name="otherPlatform" id="otherPlatformInput" class="modal-input" placeholder="e.g. Palawan, Cebuana, Bank Transfer">
+        </div>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Reference Number</label>
+        <input type="text" class="modal-input" id="payReference" placeholder="e.g. 123456789">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Upload Receipt</label>
+        <input type="file" class="modal-input" id="payReceipt" accept="image/*,.pdf">
+      </div>
+      <div class="modal-btn-row">
+        <button class="modal-cancel" onclick="closePayModal()">Cancel</button>
+        <button class="modal-submit" id="paySubmitBtn" onclick="submitPayBalance()">Submit Payment</button>
+      </div>
+      <div class="modal-msg" id="payMsg"></div>
+    </div>
+  </div>
+
+  <script>
+    async function loadCounts() {
+      try {
+        const res = await fetch('/bookings');
+        const data = await res.json();
+        const now = new Date(); now.setHours(0,0,0,0);
+        const upcoming = data.filter(b => new Date(b.date + 'T00:00:00') >= now);
+        const pending = data.filter(b => b.status === 'Partially Paid' || b.status === 'Pending Payment');
+        document.getElementById('countUpcoming').textContent = upcoming.length;
+        document.getElementById('countPending').textContent = pending.length;
+      } catch(e) {}
+    }
+
+    function loadCartBadge() {
+      try {
+        const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
+        const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        const badge = document.getElementById('cartBadge');
+        badge.textContent = total;
+        badge.style.display = total > 0 ? 'inline-block' : 'none';
+      } catch(e) {}
+    }
+
+    async function loadUserInfo() {
+      try {
+        const res = await fetch('/session-user');
+        const data = await res.json();
+        if (data && data.name) {
+          const avatarEl = document.getElementById('accountAvatar');
+          if (data.photo) {
+            avatarEl.style.background = 'none';
+            avatarEl.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          } else {
+            avatarEl.textContent = data.name.charAt(0).toUpperCase();
+          }
+          document.getElementById('accountDropdownName').textContent = data.name;
+          document.getElementById('accountDropdownEmail').textContent = data.email || '';
+        }
+      } catch(e) {}
+    }
+
+    function formatNotifTime(ts) {
+      const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts));
+      return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+    }
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/notifications');
+        const data = await res.json();
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        const unread = data.filter(n => !n.isRead).length;
+        if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread; } else { badge.style.display = 'none'; }
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(n => {
+          const a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = async (e) => {
+            e.preventDefault();
+            await fetch('/read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) });
+            const text = (n.text || '').toLowerCase();
+            if (n.type === 'reminder' || text.includes('remaining balance') || text.includes('balance due') || text.includes('partially paid') || text.includes('due')) {
+              window.location.href = '/dashboard';
+            } else if (n.type === 'message' || text.includes('message') || text.includes('chat')) {
+              window.location.href = '/chats';
+            } else {
+              window.location.href = '/events';
+            }
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+
+    async function toggleNotifDropdown() {
+      const dd = document.getElementById('notifDropdown');
+      const ad = document.getElementById('accountDropdown');
+      if (ad) ad.classList.remove('open');
+      dd.classList.toggle('open');
+      if (dd.classList.contains('open')) { await loadNotifications(); }
+    }
+
+    function toggleAccountDropdown() {
+      const ad = document.getElementById('accountDropdown');
+      const nd = document.getElementById('notifDropdown');
+      if (nd) nd.classList.remove('open');
+      ad.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      const nw = document.querySelector('.notif-wrapper');
+      if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); }
+      const aw = document.querySelector('.account-wrapper');
+      if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); }
+    });
+
+    async function loadPartialBookings() {
+      try {
+        const res = await fetch('/bookings');
+        const data = await res.json();
+        const partial = data.filter(b => b.status === 'Partially Paid');
+        const section = document.getElementById('partialSection');
+        const list = document.getElementById('partialList');
+        if (partial.length === 0) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        list.innerHTML = '';
+        partial.forEach(b => {
+          const remaining = (parseFloat(b.totalAmount) || 0) - (parseFloat(b.amountPaid) || 0);
+          const fd = b.date ? new Date(b.date + 'T00:00:00').toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) : '—';
+          const div = document.createElement('div');
+          div.className = 'partial-card';
+          div.innerHTML = '<div class="partial-info">'
+            + '<div class="partial-title">' + (b.caterer || '—') + '</div>'
+            + '<div class="partial-sub">📅 ' + fd + ' · ' + (b.eventType || '—') + '</div>'
+            + '<div class="partial-balance">Balance Due: ₱' + remaining.toLocaleString('en-PH', { minimumFractionDigits: 2 }) + '</div>'
+            + '</div>'
+            + '<button class="pay-balance-btn" onclick="openPayModal(\'' + (b.bookingId || b.id) + '\', \'' + (b.caterer || '') + '\', ' + remaining + ', \'' + fd + '\')">Pay Balance →</button>';
+          list.appendChild(div);
+        });
+      } catch(e) {}
+    }
+
+    function openPayModal(bookingId, caterer, remaining, date) {
+      document.getElementById('payBookingId').value = bookingId;
+      document.getElementById('payModalSub').textContent = caterer + ' · ' + date + ' · ₱' + remaining.toLocaleString('en-PH', { minimumFractionDigits: 2 }) + ' remaining';
+      document.getElementById('payReference').value = '';
+      document.getElementById('payReceipt').value = '';
+      document.getElementById('payMsg').textContent = '';
+      document.getElementById('paySubmitBtn').disabled = false;
+      document.getElementById('payModal').classList.add('open');
+    }
+
+    function closePayModal() {
+      document.getElementById('payModal').classList.remove('open');
+    }
+
+    async function submitPayBalance() {
+      const bookingId = document.getElementById('payBookingId').value;
+      const platform = document.getElementById('payPlatform').value;
+      const reference = document.getElementById('payReference').value.trim();
+      const receiptFile = document.getElementById('payReceipt').files[0];
+      const msgEl = document.getElementById('payMsg');
+      const btn = document.getElementById('paySubmitBtn');
+      if (!reference) { msgEl.textContent = 'Please enter a reference number.'; msgEl.className = 'modal-msg error'; return; }
+      if (!receiptFile) { msgEl.textContent = 'Please upload your receipt.'; msgEl.className = 'modal-msg error'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      try {
+        const form = new FormData();
+        form.append('bookingId', bookingId);
+        form.append('platform', platform);
+        form.append('reference', reference);
+        form.append('receipt', receiptFile);
+        const res = await fetch('/pay-remaining', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.success) {
+          msgEl.textContent = '✅ Payment submitted! Awaiting caterer verification.';
+          msgEl.className = 'modal-msg success';
+          setTimeout(() => { closePayModal(); loadPartialBookings(); loadCounts(); }, 2000);
+        } else {
+          msgEl.textContent = data.error || 'Something went wrong.';
+          msgEl.className = 'modal-msg error';
+          btn.disabled = false;
+          btn.textContent = 'Submit Payment';
+        }
+      } catch(e) {
+        msgEl.textContent = 'Failed to submit. Please try again.';
+        msgEl.className = 'modal-msg error';
+        btn.disabled = false;
+        btn.textContent = 'Submit Payment';
+      }
+    }
+
+    loadCounts(); loadUserInfo(); loadCartBadge(); loadNotifications(); loadPartialBookings();
+    setInterval(loadNotifications, 5000);
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const payPlatform = document.getElementById("payPlatform");
+      const otherPlatformBox = document.getElementById("otherPlatformBox");
+      payPlatform.addEventListener("change", function () {
+        otherPlatformBox.style.display = this.value === "Other" ? "block" : "none";
+      });
+    });
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+
+

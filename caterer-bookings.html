@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings - Bunyi Caterer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #fff;
+      --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333;
+      --green: #16a34a; --green-light: #f0fdf4;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --yellow: #F7B731; --tangerine: #F26419;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--yellow)); }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(215,38,56,0.3); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; }
+    .header-brand span { color: var(--crimson); }
+    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover, .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 1rem; position: relative; transition: background 0.2s; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: -3px; right: -3px; background: var(--yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 2px 5px; min-width: 16px; text-align: center; display: none; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 24px 16px; font-size: 0.83rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; cursor: pointer; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--crimson-light); }
+    .notif-text { font-size: 0.83rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .profile-wrapper { position: relative; }
+    .profile-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; height: 38px; border-radius: 8px; padding: 0 12px; display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.82rem; font-weight: 500; font-family: 'Poppins', sans-serif; transition: background 0.2s; }
+    .profile-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .profile-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .profile-chevron { font-size: 0.6rem; opacity: 0.6; color: #aaa; }
+    .profile-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 200px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); z-index: 999; overflow: hidden; }
+    .profile-dropdown.open { display: block; }
+    .profile-info { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .profile-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .profile-email { font-size: 0.72rem; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-menu-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; text-decoration: none; font-size: 0.83rem; color: var(--text); font-weight: 500; transition: background 0.15s; }
+    .profile-menu-item:hover { background: var(--bg); }
+    .profile-menu-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .profile-menu-item.logout:hover { background: var(--crimson-light); }
+    @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none; } }
+    .main { max-width: 900px; margin: 0 auto; padding: 36px 24px 80px; }
+    .page-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
+    .page-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); margin-bottom: 20px; }
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-btn { padding: 8px 22px; border: 1.5px solid var(--border); border-radius: 999px; font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 600; color: var(--muted); background: var(--white); cursor: pointer; transition: all 0.2s; }
+    .filter-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .filter-btn.active { background: var(--orange); border-color: var(--orange); color: var(--white); }
+    .results-count { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+    .search-bar-wrap { position: relative; margin-bottom: 16px; }
+    .search-bar-wrap input { width: 100%; padding: 10px 16px 10px 40px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .search-bar-wrap input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.08); }
+    .search-bar-wrap input::placeholder { color: var(--muted); }
+    .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; pointer-events: none; opacity: 0.45; }
+    .booking-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.2s; }
+    .booking-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.09); }
+    .card-header { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; background: #1e1e2e; }
+    .card-header.hdr-verified { background: #1a3a2a; }
+    .card-header.hdr-partial { background: #2a1a0a; }
+    .card-header.hdr-pending { background: #2a2020; }
+    .card-customer { font-size: 0.97rem; font-weight: 700; color: var(--white); }
+    .card-booking-id { font-size: 0.66rem; color: #aaa; font-family: monospace; margin-top: 3px; letter-spacing: 0.04em; }
+    .card-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; }
+    .badge-pending { background: #fffbeb; color: #b45309; }
+    .badge-partial { background: var(--orange-light); color: var(--orange); }
+    .badge-paid { background: var(--green-light); color: var(--green); }
+    .badge-verified { background: #dcfce7; color: #15803d; }
+    .card-section { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; }
+    .card-section:last-of-type { border-bottom: none; }
+    .section-label { font-size: 0.63rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .order-item { margin-bottom: 5px; }
+    .order-item-name { font-size: 0.9rem; font-weight: 600; color: var(--dark); }
+    .order-item-sub { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    .show-more-btn { font-size: 0.73rem; color: var(--orange); background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; margin-top: 5px; padding: 0; }
+    .orders-total-sub { font-size: 0.72rem; color: var(--muted); margin-top: 6px; }
+    .card-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card-field-label { font-size: 0.63rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
+    .card-field-value { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+    .card-field-value.green { color: var(--green); }
+    .card-field-value.orange { color: var(--orange); }
+    .receipt-link { font-size: 0.82rem; font-weight: 600; color: var(--orange); text-decoration: none; }
+    .receipt-link:hover { text-decoration: underline; }
+    .card-verify-row { padding: 13px 20px; background: #fffbf7; border-top: 1.5px solid #fde8d0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .verify-note { font-size: 0.75rem; color: var(--muted); }
+    .verify-btn { padding: 9px 24px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+    .verify-btn:hover { background: #c93a08; }
+    .verify-btn:disabled { background: var(--green); cursor: default; }
+    .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { opacity: 0; animation: fadeUp 0.35s ease forwards; }
+
+    /* ── SPLIT PAYMENT PANEL (Partially Paid only) ── */
+    .payment-split { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #f0f0f0; }
+    .payment-panel { padding: 16px 20px; }
+    .payment-panel + .payment-panel { border-left: 2px dashed var(--border); background: #fafafa; }
+    .panel-heading { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+    .panel-heading .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-orange { background: var(--orange); }
+    .dot-blue { background: #2563eb; }
+    .panel-field { margin-bottom: 10px; }
+    .panel-field:last-of-type { margin-bottom: 0; }
+    .panel-label { font-size: 0.62rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
+    .panel-value { font-size: 0.85rem; font-weight: 600; color: var(--dark); }
+    .panel-value.green { color: var(--green); }
+    .panel-value.orange { color: var(--orange); }
+    .panel-value.blue { color: #2563eb; }
+    .panel-verify-row { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .panel-verify-note { font-size: 0.72rem; color: var(--muted); }
+    .remaining-empty { font-size: 0.82rem; color: var(--muted); font-style: italic; padding: 8px 0; }
+    @media (max-width: 600px) { .card-row { grid-template-columns: 1fr 1fr; } .card-header { flex-direction: column; align-items: flex-start; gap: 8px; } .payment-split { grid-template-columns: 1fr; } .payment-panel + .payment-panel { border-left: none; border-top: 2px dashed var(--border); } }
+  </style>
+</head>
+<body>
+  <div class="color-strip"></div>
+  <header class="header">
+    <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
+    <nav class="header-nav">
+      <a class="nav-link" href="/caterer-dashboard">Dashboard</a>
+      <a class="nav-link active" href="/caterer-bookings">Bookings</a>
+      <a class="nav-link" href="/caterer-products">Products</a>
+      <a class="nav-link" href="/caterer-messages">Messages</a>
+    </nav>
+    <div class="header-right">
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span></button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="profile-wrapper">
+        <button class="profile-btn" onclick="toggleProfileDropdown()">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <span class="profile-chevron">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="profile-info">
+            <div class="profile-name" id="dropdownName">—</div>
+            <div class="profile-email" id="dropdownEmail">—</div>
+          </div>
+          <a class="profile-menu-item" href="/caterer-account">⚙️ My Account</a>
+          <a class="profile-menu-item logout" href="/caterer-logout">🚪 Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <p class="page-eyebrow">Caterer Portal</p>
+    <h1 class="page-title">📋 Bookings</h1>
+    <div class="search-bar-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search by Customer name or Booking ID..." oninput="renderBookings()">
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" id="btnAll" onclick="applyFilter('all', this)">All</button>
+      <button class="filter-btn" id="btnPending" onclick="applyFilter('pending', this)">Pending</button>
+      <button class="filter-btn" id="btnVerified" onclick="applyFilter('verified', this)">Verified</button>
+    </div>
+    <div class="results-count" id="resultsCount"></div>
+    <div id="bookingsList"><p style="color:var(--muted);font-size:0.88rem;">Loading...</p></div>
+  </main>
+
+  <script>
+    var allBookings = [];
+    var myBusinessName = '';
+    var currentFilter = 'all';
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    function formatTime(t) {
+      if (!t) return '—';
+      var parts = t.split(':');
+      var h = parseInt(parts[0]);
+      var m = parts[1] || '00';
+      return (h % 12 || 12) + ':' + m + ' ' + (h >= 12 ? 'PM' : 'AM');
+    }
+
+    function formatOrders(b) {
+      if (b.cartItems && b.cartItems.length > 0) {
+        var items = b.cartItems;
+        var totalQty = items.reduce(function(s, i) { return s + (parseInt(i.qty) || 1); }, 0);
+        var visible = items.slice(0, 2);
+        var hidden = items.slice(2);
+        var uid = 'ho_' + (b.bookingId || b.id || Math.random()).toString().replace(/[^a-z0-9]/gi, '');
+        var html = visible.map(function(i) {
+          return '<div class="order-item"><div class="order-item-name">' + (i.pkgName || i.name || 'Item') + '</div>'
+            + '<div class="order-item-sub">' + (i.qty || 1) + ' pc(s)</div></div>';
+        }).join('');
+        if (hidden.length > 0) {
+          html += '<div id="' + uid + '" style="display:none;">' + hidden.map(function(i) {
+            return '<div class="order-item"><div class="order-item-name">' + (i.pkgName || i.name || 'Item') + '</div>'
+              + '<div class="order-item-sub">' + (i.qty || 1) + ' pc(s)</div></div>';
+          }).join('') + '</div>';
+          html += '<button class="show-more-btn" onclick="toggleOrders(\'' + uid + '\',this)">+ ' + hidden.length + ' more items</button>';
+        }
+        html += '<div class="orders-total-sub">Total qty: ' + totalQty + '</div>';
+        return html;
+      }
+      return '<div class="order-item"><div class="order-item-name">' + (b.packageName || '—') + '</div></div>';
+    }
+
+    function toggleOrders(id, btn) {
+      var el = document.getElementById(id);
+      if (el.style.display === 'none') { el.style.display = 'block'; btn.textContent = 'Show less'; }
+      else { el.style.display = 'none'; btn.textContent = '+ more items'; }
+    }
+
+    function buildCard(b) {
+      var total = parseFloat(b.totalAmount) || 0;
+      var paid = parseFloat(b.amountPaid) || 0;
+      var remaining = total - paid;
+      var isVerified = !!b.verified;
+      var status = b.status || 'Pending Payment';
+      var isPartial = status === 'Partially Paid';
+      var hasReceipt2 = !!(b.receipt2 && b.receipt2 !== 'undefined' && b.receipt2 !== 'null');
+      // showSplit: Partially Paid OR receipt2 exists (customer submitted remaining)
+      var showSplit = isPartial || hasReceipt2;
+      // isFullyDone: caterer verified AND status=Fully Paid AND receipt2 exists (both payments confirmed)
+      var isFullyDone = isVerified && status === 'Fully Paid' && hasReceipt2;
+      // isInitialVerified: caterer verified initial but customer hasn't paid remaining yet
+      var isInitialVerified = isVerified && isPartial;
+      // remaining2: the actual amount of the remaining payment
+      // After pay-remaining, amountPaid becomes totalAmount. Store original remaining from b.remaining2 or compute from initial paid (half of total for down payment)
+      var initialPaid = hasReceipt2 ? (total / 2) : paid;
+      var remaining2Amount = parseFloat(b.remaining2) || (total - initialPaid);
+      var hdrClass = isFullyDone ? 'hdr-verified' : (isPartial ? 'hdr-partial' : (isVerified ? 'hdr-verified' : 'hdr-pending'));
+      var badgeClass = isFullyDone ? 'badge-verified' : (status === 'Fully Paid' ? 'badge-paid' : isPartial ? 'badge-partial' : 'badge-pending');
+      var badgeText = isFullyDone ? '✓ Verified' : (isInitialVerified ? '⏳ Partial – Initial Verified' : status);
+      var receipt1HTML = (b.receipt && b.receipt !== 'undefined' && b.receipt !== 'null')
+        ? '<a href="' + b.receipt + '" target="_blank" class="receipt-link">📎 View Receipt</a>'
+        : '<span style="color:var(--muted);font-size:0.82rem;">No receipt</span>';
+      var mine = allBookings.filter(function(x) { return x.caterer === myBusinessName; });
+      var mineIdx = mine.findIndex(function(x) { return (x.bookingId || x.id) === (b.bookingId || b.id); });
+      var globalIdx = allBookings.findIndex(function(x) { return (x.bookingId || x.id) === (b.bookingId || b.id); });
+      var bookingAnchor = 'booking-' + (b.bookingId || b.id || '').replace(/[^a-z0-9]/gi, '');
+
+      // ── Standard single-payment layout (no split needed) ──
+      if (!showSplit) {
+        var verifySection = '';
+        if (!isVerified) {
+          verifySection = '<div class="card-verify-row">'
+            + '<span class="verify-note">⏳ Payment awaiting verification</span>'
+            + '<button class="verify-btn" onclick="verifyBooking(' + mineIdx + ',' + globalIdx + ',this)">✓ Verify Payment</button>'
+            + '</div>';
+        }
+        return '<div class="booking-card fade-in" id="' + bookingAnchor + '">'
+          + '<div class="card-header ' + hdrClass + '">'
+          + '<div><div class="card-customer">' + (b.sender || 'Customer') + '</div>'
+          + '<div class="card-booking-id">Booking ID: ' + (b.bookingId || b.id || '—') + '</div></div>'
+          + '<div class="card-badges"><span class="badge ' + badgeClass + '">' + badgeText + '</span></div>'
+          + '</div>'
+          + '<div class="card-section"><div class="section-label">List of Orders</div>' + formatOrders(b) + '</div>'
+          + '<div class="card-section"><div class="card-row">'
+          + '<div><div class="card-field-label">Event Type</div><div class="card-field-value">' + (b.eventType || '—') + '</div></div>'
+          + '<div><div class="card-field-label">Payment Platform</div><div class="card-field-value">' + (b.platform || '—') + '</div></div>'
+          + '<div><div class="card-field-label">Reference No.</div><div class="card-field-value">' + (b.reference || '—') + '</div></div>'
+          + '</div></div>'
+          + '<div class="card-section"><div class="card-row">'
+          + '<div><div class="card-field-label">Pick Up Date</div><div class="card-field-value">' + formatDate(b.date) + '</div></div>'
+          + '<div><div class="card-field-label">Pick Up Time</div><div class="card-field-value">' + formatTime(b.time) + '</div></div>'
+          + '<div><div class="card-field-label">Receipt</div><div class="card-field-value">' + receipt1HTML + '</div></div>'
+          + '</div></div>'
+          + '<div class="card-section"><div class="card-row">'
+          + '<div><div class="card-field-label">Total Amount</div><div class="card-field-value">₱' + total.toFixed(2) + '</div></div>'
+          + '<div><div class="card-field-label">Amount Paid</div><div class="card-field-value green">₱' + paid.toFixed(2) + '</div></div>'
+          + '<div><div class="card-field-label">Remaining Balance</div><div class="card-field-value ' + (remaining <= 0 ? 'green' : 'orange') + '">₱' + remaining.toFixed(2) + '</div></div>'
+          + '</div></div>'
+          + verifySection
+          + '</div>';
+      }
+
+      // ── SPLIT LAYOUT: Partially Paid or receipt2 exists ──
+      // When receipt2 exists, amountPaid was set to totalAmount by pay-remaining.
+      // Use remaining2Amount to derive the correct initial payment amount.
+      var initPaid = hasReceipt2 ? (total - remaining2Amount) : paid;
+      var initRemaining = hasReceipt2 ? remaining2Amount : remaining;
+
+      // Initial payment panel verify row — only show if NOT yet verified (initial not confirmed)
+      // Once verified OR receipt2 submitted, show green text. No red button when receipt2 exists.
+      var initialVerifyBtn = '';
+      if (!isVerified && !hasReceipt2) {
+        // Initial not yet verified and no receipt2 — show verify button
+        initialVerifyBtn = '<div class="panel-verify-row"><span class="panel-verify-note">⏳ Awaiting verification</span><button class="verify-btn" onclick="verifyBooking(' + mineIdx + ',' + globalIdx + ',this)">✓ Verify Payment</button></div>';
+      } else if (isVerified && !hasReceipt2) {
+        // Initial verified, no receipt2 yet
+        initialVerifyBtn = '<div class="panel-verify-row"><span class="panel-verify-note" style="color:var(--green);">✓ Initial payment verified</span></div>';
+      } else if (!isVerified && hasReceipt2) {
+        // receipt2 submitted but initial not yet verified — just show awaiting text, no red button
+        initialVerifyBtn = '<div class="panel-verify-row"><span class="panel-verify-note">⏳ Awaiting verification</span></div>';
+      } else if (isVerified && hasReceipt2 && !isFullyDone) {
+        // Initial verified, receipt2 submitted, final not yet verified
+        initialVerifyBtn = '<div class="panel-verify-row"><span class="panel-verify-note" style="color:var(--green);">✓ Initial payment verified</span></div>';
+      } else if (isFullyDone) {
+        // Both verified — show both on same row
+        initialVerifyBtn = '<div class="panel-verify-row" style="flex-direction:column;align-items:flex-start;gap:4px;">'
+          + '<span class="panel-verify-note" style="color:var(--green);">✓ Initial payment verified</span>'
+          + '<span class="panel-verify-note" style="color:var(--green);font-weight:600;">✅ Remaining Balance Payment Verified</span>'
+          + '</div>';
+      }
+
+      var initPanel = '<div class="payment-panel">'
+        + '<div class="panel-heading"><span class="dot dot-orange"></span>Initial Payment</div>'
+        + '<div class="panel-field"><div class="panel-label">Event Type</div><div class="panel-value">' + (b.eventType || '—') + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Payment Platform</div><div class="panel-value">' + (b.platform || '—') + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Reference No.</div><div class="panel-value">' + (b.reference || '—') + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Pick Up Date</div><div class="panel-value">' + formatDate(b.date) + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Pick Up Time</div><div class="panel-value">' + formatTime(b.time) + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Receipt</div><div class="panel-value">' + receipt1HTML + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Total Amount</div><div class="panel-value">₱' + total.toFixed(2) + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Amount Paid</div><div class="panel-value green">₱' + initPaid.toFixed(2) + '</div></div>'
+        + '<div class="panel-field"><div class="panel-label">Remaining Balance</div><div class="panel-value ' + (initRemaining <= 0 ? 'green' : 'orange') + '">₱' + initRemaining.toFixed(2) + '</div></div>'
+        + initialVerifyBtn
+        + '</div>';
+
+      // Remaining balance panel — shows if customer submitted (receipt2 exists)
+      var hasRemaining = hasReceipt2;
+      var receipt2HTML = hasRemaining
+        ? '<a href="' + b.receipt2 + '" target="_blank" class="receipt-link">📎 View Receipt</a>'
+        : '<span style="color:var(--muted);font-size:0.82rem;">No receipt</span>';
+
+      var remainVerifyBtn = '';
+      if (hasRemaining && !isFullyDone) {
+        remainVerifyBtn = '<div class="panel-verify-row"><button class="verify-btn" style="background:#2563eb;width:100%;" onclick="verifyRemainingBooking(' + mineIdx + ',' + globalIdx + ',this)">✓ Verify Final Payment</button></div>';
+      }
+
+      var remainPanel = '<div class="payment-panel">'
+        + '<div class="panel-heading"><span class="dot dot-blue"></span>Remaining Balance Payment</div>'
+        + (hasRemaining
+          ? '<div class="panel-field"><div class="panel-label">Remaining Balance</div><div class="panel-value blue">₱' + remaining2Amount.toFixed(2) + '</div></div>'
+            + '<div class="panel-field"><div class="panel-label">Amount Paid</div><div class="panel-value green">₱' + remaining2Amount.toFixed(2) + '</div></div>'
+            + '<div class="panel-field"><div class="panel-label">Payment Platform</div><div class="panel-value">' + (b.platform2 || '—') + '</div></div>'
+            + '<div class="panel-field"><div class="panel-label">Reference No.</div><div class="panel-value">' + (b.reference2 || '—') + '</div></div>'
+            + '<div class="panel-field"><div class="panel-label">Receipt</div><div class="panel-value">' + receipt2HTML + '</div></div>'
+            + remainVerifyBtn
+          : '<p class="remaining-empty">Customer has not submitted the remaining balance payment yet.</p>')
+        + '</div>';
+
+      return '<div class="booking-card fade-in" id="' + bookingAnchor + '">'
+        + '<div class="card-header ' + hdrClass + '">'
+        + '<div><div class="card-customer">' + (b.sender || 'Customer') + '</div>'
+        + '<div class="card-booking-id">Booking ID: ' + (b.bookingId || b.id || '—') + '</div></div>'
+        + '<div class="card-badges"><span class="badge ' + badgeClass + '">' + badgeText + '</span></div>'
+        + '</div>'
+        + '<div class="card-section"><div class="section-label">List of Orders</div>' + formatOrders(b) + '</div>'
+        + '<div class="payment-split">' + initPanel + remainPanel + '</div>'
+        + '</div>';
+    }
+
+    // Verify the FINAL remaining balance payment → marks as Fully Paid + Verified
+    async function verifyRemainingBooking(mineIdx, globalIdx, btn) {
+      btn.disabled = true; btn.textContent = 'Verifying...';
+      try {
+        var res = await fetch('/caterer-verify-remaining', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ index: mineIdx }) });
+        var data = await res.json();
+        if (data.success) {
+          var b = allBookings[globalIdx];
+          b.verified = true;
+          b.status = 'Fully Paid';
+          b.amountPaid = b.totalAmount;
+          renderBookings();
+        } else { btn.disabled = false; btn.textContent = '✓ Verify Final Payment'; }
+      } catch(e) { btn.disabled = false; btn.textContent = '✓ Verify Final Payment'; }
+    }
+
+    async function verifyBooking(mineIdx, globalIdx, btn) {
+      btn.disabled = true; btn.textContent = 'Verifying...';
+      try {
+        var res = await fetch('/caterer-verify-booking', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ index: mineIdx }) });
+        var data = await res.json();
+        if (data.success) {
+          var b = allBookings[globalIdx]; b.verified = true;
+          if (!b.status || b.status === 'Pending Payment') { var paid = parseFloat(b.amountPaid) || 0; var total = parseFloat(b.totalAmount) || 0; b.status = paid >= total ? 'Fully Paid' : 'Partially Paid'; }
+          renderBookings();
+        } else { btn.disabled = false; btn.textContent = '✓ Verify Payment'; }
+      } catch(e) { btn.disabled = false; btn.textContent = '✓ Verify Payment'; }
+    }
+
+    function applyFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      renderBookings();
+    }
+
+    function renderBookings() {
+      var q = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase().trim();
+      var mine = allBookings.filter(function(b) { return b.caterer === myBusinessName; });
+      var filtered = mine.slice().reverse();
+      if (currentFilter === 'pending') {
+        filtered = filtered.filter(function(b) {
+          var hasR2 = !!(b.receipt2 && b.receipt2 !== 'undefined' && b.receipt2 !== 'null');
+          var fullyDone = !!b.verified && b.status === 'Fully Paid' && hasR2;
+          var simpleVerified = !!b.verified && b.status === 'Fully Paid' && !hasR2;
+          return !fullyDone && !simpleVerified;
+        });
+      } else if (currentFilter === 'verified') {
+        filtered = filtered.filter(function(b) {
+          return !!b.verified && b.status === 'Fully Paid';
+        });
+      }
+      if (q) {
+        filtered = filtered.filter(function(b) {
+          return (b.sender || '').toLowerCase().includes(q) ||
+                 (b.bookingId || b.id || '').toLowerCase().includes(q);
+        });
+      }
+      document.getElementById('resultsCount').textContent = filtered.length + ' booking' + (filtered.length !== 1 ? 's' : '') + ' found';
+      var list = document.getElementById('bookingsList');
+      if (filtered.length === 0) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No bookings found.</p></div>'; return; }
+      list.innerHTML = filtered.map(buildCard).join('');
+      var hash = window.location.hash;
+      if (hash) { var el = document.querySelector(hash); if (el) { setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.outline = '2px solid var(--orange)'; setTimeout(function() { el.style.outline = ''; }, 2000); }, 150); } }
+    }
+
+    async function loadData() {
+      try {
+        var sessionRes = await fetch('/caterer-session');
+        var session = await sessionRes.json();
+        if (!session.loggedIn) { window.location.href = '/caterer-login'; return; }
+        myBusinessName = session.businessName;
+        var avatarEl = document.getElementById('profileAvatar');
+        if (session.photo) { avatarEl.style.background = 'none'; avatarEl.style.overflow = 'hidden'; avatarEl.innerHTML = '<img src="' + session.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
+        else { avatarEl.textContent = session.businessName.charAt(0).toUpperCase(); }
+        document.getElementById('dropdownName').textContent = session.businessName;
+        document.getElementById('dropdownEmail').textContent = session.email;
+        var res = await fetch('/bookings');
+        allBookings = await res.json();
+        var params = new URLSearchParams(window.location.search);
+        var f = params.get('filter');
+        if (f === 'pending') { applyFilter('pending', document.getElementById('btnPending')); }
+        else if (f === 'verified') { applyFilter('verified', document.getElementById('btnVerified')); }
+        else { renderBookings(); }
+      } catch(e) { console.error(e); }
+    }
+
+    function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
+    function toggleNotifDropdown() { document.getElementById('notifDropdown').classList.toggle('open'); document.getElementById('profileDropdown').classList.remove('open'); }
+    document.addEventListener('click', function(e) {
+      var nw = document.querySelector('.notif-wrapper');
+      var pw = document.querySelector('.profile-wrapper');
+      if (nw && !nw.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+      if (pw && !pw.contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
+    });
+
+    function formatNotifTime(ts) {
+      var d = ts && ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+    }
+
+    function getNotifRoute(n) {
+      var text = (n.text || '').toLowerCase();
+      var match = (n.text || '').match(/BNY-[A-Z0-9]+/i);
+      if (match) {
+        var bookingId = match[0].toUpperCase();
+        var anchor = 'booking-' + bookingId.replace(/[^a-z0-9]/gi, '');
+        return '/caterer-bookings#' + anchor;
+      }
+      if (text.includes('booking')) { return '/caterer-bookings'; }
+      if (text.includes('message')) { return '/caterer-messages'; }
+      return '/caterer-dashboard';
+    }
+
+    async function loadNotifications() {
+      try {
+        var res = await fetch('/caterer-notifications');
+        var data = await res.json();
+        var badge = document.getElementById('notifBadge');
+        var list = document.getElementById('notifList');
+        var unread = data.filter(function(n) { return !n.isRead; }).length;
+        badge.style.display = unread > 0 ? 'inline-block' : 'none';
+        badge.textContent = unread;
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(function(n) {
+          var a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = function(e) {
+            e.preventDefault();
+            fetch('/caterer-read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) })
+              .then(function() { window.location.href = getNotifRoute(n); });
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+
+    loadData();
+    loadNotifications();
+    setInterval(loadNotifications, 5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+

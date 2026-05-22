@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Caterers – Bunyi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #fff; --bg: #F8F8F8; --border: #e8e8e8; --muted: #888; --text: #333; --green: #16a34a; --green-light: #f0fdf4; --silver-light: #eef1f4; --gold-bg: #fdf6e3; --platinum-bg: #f0f4f8;
+      --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
+      --notif-yellow: #F7B731; --tangerine: #F26419;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── HEADER (copied from dashboard) ── */
+    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--notif-yellow)); }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
+    .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; justify-self: start; }
+    .header-brand span { color: var(--crimson); }
+    .header-center { display: flex; align-items: center; gap: 2px; justify-content: center; }
+    .nav-link { color: #aaa; text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 7px 14px; border-radius: 6px; transition: color 0.2s, background 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.18); }
+    .nav-link.active { color: var(--white); background: rgba(255,255,255,0.18); border-radius: 6px; }
+    .header-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .cart-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s; position: relative; text-decoration: none; }
+    .cart-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .cart-badge { position: absolute; top: 4px; right: 4px; background: var(--green); color: #fff; font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; display: none; }
+    .notif-wrapper { position: relative; }
+    .notif-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 1.1rem; color: #ccc; display: flex; align-items: center; padding: 7px 10px; border-radius: 8px; transition: background 0.2s, color 0.2s; position: relative; }
+    .notif-btn:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+    .notif-badge { position: absolute; top: 4px; right: 4px; background: var(--notif-yellow); color: var(--dark); font-size: 0.55rem; font-weight: 700; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; font-family: 'Poppins', sans-serif; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 310px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .notif-dropdown.open { display: block; }
+    .notif-header-row { padding: 13px 15px 9px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .notif-title { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+    .notif-scroll { max-height: 280px; overflow-y: auto; }
+    .notif-empty { padding: 22px 15px; font-size: 0.82rem; color: var(--muted); text-align: center; }
+    .notif-item { padding: 11px 15px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; transition: background 0.15s; cursor: pointer; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--bg); }
+    .notif-item.unread { background: var(--orange-light); }
+    .notif-text { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+    .notif-item.unread .notif-text { font-weight: 600; color: var(--dark); }
+    .notif-time { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+    .account-wrapper { position: relative; }
+    .account-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: none; cursor: pointer; padding: 0 12px; height: 38px; border-radius: 8px; transition: background 0.2s; font-family: 'Poppins', sans-serif; }
+    .account-btn:hover { background: rgba(255,255,255,0.14); }
+    .account-avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--white); flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.5); overflow: hidden; }
+    .account-chevron { color: #aaa; font-size: 0.6rem; opacity: 0.6; }
+    .account-dropdown { display: none; position: absolute; right: 0; top: 46px; width: 220px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 999; overflow: hidden; }
+    .account-dropdown.open { display: block; }
+    .account-dropdown-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .account-dropdown-name { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .account-dropdown-email { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .account-dropdown-item { display: flex; align-items: center; gap: 9px; padding: 11px 16px; font-size: 0.84rem; color: var(--text); text-decoration: none; transition: background 0.15s; font-family: 'Poppins', sans-serif; font-weight: 500; }
+    .account-dropdown-item:hover { background: var(--bg); }
+    .account-dropdown-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
+    .account-dropdown-item.logout:hover { background: var(--crimson-light); }
+    @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } }
+    @media (max-width: 480px) { .header-center { display: none; } }
+    /* ── END HEADER ── */
+
+    .hero { background: var(--dark); padding: 48px 40px 40px; text-align: center; }
+    .hero-eyebrow { font-size: 0.72rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.16em; margin-bottom: 10px; }
+    .hero-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; color: #fff; line-height: 1.15; margin-bottom: 10px; }
+    .hero-title span { color: var(--orange); }
+    .hero-sub { font-size: 0.9rem; color: #aaa; max-width: 480px; margin: 0 auto 24px; }
+    .search-wrap { max-width: 520px; margin: 0 auto; position: relative; }
+    .search-input { width: 100%; padding: 13px 20px 13px 46px; border: none; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--white); outline: none; box-shadow: 0 4px 16px rgba(0,0,0,0.15); transition: box-shadow 0.2s; }
+    .search-input:focus { box-shadow: 0 4px 20px rgba(232,69,10,0.25); }
+    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: var(--muted); pointer-events: none; }
+    .main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+    .results-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+    .no-results { text-align: center; padding: 60px 24px; color: var(--muted); }
+    .no-results-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    #catererGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .caterer-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.05); opacity: 0; animation: fadeUp 0.4s ease forwards; }
+    .caterer-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.12); transform: translateY(-4px); border-color: var(--orange); }
+    .card-img { width: 100%; height: 160px; object-fit: cover; display: block; }
+    .card-img-placeholder { width: 100%; height: 160px; background: linear-gradient(135deg, var(--dark) 0%, #2d2d2d 100%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+    .card-body { padding: 16px 18px 14px; }
+    .card-name { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+    .card-location { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+    .card-rating { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .stars { color: #f59e0b; font-size: 0.85rem; }
+    .rating-num { font-size: 0.78rem; font-weight: 600; color: var(--dark); }
+    .rating-count { font-size: 0.72rem; color: var(--muted); }
+    .card-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+    .card-footer { padding: 10px 18px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-view-btn { font-size: 0.78rem; font-weight: 600; color: var(--orange); }
+    .card-pkg-count { font-size: 0.72rem; color: var(--muted); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.25); animation: modalIn 0.3s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-top { background: var(--dark); position: relative; flex-shrink: 0; }
+    .modal-cover { display: none; }
+    .modal-cover-placeholder { display: none; }
+    .modal-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: #fff; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
+    .modal-close:hover { background: rgba(255,255,255,0.25); }
+    .modal-info { padding: 48px 24px 0; background: var(--dark); }
+    .modal-name { font-size: 1.3rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .modal-location { font-size: 0.78rem; color: #aaa; margin-bottom: 10px; }
+    .modal-rating-row { display: flex; align-items: center; gap: 8px; padding-bottom: 14px; }
+    .modal-stars { color: #f59e0b; font-size: 1rem; }
+    .modal-rating-num { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+    .modal-rating-count { font-size: 0.78rem; color: #aaa; }
+    .modal-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--white); }
+    .modal-tab { flex: 1; padding: 14px; text-align: center; font-size: 0.84rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Poppins', sans-serif; }
+    .modal-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+    .modal-body { overflow-y: auto; flex: 1; padding: 20px 24px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .menu-category-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .menu-category-label:first-child { margin-top: 0; }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+    .pkg-card-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px 8px 0 0; display: block; }
+    .pkg-card-img-placeholder { width: 100%; aspect-ratio: 1/1; background: linear-gradient(135deg,#1A1A1A,#2d2d2d); border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; }
+    .pkg-item { border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border); background: var(--white); transition: box-shadow 0.2s, transform 0.15s; }
+    .pkg-item:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .pkg-item-details { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .pkg-name { font-weight: 600; font-size: 0.9rem; color: var(--dark); margin-bottom: 2px; }
+    .pkg-inclusions-text { font-size: 0.74rem; color: var(--muted); }
+    .show-more-btn { font-size: 0.72rem; font-weight: 600; color: var(--orange); background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; padding: 0; margin-top: 2px; display: block; }
+    .show-more-btn:hover { text-decoration: underline; }
+    .pkg-price-from { font-size: 0.95rem; font-weight: 700; color: var(--orange); margin-top: 2px; }
+    .pkg-price-from span { font-size: 0.68rem; font-weight: 400; color: var(--muted); }
+    .pkg-select-btn { width: 100%; padding: 8px; background: var(--orange); color: #fff; border: none; border-radius: 7px; font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 4px; }
+    .pkg-select-btn:hover { background: #c93a08; }
+    .variant-picker { display: none; flex-direction: column; margin-top: 6px; border: 1.5px solid var(--orange); border-radius: 8px; overflow: hidden; animation: expandDown 0.2s ease; }
+    .variant-picker.open { display: flex; }
+    @keyframes expandDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .variant-picker-header { background: var(--orange-light); padding: 7px 10px; font-size: 0.7rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; justify-content: space-between; }
+    .variant-picker-close { background: none; border: none; cursor: pointer; font-size: 0.9rem; color: var(--orange); font-weight: 700; font-family: 'Poppins', sans-serif; padding: 0; line-height: 1; }
+    .variant-option { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-top: 1px solid #ffd0bc; cursor: default; background: var(--white); gap: 8px; }
+    .variant-option-name { font-size: 0.83rem; font-weight: 600; color: var(--dark); flex: 1; }
+    .variant-option-price { font-size: 0.83rem; font-weight: 700; color: var(--orange); white-space: nowrap; }
+    .variant-add-btn { padding: 5px 12px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background 0.2s; white-space: nowrap; flex-shrink: 0; }
+    .variant-add-btn:hover { background: #15803d; }
+    .variant-qty-btn { width: 24px; height: 24px; border: 1.5px solid var(--border); border-radius: 5px; background: var(--white); cursor: pointer; font-size: 0.9rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; flex-shrink: 0; transition: border-color 0.15s; }
+    .variant-qty-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .variant-qty-num { min-width: 20px; text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--dark); }
+    .checkout-bar { display: none; padding: 10px; background: var(--orange-light); border-top: 1.5px solid var(--orange); }
+    .checkout-bar button { width: 100%; padding: 10px; background: var(--orange); color: #fff; border: none; border-radius: 7px; font-family: 'Poppins', sans-serif; font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .checkout-bar button:hover { background: #c93a08; }
+    .add-cart-btn { width: 100%; background: var(--green); color: #fff; border: none; border-radius: 7px; padding: 8px 13px; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background 0.2s; margin-top: 4px; }
+    .add-cart-btn:hover { background: #15803d; }
+    .add-cart-btn.added { background: #15803d; }
+    .review-form { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px; }
+    .review-form-title { font-size: 0.82rem; font-weight: 700; color: var(--dark); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .star-picker { display: flex; gap: 6px; margin-bottom: 10px; }
+    .star-picker span { font-size: 1.6rem; cursor: pointer; color: #ddd; transition: color 0.15s; user-select: none; }
+    .star-picker span.filled { color: #f59e0b; }
+    .review-textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--dark); background: var(--white); outline: none; resize: vertical; min-height: 80px; transition: border-color 0.2s; }
+    .review-textarea:focus { border-color: var(--orange); }
+    .word-counter { font-size: 0.72rem; color: var(--muted); text-align: right; margin-top: 4px; }
+    .review-submit-btn { margin-top: 10px; padding: 9px 20px; background: var(--orange); color: #fff; border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .review-submit-btn:hover { background: #c93a08; }
+    .review-msg { font-size: 0.8rem; margin-top: 8px; font-weight: 500; }
+    .review-msg.success { color: var(--green); }
+    .review-msg.error { color: #e53e3e; }
+    .review-locked { font-size: 0.82rem; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; }
+    .review-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+    .review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .review-author { font-size: 0.84rem; font-weight: 700; color: var(--dark); }
+    .review-stars { color: #f59e0b; font-size: 0.82rem; }
+    .review-date { font-size: 0.68rem; color: var(--muted); margin-bottom: 6px; }
+    .review-comment { font-size: 0.84rem; color: var(--text); line-height: 1.5; }
+    .reviews-empty { text-align: center; padding: 32px; color: var(--muted); font-size: 0.86rem; }
+    .loading-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); margin: 0 3px; animation: bounce 1.2s infinite; }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-8px); opacity: 1; } }
+    .cart-toast { position: fixed; bottom: 28px; right: 28px; background: var(--dark); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 0.84rem; font-weight: 500; box-shadow: 0 6px 24px rgba(0,0,0,0.2); z-index: 9999; display: none; }
+    .cart-toast.show { display: block; animation: toastIn 0.3s ease; }
+    @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .inquiry-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+    .inquiry-box p { font-size: 0.86rem; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+    .inquiry-textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--dark); background: var(--white); outline: none; resize: vertical; min-height: 90px; transition: border-color 0.2s; }
+    .inquiry-textarea:focus { border-color: var(--orange); }
+    .inquiry-send-btn { margin-top: 10px; padding: 9px 22px; background: var(--orange); color: #fff; border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .inquiry-send-btn:hover { background: #c93a08; }
+    .inquiry-msg { font-size: 0.8rem; margin-top: 8px; font-weight: 500; color: var(--green); }
+    @media (max-width: 600px) { .hero { padding: 36px 20px 32px; } .main { padding: 28px 16px 60px; } .modal-body { padding: 16px; } .modal-info { padding: 14px 16px 0; } .menu-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div class="color-strip"></div>
+  <header class="header">
+    <a href="/dashboard" class="header-brand">Bunyi<span>.</span></a>
+    <nav class="header-center">
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <a href="/browse" class="nav-link active">Browse</a>
+      <a href="/chats" class="nav-link">Messages</a>
+    </nav>
+    <div class="header-right">
+      <a href="/cart" class="cart-btn" title="My Cart">
+        🛒 <span class="cart-badge" id="cartBadge">0</span>
+      </a>
+      <div class="notif-wrapper">
+        <button class="notif-btn" onclick="toggleNotifDropdown()">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
+          <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+        </div>
+      </div>
+      <div class="account-wrapper">
+        <button class="account-btn" onclick="toggleAccountDropdown()">
+          <div class="account-avatar" id="accountAvatar">?</div>
+          <span class="account-chevron">▾</span>
+        </button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-dropdown-header">
+            <div class="account-dropdown-name" id="accountDropdownName">—</div>
+            <div class="account-dropdown-email" id="accountDropdownEmail">—</div>
+          </div>
+          <a href="/account" class="account-dropdown-item">👤 My Account</a>
+          <a href="/logout" class="account-dropdown-item logout">🚪 Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <p class="hero-eyebrow">✦ Find your perfect match</p>
+    <h1 class="hero-title">Browse <span>Caterers</span></h1>
+    <p class="hero-sub">Choose from our curated list of professional caterers and select the package that fits your event.</p>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search caterers, packages, location..." oninput="filterCaterers()">
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="results-label" id="resultsLabel">Loading caterers...</div>
+    <div id="catererGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:48px;">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+    <div id="noResults" class="no-results" style="display:none;">
+      <div class="no-results-icon">🔍</div>
+      <p>No caterers found for "<span id="noResultsQuery"></span>"</p>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="catererModal" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-top">
+        <div id="modalCoverImg"></div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="modal-info">
+          <div class="modal-name" id="modalName">—</div>
+          <div class="modal-location" id="modalLocation">📍 —</div>
+          <div class="modal-rating-row">
+            <span class="modal-stars" id="modalStars">☆☆☆☆☆</span>
+            <span class="modal-rating-num" id="modalRatingNum">—</span>
+            <span class="modal-rating-count" id="modalRatingCount">(0 reviews)</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchTab('packages')">🍽️ Menu</button>
+        <button class="modal-tab" onclick="switchTab('reviews')">⭐ Reviews</button>
+        <button class="modal-tab" onclick="switchTab('inquiry')">💬 Inquiry</button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-panel active" id="tab-packages"><div id="modalPackages"></div></div>
+        <div class="tab-panel" id="tab-reviews"><div id="reviewFormArea"></div><div id="reviewsList"></div></div>
+        <div class="tab-panel" id="tab-inquiry"><div id="inquiryArea"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cart-toast" id="cartToast"></div>
+
+  <script>
+    var allCaterers = [];
+    var currentCaterer = null;
+    var selectedRating = 0;
+    var currentUserName = '';
+    var userBookings = [];
+    var cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
+    var MENU_CATEGORIES = ['Packages', 'Food Trays', 'Bilao', 'Bento / Short Orders'];
+
+    function starsHTML(rating) {
+      var s = '';
+      for (var i = 1; i <= 5; i++) s += i <= Math.round(rating) ? '★' : '☆';
+      return s;
+    }
+    function maskName(name) {
+      return (name || '').split(' ').map(function(w) { return w ? w[0] + '*'.repeat(Math.max(w.length - 1, 3)) : ''; }).join(' ');
+    }
+    function updateCartBadge() {
+      var badge = document.getElementById('cartBadge');
+      var total = cart.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      badge.textContent = total; badge.style.display = total > 0 ? 'inline-block' : 'none';
+    }
+
+    function toggleVariantPicker(safeId) {
+      var picker = document.getElementById('vpicker-' + safeId);
+      var btn = document.getElementById('selbtn-' + safeId);
+      if (!picker) return;
+      var isOpen = picker.classList.contains('open');
+      document.querySelectorAll('.variant-picker.open').forEach(function(el) { el.classList.remove('open'); });
+      document.querySelectorAll('.pkg-select-btn').forEach(function(el) { el.textContent = '+ Add to Cart'; });
+      if (!isOpen) { picker.classList.add('open'); if (btn) btn.textContent = 'Close ✕'; }
+    }
+    function closeVariantPicker(safeId) {
+      var picker = document.getElementById('vpicker-' + safeId);
+      var btn = document.getElementById('selbtn-' + safeId);
+      if (picker) picker.classList.remove('open');
+      if (btn) btn.textContent = '+ Add to Cart';
+    }
+    function changeVariantQty(vSafeId, delta) {
+      var el = document.getElementById('vqty-' + vSafeId);
+      if (!el) return;
+      var val = parseInt(el.textContent) + delta;
+      if (val < 1) val = 1;
+      el.textContent = val;
+    }
+    function addVariantToCart(catererName, pkgName, variantName, price, vSafeId, safeId) {
+      var cartKey = pkgName + ' (' + variantName + ')';
+      var qtyEl = document.getElementById('vqty-' + vSafeId);
+      var qty = qtyEl ? parseInt(qtyEl.textContent) || 1 : 1;
+      var existing = -1;
+      for (var i = 0; i < cart.length; i++) {
+        if (cart[i].catererName === catererName && cart[i].pkgName === cartKey) { existing = i; break; }
+      }
+      if (existing !== -1) { cart[existing].qty += qty; showToast(variantName + ' qty updated (' + cart[existing].qty + ')'); }
+      else { cart.push({ catererName: catererName, pkgName: cartKey, price: price, qty: qty }); showToast(variantName + ' x' + qty + ' added! 🛒'); }
+      sessionStorage.setItem('bunyi_cart', JSON.stringify(cart));
+      updateCartBadge();
+      if (qtyEl) qtyEl.textContent = '1';
+      var bar = document.getElementById('checkout-bar-' + safeId);
+      if (bar) bar.style.display = 'block';
+    }
+    function addToCart(catererName, pkgName, price, safeId) {
+      var existing = -1;
+      for (var i = 0; i < cart.length; i++) {
+        if (cart[i].catererName === catererName && cart[i].pkgName === pkgName) { existing = i; break; }
+      }
+      var btn = document.getElementById('cart-btn-' + safeId);
+      if (existing !== -1) { cart.splice(existing, 1); if (btn) { btn.textContent = '+ Add to Cart'; btn.classList.remove('added'); } showToast('Removed from cart'); }
+      else { cart.push({ catererName: catererName, pkgName: pkgName, price: price, qty: 1 }); if (btn) { btn.textContent = '✓ In Cart'; btn.classList.add('added'); } showToast('Added to cart! 🛒'); }
+      sessionStorage.setItem('bunyi_cart', JSON.stringify(cart));
+      updateCartBadge();
+    }
+
+    function renderInquiryTab() {
+      var area = document.getElementById('inquiryArea');
+      if (!area) return;
+      if (!currentUserName) { area.innerHTML = '<div class="review-locked">Please log in to send an inquiry.</div>'; return; }
+      area.innerHTML = '<div class="inquiry-box"><p>Have a question about <strong>' + (currentCaterer ? currentCaterer.name : 'this caterer') + '</strong>? Send them a message and they will get back to you.</p>'
+        + '<textarea class="inquiry-textarea" id="inquiryText" placeholder="Hi! I would like to ask about your packages..."></textarea>'
+        + '<div><button class="inquiry-send-btn" onclick="sendInquiry()">Send Inquiry 💬</button></div>'
+        + '<div class="inquiry-msg" id="inquiryMsg"></div></div>';
+    }
+    async function sendInquiry() {
+      var text = document.getElementById('inquiryText') ? document.getElementById('inquiryText').value.trim() : '';
+      if (!text) { document.getElementById('inquiryMsg').textContent = 'Please type a message first.'; return; }
+      if (!currentCaterer) return;
+      try {
+        await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: currentCaterer.name, sender: 'Customer', text: text }) });
+        document.getElementById('inquiryMsg').textContent = '✅ Message sent! Check your Messages tab for the reply.';
+        document.getElementById('inquiryText').value = '';
+      } catch(e) { document.getElementById('inquiryMsg').textContent = 'Failed to send. Please try again.'; }
+    }
+
+    async function loadUserInfo() {
+      try {
+        var res = await fetch('/session-user'); var data = await res.json();
+        if (data && data.name) {
+          var avatarEl = document.getElementById('accountAvatar');
+          if (data.photo) {
+            avatarEl.style.background = 'none';
+            avatarEl.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          } else {
+            avatarEl.textContent = data.name.charAt(0).toUpperCase();
+          }
+          document.getElementById('accountDropdownName').textContent = data.name;
+          document.getElementById('accountDropdownEmail').textContent = data.email || '';
+          currentUserName = data.name;
+        }
+      } catch(e) {}
+    }
+
+    async function loadUserBookings() { try { var res = await fetch('/bookings'); userBookings = await res.json(); } catch(e) {} }
+
+    async function loadCaterers() {
+      try {
+        var res = await fetch('/caterers');
+        if (!res.ok) throw new Error('Failed');
+        allCaterers = await res.json();
+        for (var i = 0; i < allCaterers.length; i++) {
+          try { var rRes = await fetch('/reviews?caterer=' + encodeURIComponent(allCaterers[i].name)); allCaterers[i].reviews = rRes.ok ? await rRes.json() : []; } catch(e) { allCaterers[i].reviews = []; }
+          var revs = allCaterers[i].reviews;
+          allCaterers[i].avgRating = revs.length ? revs.reduce(function(a, r) { return a + r.rating; }, 0) / revs.length : 0;
+        }
+        renderCaterers(allCaterers);
+      } catch(e) {
+        document.getElementById('catererGrid').innerHTML = '<p style="color:var(--muted);padding:32px;grid-column:1/-1;text-align:center;">Error loading caterers. Please refresh.</p>';
+        document.getElementById('resultsLabel').textContent = 'Error loading';
+      }
+    }
+
+    function renderCaterers(list) {
+      var grid = document.getElementById('catererGrid');
+      var noResults = document.getElementById('noResults');
+      var label = document.getElementById('resultsLabel');
+      if (list.length === 0) {
+        grid.innerHTML = ''; noResults.style.display = 'block';
+        document.getElementById('noResultsQuery').textContent = document.getElementById('searchInput').value;
+        label.textContent = '0 caterers found'; return;
+      }
+      noResults.style.display = 'none';
+      label.textContent = list.length + ' caterer' + (list.length !== 1 ? 's' : '') + ' available';
+      var html = '';
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i]; var avg = c.avgRating || 0; var count = (c.reviews || []).length;
+        var imgHTML = (c.photo && c.photo !== 'null') ? '<img class="card-img" src="' + c.photo + '" alt="' + c.name + '">' : (c.image && c.image.indexOf('placeholder') === -1) ? '<img class="card-img" src="' + c.image + '" alt="' + c.name + '">' : '<div class="card-img-placeholder">🍽️</div>';
+        html += '<div class="caterer-card" style="animation-delay:' + (i * 0.08) + 's" onclick="openModal(' + c.id + ')">'
+          + imgHTML + '<div class="card-body">'
+          + '<div class="card-name">' + c.name + '</div>'
+          + '<div class="card-location">📍 ' + (c.location || 'Location not set') + '</div>'
+          + '<div class="card-rating"><span class="stars">' + starsHTML(avg) + '</span><span class="rating-num">' + (avg > 0 ? avg.toFixed(1) : 'No rating') + '</span><span class="rating-count">(' + count + ')</span></div>'
+          + '<div class="card-desc">' + c.description + '</div></div>'
+          + '<div class="card-footer"><span class="card-view-btn">View menu →</span><span class="card-pkg-count">' + c.packages.length + ' item' + (c.packages.length !== 1 ? 's' : '') + '</span></div></div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    function filterCaterers() {
+      var q = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!q) { renderCaterers(allCaterers); return; }
+
+      // Check if query matches a package name or inclusions (not just caterer name/location)
+      var packageMatch = false;
+      allCaterers.forEach(function(c) {
+        c.packages.forEach(function(p) {
+          if (p.name.toLowerCase().indexOf(q) !== -1 || (p.inclusions || '').toLowerCase().indexOf(q) !== -1) {
+            packageMatch = true;
+          }
+        });
+      });
+
+      if (packageMatch) {
+        // Show package-level results: render matching packages grouped by caterer
+        renderPackageResults(q);
+      } else {
+        // Fall back to caterer-level search
+        var filtered = allCaterers.filter(function(c) {
+          return c.name.toLowerCase().indexOf(q) !== -1 || c.description.toLowerCase().indexOf(q) !== -1 || (c.location || '').toLowerCase().indexOf(q) !== -1;
+        });
+        renderCaterers(filtered);
+      }
+    }
+
+    function renderPackageResults(q) {
+      var grid = document.getElementById('catererGrid');
+      var noResults = document.getElementById('noResults');
+      var label = document.getElementById('resultsLabel');
+      noResults.style.display = 'none';
+
+      var html = '';
+      var totalMatches = 0;
+
+      allCaterers.forEach(function(c) {
+        var matchingPkgs = c.packages.filter(function(p) {
+          return p.name.toLowerCase().indexOf(q) !== -1 || (p.inclusions || '').toLowerCase().indexOf(q) !== -1;
+        });
+        if (matchingPkgs.length === 0) return;
+        totalMatches += matchingPkgs.length;
+
+        matchingPkgs.forEach(function(p) {
+          var safeId = (c.name + '-' + p.name).replace(/[^a-zA-Z0-9]/g, '-');
+          var hasVariants = p.variants && p.variants.length > 0;
+          var inCart = cart.some(function(item) { return item.catererName === c.name && item.pkgName === p.name; });
+          var cName = c.name.replace(/'/g, "\\'");
+          var pName = p.name.replace(/'/g, "\\'");
+
+          var imgHTML = p.image
+            ? '<img class="pkg-card-img" src="' + p.image + '" alt="' + p.name + '">'
+            : '<div class="pkg-card-img-placeholder"><span style="font-size:2rem;">&#127869;</span><span style="font-size:0.68rem;color:#aaa;font-family:Poppins,sans-serif;">No image</span></div>';
+
+          var isLong = (p.inclusions || '').length > 60;
+          var shortText = isLong ? p.inclusions.substring(0, 60) + '...' : (p.inclusions || '');
+          var descHTML = '<div class="pkg-inclusions-text">' + shortText + '</div>';
+
+          var priceHTML = hasVariants
+            ? '<div class="pkg-price-from">From &#8369;' + Math.min.apply(null, p.variants.map(function(v) { return v.price; })).toLocaleString('en-PH') + ' <span>/ head</span></div>'
+            : '<div class="pkg-price-from">&#8369;' + Number(p.price).toLocaleString('en-PH') + ' <span>/ head</span></div>';
+
+          var catererBadge = '<div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">by <strong style="color:var(--orange);cursor:pointer;" onclick="event.stopPropagation();openModal(' + c.id + ')">' + c.name + '</strong></div>';
+
+          var actionHTML = '';
+          if (hasVariants) {
+            actionHTML += '<button class="pkg-select-btn" id="selbtn-' + safeId + '" onclick="toggleVariantPicker(\'' + safeId + '\')">+ Add to Cart</button>';
+            actionHTML += '<div class="variant-picker" id="vpicker-' + safeId + '">'
+              + '<div class="variant-picker-header"><span>Choose a size / serving</span>'
+              + '<button class="variant-picker-close" onclick="closeVariantPicker(\'' + safeId + '\')">✕</button></div>';
+            p.variants.forEach(function(v, vi) {
+              var vSafeId = safeId + '-v' + vi;
+              var vEsc = v.name.replace(/'/g, "\\'");
+              actionHTML += '<div class="variant-option">'
+                + '<span class="variant-option-name">' + v.name + '</span>'
+                + '<span class="variant-option-price">&#8369;' + Number(v.price).toLocaleString('en-PH') + '</span>'
+                + '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">'
+                + '<button class="variant-qty-btn" onclick="changeVariantQty(\'' + vSafeId + '\',-1)">&#8722;</button>'
+                + '<span class="variant-qty-num" id="vqty-' + vSafeId + '">1</span>'
+                + '<button class="variant-qty-btn" onclick="changeVariantQty(\'' + vSafeId + '\',1)">+</button>'
+                + '<button class="variant-add-btn" onclick="addVariantToCart(\'' + cName + '\',\'' + pName + '\',\'' + vEsc + '\',' + v.price + ',\'' + vSafeId + '\',\'' + safeId + '\')">Add</button>'
+                + '</div></div>';
+            });
+            actionHTML += '<div class="checkout-bar" id="checkout-bar-' + safeId + '"><button onclick="window.location.href=\'/cart\'">🛒 Proceed to Checkout</button></div>';
+            actionHTML += '</div>';
+          } else {
+            // Always show qty control + Add button (never toggles to "In Cart")
+            actionHTML = '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;">'
+              + '<div class="qty-ctrl" style="display:inline-flex;align-items:center;border:1.5px solid var(--border);border-radius:7px;overflow:hidden;">'
+              + '<button style="width:30px;height:30px;border:none;background:var(--bg);cursor:pointer;font-size:1rem;font-weight:700;font-family:Poppins,sans-serif;" onclick="srQtyChange(\'' + safeId + '\',-1)">&#8722;</button>'
+              + '<span id="srqty-' + safeId + '" style="min-width:28px;text-align:center;font-size:0.88rem;font-weight:700;">1</span>'
+              + '<button style="width:30px;height:30px;border:none;background:var(--bg);cursor:pointer;font-size:1rem;font-weight:700;font-family:Poppins,sans-serif;" onclick="srQtyChange(\'' + safeId + '\',1)">+</button>'
+              + '</div>'
+              + '<button class="variant-add-btn" style="flex:1;" onclick="srAddToCart(\'' + cName + '\',\'' + pName + '\',' + p.price + ',\'' + safeId + '\')">Add</button>'
+              + '</div>';
+          }
+
+          html += '<div class="caterer-card" style="cursor:default;">'
+            + imgHTML
+            + '<div class="card-body" style="padding:12px 14px;">'
+            + catererBadge
+            + '<div class="pkg-name">' + p.name + '</div>'
+            + descHTML + priceHTML + actionHTML
+            + '</div></div>';
+        });
+      });
+
+      if (totalMatches === 0) {
+        grid.innerHTML = ''; noResults.style.display = 'block';
+        document.getElementById('noResultsQuery').textContent = document.getElementById('searchInput').value;
+        label.textContent = '0 results found'; return;
+      }
+      label.textContent = totalMatches + ' item' + (totalMatches !== 1 ? 's' : '') + ' found';
+      grid.innerHTML = html;
+    }
+
+    // Qty control for non-variant packages in search results
+    function srQtyChange(safeId, delta) {
+      var el = document.getElementById('srqty-' + safeId);
+      if (!el) return;
+      var val = parseInt(el.textContent) + delta;
+      if (val < 1) val = 1;
+      el.textContent = val;
+    }
+    function srAddToCart(catererName, pkgName, price, safeId) {
+      var qtyEl = document.getElementById('srqty-' + safeId);
+      var qty = qtyEl ? parseInt(qtyEl.textContent) || 1 : 1;
+      var existing = -1;
+      for (var i = 0; i < cart.length; i++) {
+        if (cart[i].catererName === catererName && cart[i].pkgName === pkgName) { existing = i; break; }
+      }
+      if (existing !== -1) { cart[existing].qty += qty; showToast(pkgName + ' qty updated (' + cart[existing].qty + ')'); }
+      else { cart.push({ catererName: catererName, pkgName: pkgName, price: price, qty: qty }); showToast(pkgName + ' x' + qty + ' added! 🛒'); }
+      sessionStorage.setItem('bunyi_cart', JSON.stringify(cart));
+      updateCartBadge();
+      if (qtyEl) qtyEl.textContent = '1';
+    }
+
+    async function openModal(id) {
+      currentCaterer = null;
+      for (var i = 0; i < allCaterers.length; i++) { if (allCaterers[i].id === id) { currentCaterer = allCaterers[i]; break; } }
+      if (!currentCaterer) return;
+      var coverEl = document.getElementById('modalCoverImg');
+      coverEl.innerHTML = (currentCaterer.image && currentCaterer.image.indexOf('placeholder') === -1) ? '<img class="modal-cover" src="' + currentCaterer.image + '">' : '<div class="modal-cover-placeholder">🍽️</div>';
+      document.getElementById('modalName').textContent = currentCaterer.name;
+      document.getElementById('modalLocation').innerHTML = '📍 ' + (currentCaterer.location || '—');
+      try { var rRes = await fetch('/reviews?caterer=' + encodeURIComponent(currentCaterer.name)); currentCaterer.reviews = rRes.ok ? await rRes.json() : []; } catch(e) { currentCaterer.reviews = []; }
+      currentCaterer.avgRating = currentCaterer.reviews.length ? currentCaterer.reviews.reduce(function(a, r) { return a + r.rating; }, 0) / currentCaterer.reviews.length : 0;
+      updateModalRating(); renderModalMenu(); renderModalReviews(); switchTab('packages');
+      document.getElementById('catererModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function updateModalRating() {
+      var avg = currentCaterer.avgRating || 0; var count = currentCaterer.reviews.length;
+      document.getElementById('modalStars').textContent = starsHTML(avg);
+      document.getElementById('modalRatingNum').textContent = avg > 0 ? avg.toFixed(1) : '—';
+      document.getElementById('modalRatingCount').textContent = '(' + count + ' review' + (count !== 1 ? 's' : '') + ')';
+    }
+    function closeModal() { document.getElementById('catererModal').classList.remove('open'); document.body.style.overflow = ''; }
+    function handleOverlayClick(e) { if (e.target === document.getElementById('catererModal')) closeModal(); }
+
+    function switchTab(tab) {
+      var tabs = document.querySelectorAll('.modal-tab');
+      tabs[0].classList.toggle('active', tab === 'packages'); tabs[1].classList.toggle('active', tab === 'reviews'); tabs[2].classList.toggle('active', tab === 'inquiry');
+      document.getElementById('tab-packages').classList.toggle('active', tab === 'packages');
+      document.getElementById('tab-reviews').classList.toggle('active', tab === 'reviews');
+      document.getElementById('tab-inquiry').classList.toggle('active', tab === 'inquiry');
+      if (tab === 'inquiry') renderInquiryTab();
+    }
+
+    function renderModalMenu() {
+      var container = document.getElementById('modalPackages');
+      var grouped = {};
+      MENU_CATEGORIES.forEach(function(cat) { grouped[cat] = []; });
+      currentCaterer.packages.forEach(function(p) {
+        var cat = p.category || 'Packages';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(p);
+      });
+      var html = '';
+      MENU_CATEGORIES.forEach(function(cat) {
+        var items = grouped[cat];
+        if (!items || items.length === 0) return;
+        html += '<div class="menu-category-label">' + cat + '</div><div class="menu-grid">';
+        items.forEach(function(p) {
+          var safeId = (currentCaterer.name + '-' + p.name).replace(/[^a-zA-Z0-9]/g, '-');
+          var hasVariants = p.variants && p.variants.length > 0;
+          var isLong = (p.inclusions || '').length > 60;
+          var shortText = isLong ? p.inclusions.substring(0, 60) + '...' : p.inclusions;
+          var inCart = cart.some(function(item) { return item.catererName === currentCaterer.name && item.pkgName === p.name; });
+          var cName = currentCaterer.name.replace(/'/g, "\\'");
+          var pName = p.name.replace(/'/g, "\\'");
+          var imgHTML = p.image
+            ? '<img class="pkg-card-img" src="' + p.image + '" alt="' + p.name + '">'
+            : '<div class="pkg-card-img-placeholder"><span style="font-size:2rem;">&#127869;</span><span style="font-size:0.68rem;color:#aaa;font-family:Poppins,sans-serif;">No image</span></div>';
+          var descHTML = '<div class="pkg-inclusions-text" id="short-' + safeId + '">' + shortText + '</div>'
+            + '<span style="font-size:0.74rem;color:var(--muted);display:none;" id="full-' + safeId + '">' + (p.inclusions || '') + '</span>'
+            + (isLong ? '<button class="show-more-btn" id="btn-' + safeId + '" onclick="toggleDesc(\'' + safeId + '\')">Show more</button>' : '');
+          var priceHTML = hasVariants
+            ? '<div class="pkg-price-from">From &#8369;' + Math.min.apply(null, p.variants.map(function(v) { return v.price; })).toLocaleString('en-PH') + ' <span>/ head</span></div>'
+            : '<div class="pkg-price-from">&#8369;' + Number(p.price).toLocaleString('en-PH') + ' <span>/ head</span></div>';
+          var actionHTML = '';
+          if (hasVariants) {
+            actionHTML += '<button class="pkg-select-btn" id="selbtn-' + safeId + '" onclick="toggleVariantPicker(\'' + safeId + '\')">+ Add to Cart</button>';
+            actionHTML += '<div class="variant-picker" id="vpicker-' + safeId + '">'
+              + '<div class="variant-picker-header"><span>Choose a size / serving</span>'
+              + '<button class="variant-picker-close" onclick="closeVariantPicker(\'' + safeId + '\')">✕</button></div>';
+            p.variants.forEach(function(v, vi) {
+              var vSafeId = safeId + '-v' + vi;
+              var vEsc = v.name.replace(/'/g, "\\'");
+              actionHTML += '<div class="variant-option">'
+                + '<span class="variant-option-name">' + v.name + '</span>'
+                + '<span class="variant-option-price">&#8369;' + Number(v.price).toLocaleString('en-PH') + '</span>'
+                + '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">'
+                + '<button class="variant-qty-btn" onclick="changeVariantQty(\'' + vSafeId + '\',-1)">&#8722;</button>'
+                + '<span class="variant-qty-num" id="vqty-' + vSafeId + '">1</span>'
+                + '<button class="variant-qty-btn" onclick="changeVariantQty(\'' + vSafeId + '\',1)">+</button>'
+                + '<button class="variant-add-btn" id="vbtn-' + vSafeId + '"'
+                + ' onclick="addVariantToCart(\'' + cName + '\',\'' + pName + '\',\'' + vEsc + '\',' + v.price + ',\'' + vSafeId + '\',\'' + safeId + '\')">Add</button>'
+                + '</div></div>';
+            });
+            actionHTML += '<div class="checkout-bar" id="checkout-bar-' + safeId + '">'
+              + '<button onclick="window.location.href=\'/cart\'">🛒 Proceed to Checkout</button>'
+              + '</div>';
+            actionHTML += '</div>';
+          } else {
+            actionHTML += '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;">'
+              + '<div style="display:inline-flex;align-items:center;border:1.5px solid var(--border);border-radius:7px;overflow:hidden;">'
+              + '<button style="width:30px;height:30px;border:none;background:var(--bg);cursor:pointer;font-size:1rem;font-weight:700;font-family:Poppins,sans-serif;" onclick="srQtyChange(\'' + safeId + '\',-1)">&#8722;</button>'
+              + '<span id="srqty-' + safeId + '" style="min-width:28px;text-align:center;font-size:0.88rem;font-weight:700;">1</span>'
+              + '<button style="width:30px;height:30px;border:none;background:var(--bg);cursor:pointer;font-size:1rem;font-weight:700;font-family:Poppins,sans-serif;" onclick="srQtyChange(\'' + safeId + '\',1)">+</button>'
+              + '</div>'
+              + '<button class="variant-add-btn" style="flex:1;" onclick="srAddToCart(\'' + cName + '\',\'' + pName + '\',' + p.price + ',\'' + safeId + '\')">Add</button>'
+              + '</div>';
+          }
+          html += '<div class="pkg-item">' + imgHTML + '<div class="pkg-item-details"><div class="pkg-name">' + p.name + '</div>' + descHTML + priceHTML + actionHTML + '</div></div>';
+        });
+        html += '</div>';
+      });
+      container.innerHTML = html || '<p style="color:var(--muted);font-size:0.86rem;text-align:center;padding:20px;">No menu items added yet.</p>';
+    }
+
+    function toggleDesc(safeId) {
+      var shortEl = document.getElementById('short-' + safeId);
+      var fullEl = document.getElementById('full-' + safeId);
+      var btn = document.getElementById('btn-' + safeId);
+      var isShowing = fullEl.style.display === 'inline';
+      shortEl.style.display = isShowing ? 'block' : 'none';
+      fullEl.style.display = isShowing ? 'none' : 'inline';
+      btn.textContent = isShowing ? 'Show more' : 'Show less';
+    }
+
+    function showToast(msg) {
+      var toast = document.getElementById('cartToast');
+      toast.textContent = msg; toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 2200);
+    }
+
+    function renderModalReviews() {
+      var reviews = currentCaterer.reviews || [];
+      var catererName = currentCaterer.name;
+      var isEligible = userBookings.some(function(b) { return b.caterer === catererName && b.status === 'Fully Paid'; });
+      var alreadyReviewed = reviews.some(function(r) { return r.userName === currentUserName; });
+      var formArea = document.getElementById('reviewFormArea');
+      if (!currentUserName) { formArea.innerHTML = '<div class="review-locked">Please log in to leave a review.</div>'; }
+      else if (!isEligible) { formArea.innerHTML = '<div class="review-locked">⚠️ Only customers with a <strong>completed booking</strong> from this caterer can leave a review.</div>'; }
+      else if (alreadyReviewed) { formArea.innerHTML = '<div class="review-locked" style="color:var(--green);background:#f0fdf4;border-color:#86efac;">✅ You have already reviewed this caterer.</div>'; }
+      else {
+        selectedRating = 0;
+        formArea.innerHTML = '<div class="review-form"><div class="review-form-title">Write a Review</div>'
+          + '<div class="star-picker" id="starPicker"><span onclick="setRating(1)" onmouseover="hoverRating(1)" onmouseout="resetHover()">☆</span><span onclick="setRating(2)" onmouseover="hoverRating(2)" onmouseout="resetHover()">☆</span><span onclick="setRating(3)" onmouseover="hoverRating(3)" onmouseout="resetHover()">☆</span><span onclick="setRating(4)" onmouseover="hoverRating(4)" onmouseout="resetHover()">☆</span><span onclick="setRating(5)" onmouseover="hoverRating(5)" onmouseout="resetHover()">☆</span></div>'
+          + '<textarea class="review-textarea" id="reviewComment" placeholder="Share your experience... (max 300 words)" oninput="updateWordCount()"></textarea>'
+          + '<div class="word-counter"><span id="wordCount">0</span>/300 words</div>'
+          + '<button class="review-submit-btn" onclick="submitReview()">Submit Review</button>'
+          + '<div class="review-msg" id="reviewMsg"></div></div>';
+      }
+      var listEl = document.getElementById('reviewsList');
+      if (reviews.length === 0) { listEl.innerHTML = '<div class="reviews-empty">💬 No reviews yet. Be the first!</div>'; return; }
+      var rHtml = '';
+      reviews.forEach(function(r) {
+        rHtml += '<div class="review-card"><div class="review-header"><span class="review-author">' + maskName(r.userName) + '</span><span class="review-stars">' + starsHTML(r.rating) + '</span></div>'
+          + '<div class="review-date">' + new Date(r.createdAt).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }) + '</div>'
+          + '<div class="review-comment">' + (r.comment || '') + '</div></div>';
+      });
+      listEl.innerHTML = rHtml;
+    }
+
+    function setRating(n) { selectedRating = n; updateStarPicker(n); }
+    function hoverRating(n) { updateStarPicker(n); }
+    function resetHover() { updateStarPicker(selectedRating); }
+    function updateStarPicker(n) {
+      var stars = document.querySelectorAll('#starPicker span');
+      stars.forEach(function(s, i) { s.textContent = i < n ? '★' : '☆'; s.classList.toggle('filled', i < n); });
+    }
+    function updateWordCount() {
+      var text = document.getElementById('reviewComment').value.trim();
+      var words = text === '' ? 0 : text.split(/\s+/).length;
+      var el = document.getElementById('wordCount');
+      if (el) { el.textContent = words; el.style.color = words > 300 ? '#e53e3e' : 'var(--muted)'; }
+    }
+    async function submitReview() {
+      if (!selectedRating) { setReviewMsg('Please select a star rating.', 'error'); return; }
+      var comment = document.getElementById('reviewComment').value.trim();
+      if (comment.split(/\s+/).length > 300) { setReviewMsg('Review exceeds 300 words.', 'error'); return; }
+      try {
+        var res = await fetch('/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: currentCaterer.name, rating: selectedRating, comment: comment }) });
+        var data = await res.json();
+        if (!res.ok) { setReviewMsg(data.error, 'error'); return; }
+        setReviewMsg('✅ Review submitted!', 'success');
+        var rRes = await fetch('/reviews?caterer=' + encodeURIComponent(currentCaterer.name));
+        currentCaterer.reviews = rRes.ok ? await rRes.json() : currentCaterer.reviews;
+        currentCaterer.avgRating = currentCaterer.reviews.reduce(function(a, r) { return a + r.rating; }, 0) / currentCaterer.reviews.length;
+        updateModalRating(); setTimeout(renderModalReviews, 800);
+        for (var i = 0; i < allCaterers.length; i++) { if (allCaterers[i].id === currentCaterer.id) { allCaterers[i].reviews = currentCaterer.reviews; allCaterers[i].avgRating = currentCaterer.avgRating; break; } }
+        renderCaterers(allCaterers);
+      } catch(e) { setReviewMsg('Something went wrong. Try again.', 'error'); }
+    }
+    function setReviewMsg(text, type) { var el = document.getElementById('reviewMsg'); if (el) { el.textContent = text; el.className = 'review-msg ' + type; } }
+
+    function formatNotifTime(ts) {
+      var d = ts && ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+    }
+    async function loadNotifications() {
+      try {
+        var res = await fetch('/notifications'); var data = await res.json();
+        var badge = document.getElementById('notifBadge'); var list = document.getElementById('notifList');
+        var unread = data.filter(function(n) { return !n.isRead; }).length;
+        if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread; } else { badge.style.display = 'none'; }
+        if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(function(n) {
+          var a = document.createElement('a');
+          a.className = 'notif-item' + (n.isRead ? '' : ' unread');
+          a.href = '#';
+          a.onclick = async function(e) {
+            e.preventDefault();
+            await fetch('/read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) });
+            var text = (n.text || '').toLowerCase();
+            if (n.type === 'reminder' || text.includes('remaining balance') || text.includes('balance due') || text.includes('partially paid') || text.includes('due')) {
+              window.location.href = '/dashboard';
+            } else if (n.type === 'message' || text.includes('message') || text.includes('chat')) {
+              window.location.href = '/chats';
+            } else {
+              window.location.href = '/events';
+            }
+          };
+          a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
+          list.appendChild(a);
+        });
+      } catch(e) {}
+    }
+    async function toggleNotifDropdown() {
+      var dd = document.getElementById('notifDropdown');
+      var ad = document.getElementById('accountDropdown');
+      if (ad) ad.classList.remove('open');
+      dd.classList.toggle('open');
+      if (dd.classList.contains('open')) { await loadNotifications(); }
+    }
+    function toggleAccountDropdown() {
+      var ad = document.getElementById('accountDropdown');
+      var nd = document.getElementById('notifDropdown');
+      if (nd) nd.classList.remove('open');
+      ad.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      var nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { var dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); }
+      var aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { var ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); }
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+    loadUserInfo(); loadUserBookings(); loadCaterers(); loadNotifications(); updateCartBadge();
+    setInterval(loadNotifications, 5000);
+  </script>
+  <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+</body>
+</html>
+
