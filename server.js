@@ -31,12 +31,11 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon
 app.get('/favicon.png', (req, res) => res.sendFile(path.join(__dirname, 'favicon.png')));
 
 const session = require('express-session');
-const MemoryStore = require('memorystore')(session);
 app.use(session({
-  store: new MemoryStore({ checkPeriod: 86400000 }),
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  name: 'bunyi.sid'
 }));
 
 // ===== CLOUDINARY =====
