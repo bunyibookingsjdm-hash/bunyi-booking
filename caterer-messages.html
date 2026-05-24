@@ -52,6 +52,29 @@
     .profile-menu-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
     .profile-menu-item.logout:hover { background: var(--crimson-light); }
     @media (max-width: 700px) { .header { padding: 0 16px; } .header-nav { display: none; } }
+    /* ── RESPONSIVE CHAT LAYOUT FOR ALL DEVICES ── */
+    @media (max-width: 1024px) {
+      .chat-sidebar { width: 260px; }
+    }
+    @media (max-width: 900px) {
+      .chat-sidebar { width: 220px; }
+    }
+    @media (max-width: 768px) {
+      .chat-layout { position: relative; overflow: hidden; }
+      .chat-sidebar { width: 100% !important; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; display: flex !important; }
+      .chat-main { width: 100% !important; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 5; }
+      .chat-sidebar.hide-mobile { display: none !important; }
+      .chat-main.show-mobile { z-index: 15; }
+      .back-btn { display: flex !important; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--orange); font-family: 'Poppins', sans-serif; font-weight: 600; margin-right: 6px; padding: 4px 0; }
+    }
+    @media (max-width: 480px) {
+      .chat-topbar { padding: 10px 12px; }
+      .chat-input-bar { padding: 10px 12px; gap: 8px; }
+      .chat-messages { padding: 14px 10px; }
+      .bubble { font-size: 0.85rem; padding: 9px 12px; }
+      .msg-row { max-width: 85%; }
+    }
+    @media (min-width: 769px) { .back-btn { display: none !important; } }
     .chat-layout { display: flex; flex: 1; overflow: hidden; }
     .chat-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--white); display: flex; flex-direction: column; overflow: hidden; }
     .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--white); flex-shrink: 0; }
@@ -143,7 +166,8 @@
       </div>
     </div>
     <div class="chat-main">
-      <div class="chat-topbar" id="chatTopbar">
+      <div class="chat-topbar" id="chatTopbar" style="display:flex;align-items:center;">
+        <button class="back-btn" onclick="goBackToSidebar()">Back</button>
         <div class="empty-chat" style="width:100%;padding:0;">
           <p style="color:var(--muted);font-size:0.86rem;">Select a conversation to start chatting</p>
         </div>
@@ -247,6 +271,8 @@
       var displayName = convo ? (convo.displayName || convo.name) : customerName;
       document.getElementById('chatTopbar').innerHTML = '<div class="chat-avatar">' + displayName.charAt(0).toUpperCase() + '</div><div><div class="chat-customer-name">' + displayName + '</div><div class="chat-sub">Customer</div></div>';
       document.getElementById('chatInputBar').style.display = 'flex';
+      document.querySelector('.chat-sidebar').classList.add('hide-mobile');
+      document.querySelector('.chat-main').classList.add('show-mobile');
       await loadMessages();
     }
 
@@ -346,7 +372,17 @@
       } catch(e) {}
     }
 
+    function goBackToSidebar() {
+      document.querySelector('.chat-sidebar').classList.remove('hide-mobile');
+      document.querySelector('.chat-main').classList.remove('show-mobile');
+      activeCustomer = null;
+      document.getElementById('chatInputBar').style.display = 'none';
+      document.getElementById('chatTopbar').innerHTML = '<button class="back-btn" onclick="goBackToSidebar()">◀ Back</button><div class="empty-chat" style="width:100%;padding:0;"><p style="color:var(--muted);font-size:0.86rem;">Select a conversation to start chatting</p></div>';
+      document.getElementById('chatMessages').innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>Select a conversation to start chatting</p></div>';
+    }
+
     loadSession();
+
     loadNotifications();
     setInterval(loadMessages, 2000);
     setInterval(loadConversations, 5000);
