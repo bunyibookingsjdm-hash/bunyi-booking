@@ -176,9 +176,18 @@
   </style>
 </head>
 <body>
-  <div class="color-strip"></div>
+<div class="color-strip"></div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="/caterer-dashboard" class="active">🏠 Dashboard</a>
+    <a href="/caterer-bookings">📋 Bookings</a>
+    <a href="/caterer-products">🍽️ Products</a>
+    <a href="/caterer-messages">💬 Messages</a>
+  </div>
   <header class="header">
     <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
+    <button class="hamburger-btn" onclick="toggleMobileNav()" id="hamburgerBtn">
+      <span></span><span></span><span></span>
+    </button>
     <nav class="header-nav">
       <a class="nav-link active" href="/caterer-dashboard">Dashboard</a>
       <a class="nav-link" href="/caterer-bookings">Bookings</a>
