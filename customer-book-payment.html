@@ -561,9 +561,9 @@
             + '<div class="qr-label">' + (qr.label || 'QR ' + (i+1)) + '</div>'
             + '</div>'
             + '<div style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center;">'
-            + '<div style="font-size:0.75rem;font-weight:700;color:var(--orange);">' + (qr.label || 'QR ' + (i+1)) + '</div>'
-            + (qr.recipient ? '<div style="font-size:0.78rem;font-weight:600;color:var(--dark);margin-top:2px;">👤 ' + qr.recipient + '</div>' : '')
-            + (qr.account ? '<div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">📱 ' + qr.account + '</div>' : '')
+            + '<div style="font-size:0.75rem;font-weight:700;color:var(--orange);">Payment Platform: ' + (qr.label || 'QR ' + (i+1)) + '</div>'
+            + (qr.recipient ? '<div style="font-size:0.78rem;font-weight:600;color:var(--dark);margin-top:2px;">Recipient Name: ' + qr.recipient + '</div>' : '')
+            + (qr.account ? '<div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Account Number: ' + qr.account + '</div>' : '')
             + '</div>'
             + '</div>';
         }).join('');
