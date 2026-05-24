@@ -66,14 +66,16 @@
     @media (max-width: 900px) {
       .chat-sidebar { width: 220px; }
     }
+ .back-btn { display: none; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--orange); font-family: 'Poppins', sans-serif; font-weight: 600; margin-right: 6px; padding: 4px 0; }
     @media (max-width: 768px) {
       .chat-layout { position: relative; overflow: hidden; }
       .chat-sidebar { width: 100% !important; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; display: flex !important; }
       .chat-main { width: 100% !important; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 5; }
       .chat-sidebar.hide-mobile { display: none !important; }
       .chat-main.show-mobile { z-index: 15; }
-      .back-btn { display: flex !important; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--orange); font-family: 'Poppins', sans-serif; font-weight: 600; margin-right: 6px; padding: 4px 0; }
+      .back-btn { display: flex !important; }
     }
+    @media (min-width: 769px) { .back-btn { display: none !important; } }
     @media (max-width: 480px) {
       .chat-topbar { padding: 10px 12px; }
       .chat-input-bar { padding: 10px 12px; gap: 8px; }
