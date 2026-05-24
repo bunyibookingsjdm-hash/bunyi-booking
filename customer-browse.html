@@ -768,7 +768,7 @@
         if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread; } else { badge.style.display = 'none'; }
         if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
         list.innerHTML = '';
-        data.forEach(function(n) {
+        data.slice().reverse().forEach(n => {
           var a = document.createElement('a');
           a.className = 'notif-item' + (n.isRead ? '' : ' unread');
           a.href = '#';

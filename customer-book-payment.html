@@ -663,7 +663,7 @@
         badge.textContent   = unread;
         if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
         list.innerHTML = '';
-        data.forEach(n => {
+        data.slice().reverse().forEach(n => {
           const a = document.createElement('a');
           a.className = 'notif-item' + (n.isRead ? '' : ' unread');
           a.href = '#';
