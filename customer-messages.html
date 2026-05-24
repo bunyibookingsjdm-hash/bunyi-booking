@@ -100,7 +100,16 @@
     .chat-input-bar input:focus { border-color: var(--orange); }
     .send-btn { width: 42px; height: 42px; background: var(--orange); color: #fff; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; flex-shrink: 0; transition: background 0.2s, transform 0.15s; }
     .send-btn:hover { background: #c93a08; transform: scale(1.06); }
-    @media (max-width: 640px) { .sidebar { width: 72px; } .convo-info, .convo-time { display: none; } .convo-item { justify-content: center; padding: 12px; } }
+    @media (max-width: 640px) {
+  .chats-layout { position: relative; }
+  .sidebar { width: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; }
+  .chat-panel { width: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 5; }
+  .sidebar.hide-mobile { display: none; }
+  .chat-panel.show-mobile { z-index: 15; }
+  .chat-topbar { padding-left: 12px; }
+  .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--orange); font-family: 'Poppins', sans-serif; font-weight: 600; margin-right: 6px; padding: 4px 0; }
+}
+@media (min-width: 641px) { .back-btn { display: none; } }
   </style>
 </head>
 <body>
@@ -160,6 +169,7 @@
       </div>
       <div class="active-chat-wrap" id="activeChatWrap">
         <div class="chat-topbar">
+          <button class="back-btn" id="backBtn" onclick="goBackToSidebar()">◀ Back</button>
           <div class="chat-avatar" id="panelAvatar"></div>
           <div>
             <div class="chat-caterer-name" id="panelName"></div>
@@ -203,6 +213,9 @@
       document.getElementById('emptyPanel').style.display = 'none';
       const wrap = document.getElementById('activeChatWrap');
       wrap.style.display = 'flex';
+      // Mobile: hide sidebar, show chat panel
+      document.querySelector('.sidebar').classList.add('hide-mobile');
+      document.querySelector('.chat-panel').classList.add('show-mobile');
       document.getElementById('panelAvatar').textContent = caterer.charAt(0).toUpperCase();
       document.getElementById('panelName').textContent = caterer;
       document.querySelectorAll('.convo-item').forEach(el => { el.classList.toggle('active', el.querySelector('.convo-name')?.textContent === caterer); });
@@ -340,7 +353,6 @@
     setInterval(() => { loadMessages(); loadSidebar(); }, 2000);
     setInterval(loadNotifications, 5000);
   </script>
-
 </body>
 </html>
 

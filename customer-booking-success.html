@@ -162,6 +162,15 @@
         <span class="info-icon">💳</span>
         <div><div class="info-label">Payment Status</div><div class="info-value" id="infoPayment">—</div></div>
       </div>
+      <div class="info-row">
+        <span class="info-icon">🎫</span>
+        <div><div class="info-label">Booking ID</div><div class="info-value" id="infoBookingId" style="font-family:monospace;font-size:1rem;letter-spacing:0.08em;color:var(--orange);">—</div></div>
+      </div>
+    </div>
+    <div id="bookingIdBanner" style="background:linear-gradient(135deg,#fff5f2,#fff0eb);border:2px dashed var(--orange);border-radius:12px;padding:16px 20px;margin-bottom:28px;text-align:center;opacity:0;animation:fadeUp 0.4s ease 0.42s forwards;">
+      <div style="font-size:0.68rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;">📋 Save Your Booking ID</div>
+      <div id="bannerBookingId" style="font-size:1.4rem;font-weight:700;font-family:monospace;color:var(--dark);letter-spacing:0.12em;margin-bottom:8px;">—</div>
+      <div style="font-size:0.75rem;color:var(--muted);line-height:1.5;">Please take note of this ID. You may need it when contacting support or your caterer about this booking.</div>
     </div>
     <div class="notice-box" id="noticeBox">
       <p id="noticeText"></p>
@@ -206,6 +215,10 @@
       noticeBox.classList.add('partial-notice');
       noticeText.innerHTML = '⚠️ <strong>Down payment submitted!</strong> Your remaining balance is due <strong>7 days before your event</strong>. You will receive a reminder notification <strong>10 days before the due date</strong>. The caterer is reviewing your payment — please wait within the day for confirmation.';
     }
+
+    const bookingId = 'BNY-' + Date.now().toString(36).toUpperCase().slice(-6) + '-' + Math.random().toString(36).toUpperCase().slice(2, 6);
+    document.getElementById('infoBookingId').textContent = bookingId;
+    document.getElementById('bannerBookingId').textContent = bookingId;
 
     document.getElementById('msgBtn').href = '/chats?caterer=' + encodeURIComponent(caterer);
 

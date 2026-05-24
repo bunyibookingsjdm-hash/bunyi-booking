@@ -78,7 +78,7 @@
     #catererGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
     .caterer-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.05); opacity: 0; animation: fadeUp 0.4s ease forwards; }
     .caterer-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.12); transform: translateY(-4px); border-color: var(--orange); }
-    .card-img { width: 100%; height: 160px; object-fit: cover; display: block; }
+    .card-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; }
     .card-img-placeholder { width: 100%; height: 160px; background: linear-gradient(135deg, var(--dark) 0%, #2d2d2d 100%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
     .card-body { padding: 16px 18px 14px; }
     .card-name { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
@@ -184,7 +184,7 @@
     .inquiry-send-btn { margin-top: 10px; padding: 9px 22px; background: var(--orange); color: #fff; border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .inquiry-send-btn:hover { background: #c93a08; }
     .inquiry-msg { font-size: 0.8rem; margin-top: 8px; font-weight: 500; color: var(--green); }
-    @media (max-width: 600px) { .hero { padding: 36px 20px 32px; } .main { padding: 28px 16px 60px; } .modal-body { padding: 16px; } .modal-info { padding: 14px 16px 0; } .menu-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .hero { padding: 36px 20px 32px; } .main { padding: 28px 16px 60px; } .modal-body { padding: 16px; } .modal-info { padding: 14px 16px 0; } .menu-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
