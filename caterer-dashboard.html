@@ -72,7 +72,7 @@
     .section-line { flex: 1; height: 1px; background: var(--border); margin-left: 14px; }
     .section-link { font-size: 0.75rem; font-weight: 600; color: var(--crimson); text-decoration: none; margin-left: 14px; white-space: nowrap; }
     .section-link:hover { text-decoration: underline; }
-    .top-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 24px; }
+    .top-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 24px; align-items: start; }
     .today-card { background: #1A1A1A; border-radius: 12px; padding: 20px; height: 100%; }
     .today-label { font-size: 0.68rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
     .today-empty { font-size: 0.83rem; color: #666; padding: 12px 0; }
@@ -171,7 +171,7 @@
     .mobile-nav.open { display: block; }
     .mobile-nav a { display: block; color: #aaa; text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 12px 14px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
     .mobile-nav a:hover, .mobile-nav a.active { color: var(--white); background: rgba(255,255,255,0.18); }
-    @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; } .top-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr; } .table-head, .table-row { grid-template-columns: 1.4fr 1fr 1fr; } .section-header { flex-wrap: wrap; } .section-link { margin-left: auto; margin-top: 4px; } }
+    @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; } .top-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr; } .table-head { display: none; } .table-row { grid-template-columns: 1fr; gap: 4px; } .section-header { flex-wrap: wrap; } .section-link { margin-left: auto; } .today-card { min-height: auto; } .fade4 { display: flex !important; flex-direction: column !important; } }
     @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
   </style>
 </head>
