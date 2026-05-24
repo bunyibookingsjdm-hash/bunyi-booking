@@ -197,7 +197,16 @@
     .inquiry-send-btn { margin-top: 10px; padding: 9px 22px; background: var(--orange); color: #fff; border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .inquiry-send-btn:hover { background: #c93a08; }
     .inquiry-msg { font-size: 0.8rem; margin-top: 8px; font-weight: 500; color: var(--green); }
-    @media (max-width: 600px) { .hero { padding: 36px 20px 32px; } .main { padding: 28px 16px 60px; } .modal-body { padding: 16px; } .modal-info { padding: 14px 16px 0; } .menu-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .hero { padding: 36px 20px 32px; } .main { padding: 28px 16px 60px; } .modal-body { padding: 16px; } .modal-info { padding: 14px 16px 0; } .menu-grid { grid-template-columns: 1fr 1fr; } .modal-overlay { padding: 0; align-items: flex-end; } .modal { border-radius: 16px 16px 0 0; max-height: 95vh; } }
+    @media (max-width: 480px) {
+      .variant-option { flex-wrap: wrap; gap: 4px; padding: 8px; }
+      .variant-option-name { width: 100%; font-size: 0.82rem; }
+      .variant-option-price { font-size: 0.82rem; font-weight: 700; }
+      .variant-qty-btn { width: 26px; height: 26px; }
+      .variant-qty-num { min-width: 20px; }
+      .variant-add-btn { padding: 6px 16px; flex: 1; }
+      .variant-picker { overflow: visible; }
+    }
   </style>
 </head>
 <body>
