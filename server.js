@@ -893,7 +893,15 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
         .profile-menu-item:hover { background: var(--bg); }
         .profile-menu-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
         .profile-menu-item.logout:hover { background: var(--crimson-light); }
-        @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none; } }
+        .hamburger-btn { display: none !important; background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: background 0.2s; }
+        .hamburger-btn:hover { background: rgba(255,255,255,0.14); }
+        .hamburger-btn span { display: block; width: 18px; height: 2px; background: #ccc; border-radius: 2px; }
+        .mobile-nav { display: none; position: fixed; top: 66px; left: 0; right: 0; background: var(--dark); z-index: 199; padding: 8px 16px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .mobile-nav.open { display: block; }
+        .mobile-nav a { display: block; color: #aaa; text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 12px 14px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
+        .mobile-nav a:hover, .mobile-nav a.active { color: var(--white); background: rgba(255,255,255,0.18); }
+        @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; } }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } .main { padding: 28px 16px 60px; } }
         .main { max-width: 680px; margin: 0 auto; padding: 40px 24px 80px; }
         .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 20px; transition: color 0.2s; }
         .back-link:hover { color: var(--orange); }
@@ -935,6 +943,12 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
     </head>
     <body>
       <div class="color-strip"></div>
+      <div class="mobile-nav" id="mobileNav">
+        <a href="/caterer-dashboard">Dashboard</a>
+        <a href="/caterer-bookings">Bookings</a>
+        <a href="/caterer-products">Products</a>
+        <a href="/caterer-messages">Messages</a>
+      </div>
       <header class="header">
         <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
         <nav class="header-nav">
@@ -944,6 +958,9 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
           <a class="nav-link" href="/caterer-messages">Messages</a>
         </nav>
         <div class="header-right">
+          <button class="hamburger-btn" onclick="toggleMobileNav()" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
           <div class="notif-wrapper">
             <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span></button>
             <div class="notif-dropdown" id="notifDropdown">
@@ -1073,7 +1090,11 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
         document.addEventListener('click', function(e) {
           var nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
           var pw = document.querySelector('.profile-wrapper'); if (pw && !pw.contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
+          var nav = document.getElementById('mobileNav'); var btn = document.getElementById('hamburgerBtn');
+          if (nav && btn && !nav.contains(e.target) && !btn.contains(e.target)) nav.classList.remove('open');
         });
+
+        function toggleMobileNav(){document.getElementById('mobileNav').classList.toggle('open');}
         loadNotifications(); setInterval(loadNotifications, 5000);
         async function uploadPhoto(input) { if (!input.files[0]) return; const formData = new FormData(); formData.append('photo', input.files[0]); try { const res = await fetch('/caterer-upload-profile-photo', { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { document.getElementById('photoMsg').textContent = '✅ Photo updated!'; const big = document.getElementById('bigAvatar'); big.style.background = 'none'; big.style.padding = '0'; big.style.overflow = 'hidden'; big.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; } } catch(e) { document.getElementById('photoMsg').textContent = '❌ Upload failed.'; } }
       </script>
