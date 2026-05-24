@@ -400,6 +400,7 @@ app.get('/account', requireLogin, (req, res) => {
         .notif-header-row { padding: 13px 15px 9px; border-bottom: 1px solid #e8e8e8; background: #f8f8f8; }
         .notif-title { font-size: 0.86rem; font-weight: 600; color: #1A1A1A; }
         .notif-empty { padding: 22px 15px; font-size: 0.82rem; color: #888; text-align: center; }
+        .notif-scroll { max-height: 280px; overflow-y: auto; }
         .notif-item { padding: 11px 15px; border-bottom: 1px solid #e8e8e8; text-decoration: none; display: block; transition: background 0.15s; }
         .notif-item:last-child { border-bottom: none; }
         .notif-item:hover { background: #f8f8f8; }
@@ -477,7 +478,7 @@ app.get('/account', requireLogin, (req, res) => {
             <button class="notif-btn" onclick="toggleNotifDropdown()">🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span></button>
             <div class="notif-dropdown" id="notifDropdown">
               <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
-              <div id="notifList"><p class="notif-empty">No notifications yet.</p></div>
+              <div class="notif-scroll" id="notifList"><p class="notif-empty">No notifications yet.</p></div>
             </div>
           </div>
           <div class="account-wrapper">
