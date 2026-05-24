@@ -149,11 +149,31 @@
       .stats-grid { grid-template-columns: repeat(2,1fr); }
       .panels-grid, .analytics-grid { grid-template-columns: 1fr; }
     }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+    .sidebar-overlay.open { display: block; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; font-size: 1.3rem; color: var(--text); padding: 4px 8px; border-radius: 6px; transition: background 0.2s; }
+    .mobile-topbar-btn:hover { background: var(--red-light); }
+    @media (max-width: 780px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 200; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; align-items: center; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .content { padding: 16px; }
+      .topbar { padding: 0 16px; }
+      .full-panel-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .search-input { width: 100%; }
+      .pay-stats { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-  <aside class="sidebar">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="adminSidebar">
     <div class="sidebar-brand">
       <div class="brand-name">Bunyi<span>.</span></div>
       <div class="brand-sub">Admin Panel</div>
@@ -177,7 +197,10 @@
 
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="mobile-topbar-btn" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      </div>
       <div class="topbar-right"></div>
     </div>
 
@@ -329,6 +352,15 @@
   <script>
     if (sessionStorage.getItem('bunyi_admin') !== 'true') window.location.href = '/admin-login';
 
+    function toggleSidebar() {
+      document.getElementById('adminSidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+    function closeSidebar() {
+      document.getElementById('adminSidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    }
+
     var allUsers = [], allCaterers = [], allBookings = [], _payTab = 'all';
 
     function adminLogout() { sessionStorage.removeItem('bunyi_admin'); window.location.href = '/admin-login'; }
@@ -340,6 +372,7 @@
       document.getElementById('nav-'+page).classList.add('active');
       var titles={dashboard:'Dashboard',users:'Customers',caterers:'Caterers',bookings:'Bookings',payments:'Payments',analytics:'Analytics & Reports'};
       document.getElementById('topbarTitle').textContent = titles[page]||page;
+      closeSidebar();
     }
 
     function formatPeso(n) { return '₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2}); }
