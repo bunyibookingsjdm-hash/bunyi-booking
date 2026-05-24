@@ -11,7 +11,7 @@
       --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
       --yellow: #F7B731; --tangerine: #F26419; --tangerine-light: #fef0e6;
     }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
     .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--yellow)); flex-shrink: 0; }
     .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; z-index: 200; box-shadow: 0 2px 12px rgba(215,38,56,0.3); }
     .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; }
@@ -287,13 +287,13 @@
       renderSidebar();
       var convo = allConvos.find(function(c) { return c.name === customerName; });
       var displayName = convo ? (convo.displayName || convo.name) : customerName;
-      document.getElementById('chatTopbar').innerHTML = '<div class="chat-avatar">' + displayName.charAt(0).toUpperCase() + '</div><div><div class="chat-customer-name">' + displayName + '</div><div class="chat-sub">Customer</div></div>';
+      document.getElementById('chatTopbar').innerHTML = '<button class="back-btn" onclick="goBackToSidebar()">◀ Back</button><div class="chat-avatar">' + displayName.charAt(0).toUpperCase() + '</div><div><div class="chat-customer-name">' + displayName + '</div><div class="chat-sub">Customer</div></div>';
       document.getElementById('chatInputBar').style.display = 'flex';
       document.querySelector('.chat-sidebar').classList.add('hide-mobile');
       document.querySelector('.chat-main').classList.add('show-mobile');
       await loadMessages();
     }
-
+    
     async function loadMessages() {
       if (!activeCustomer) return;
       try {
