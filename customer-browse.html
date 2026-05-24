@@ -142,7 +142,14 @@
     .variant-picker-header { background: var(--orange-light); padding: 7px 10px; font-size: 0.7rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; justify-content: space-between; }
     .variant-picker-close { background: none; border: none; cursor: pointer; font-size: 0.9rem; color: var(--orange); font-weight: 700; font-family: 'Poppins', sans-serif; padding: 0; line-height: 1; }
     .variant-option { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-top: 1px solid #ffd0bc; cursor: default; background: var(--white); gap: 8px; flex-wrap: nowrap; }
-    @media (max-width: 480px) { .variant-option { flex-wrap: wrap; gap: 6px; } .variant-option-name { width: 100%; } .variant-option-price { font-size: 0.78rem; } .variant-add-btn { padding: 5px 10px; font-size: 0.7rem; } .variant-qty-btn { width: 22px; height: 22px; font-size: 0.8rem; } .variant-qty-num { min-width: 16px; font-size: 0.78rem; } }    .variant-option-name { font-size: 0.83rem; font-weight: 600; color: var(--dark); flex: 1; }
+    @media (max-width: 480px) {
+      .variant-option { flex-wrap: wrap; gap: 4px; padding: 8px; }
+      .variant-option-name { width: 100%; font-size: 0.82rem; }
+      .variant-option-price { font-size: 0.82rem; font-weight: 700; }
+      .variant-qty-btn { width: 26px; height: 26px; font-size: 0.85rem; }
+      .variant-qty-num { min-width: 20px; font-size: 0.82rem; }
+      .variant-add-btn { padding: 6px 16px; font-size: 0.78rem; flex: 1; }
+    }
     .variant-option-price { font-size: 0.83rem; font-weight: 700; color: var(--orange); white-space: nowrap; }
     .variant-add-btn { padding: 5px 12px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background 0.2s; white-space: nowrap; flex-shrink: 0; }
     .variant-add-btn:hover { background: #15803d; }
