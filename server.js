@@ -422,8 +422,14 @@ app.get('/account', requireLogin, (req, res) => {
         .account-dropdown-item:hover { background: var(--bg); }
         .account-dropdown-item.logout { color: #b01e2d; border-top: 1px solid var(--border); }
         .account-dropdown-item.logout:hover { background: #fde8eb; }
-        @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } }
-        @media (max-width: 480px) { .header-center { display: none; } }
+        .hamburger-btn { display: none !important; background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: background 0.2s; }
+        .hamburger-btn:hover { background: rgba(255,255,255,0.14); }
+        .hamburger-btn span { display: block; width: 18px; height: 2px; background: #ccc; border-radius: 2px; }
+        .mobile-nav { display: none; position: fixed; top: 66px; left: 0; right: 0; background: #1A1A1A; z-index: 199; padding: 8px 16px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .mobile-nav.open { display: block; }
+        .mobile-nav a { display: block; color: #aaa; text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 12px 14px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
+        .mobile-nav a:hover, .mobile-nav a.active { color: #fff; background: rgba(255,255,255,0.18); }
+        @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; display: none !important; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } .hamburger-btn { display: flex !important; } }
         .main { max-width: 680px; margin: 0 auto; padding: 44px 24px 80px; }
         .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 20px; transition: color 0.2s; }
         .back-link:hover { color: var(--orange); }
@@ -465,6 +471,11 @@ app.get('/account', requireLogin, (req, res) => {
     </head>
     <body>
       <div class="color-strip"></div>
+      <div class="mobile-nav" id="mobileNav">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/browse">Browse</a>
+        <a href="/chats">Messages</a>
+      </div>
       <header class="header">
         <a href="/dashboard" class="header-brand">Bunyi<span>.</span></a>
         <nav class="header-center">
@@ -473,8 +484,10 @@ app.get('/account', requireLogin, (req, res) => {
           <a href="/chats" class="nav-link">Messages</a>
         </nav>
         <div class="header-right">
-          <a href="/cart" style="background:rgba(255,255,255,0.08);border:none;cursor:pointer;font-size:1.1rem;color:#ccc;display:flex;align-items:center;padding:7px 10px;border-radius:8px;transition:background 0.2s;position:relative;text-decoration:none;" id="cartBtnAcct" title="My Cart">🛒 <span id="cartBadgeAcct" style="position:absolute;top:4px;right:4px;background:#16a34a;color:#fff;font-size:0.55rem;font-weight:700;border-radius:999px;padding:1px 5px;min-width:16px;text-align:center;display:none;">0</span></a>
-          <div class="notif-wrapper">
+<button class="hamburger-btn" onclick="toggleMobileNav()" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <a href="/cart" style="background:rgba(255,255,255,0.08);border:none;cursor:pointer;font-size:1.1rem;color:#ccc;display:flex;align-items:center;padding:7px 10px;border-radius:8px;transition:background 0.2s;position:relative;text-decoration:none;" id="cartBtnAcct" title="My Cart">🛒 <span id="cartBadgeAcct" style="position:absolute;top:4px;right:4px;background:#16a34a;color:#fff;font-size:0.55rem;font-weight:700;border-radius:999px;padding:1px 5px;min-width:16px;text-align:center;display:none;">0</span></a>          <div class="notif-wrapper">
             <button class="notif-btn" onclick="toggleNotifDropdown()">🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span></button>
             <div class="notif-dropdown" id="notifDropdown">
               <div class="notif-header-row"><span class="notif-title">Notifications</span></div>
@@ -592,7 +605,8 @@ app.get('/account', requireLogin, (req, res) => {
           } catch(e) {}
         }
         function loadCartBadge() { try { const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]'); const total = cart.reduce((s, i) => s + (i.qty || 1), 0); const badge = document.getElementById('cartBadgeAcct'); if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'inline-block' : 'none'; } } catch(e) {} }
-        document.addEventListener('click', function(e) { const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); } const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); } });
+        document.addEventListener('click', function(e) { const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); } const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); } const nav = document.getElementById('mobileNav'); const btn = document.getElementById('hamburgerBtn'); if (nav && btn && !nav.contains(e.target) && !btn.contains(e.target)) nav.classList.remove('open'); });
+        function toggleMobileNav() { document.getElementById('mobileNav').classList.toggle('open'); }
         loadNotifications(); loadCartBadge(); setInterval(loadNotifications, 5000);
         async function uploadPhoto(input) { if (!input.files[0]) return; const formData = new FormData(); formData.append('photo', input.files[0]); try { const res = await fetch('/upload-profile-photo', { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { document.getElementById('photoMsg').textContent = '✅ Photo updated!'; const big = document.getElementById('bigAvatar'); big.style.background = 'none'; big.style.padding = '0'; big.style.overflow = 'hidden'; big.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; } } catch(e) { document.getElementById('photoMsg').textContent = '❌ Upload failed.'; } }
       </script>

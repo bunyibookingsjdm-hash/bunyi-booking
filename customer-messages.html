@@ -12,8 +12,7 @@
       --crimson: #D72638; --crimson-mid: #b01e2d; --crimson-light: #fde8eb;
       --notif-yellow: #F7B731; --tangerine: #F26419;
     }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--notif-yellow)); flex-shrink: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }    .color-strip { height: 4px; background: linear-gradient(90deg, var(--crimson), var(--tangerine), var(--notif-yellow)); flex-shrink: 0; }
     .header { background: var(--dark); padding: 0 40px; height: 62px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.18); flex-shrink: 0; }
     .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -0.01em; text-decoration: none; justify-self: start; }
     .header-brand span { color: var(--crimson); }
@@ -56,10 +55,15 @@
     .account-dropdown-item:hover { background: var(--bg); }
     .account-dropdown-item.logout { color: var(--crimson-mid); border-top: 1px solid var(--border); }
     .account-dropdown-item.logout:hover { background: var(--crimson-light); }
-    @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } }
-    @media (max-width: 480px) { .header-center { display: none; } }
-    .chats-layout { flex: 1; display: flex; overflow: hidden; }
-    .sidebar { width: 300px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+    .hamburger-btn { display: none !important; background: rgba(255,255,255,0.08); border: none; cursor: pointer; width: 38px; height: 38px; border-radius: 8px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: background 0.2s; }
+    .hamburger-btn:hover { background: rgba(255,255,255,0.14); }
+    .hamburger-btn span { display: block; width: 18px; height: 2px; background: #ccc; border-radius: 2px; }
+    .mobile-nav { display: none; position: fixed; top: 66px; left: 0; right: 0; background: var(--dark); z-index: 199; padding: 8px 16px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .mobile-nav.open { display: block; }
+    .mobile-nav a { display: block; color: #aaa; text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 12px 14px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
+    .mobile-nav a:hover, .mobile-nav a.active { color: var(--white); background: rgba(255,255,255,0.18); }
+    @media (max-width: 780px) { .header { padding: 0 16px; grid-template-columns: auto 1fr auto; } .header-center { gap: 0; display: none !important; } .nav-link { font-size: 0.75rem; padding: 6px 8px; } .hamburger-btn { display: flex !important; } }
+    .chats-layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }    .sidebar { width: 300px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
     .sidebar-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); font-size: 1rem; font-weight: 700; color: var(--dark); }
     .chat-layout { display: flex; flex: 1; overflow: hidden; }
     .chat-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--white); display: flex; flex-direction: column; overflow: hidden; }
@@ -113,6 +117,11 @@
 </head>
 <body>
   <div class="color-strip"></div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/browse">Browse</a>
+    <a href="/chats" class="active">Messages</a>
+  </div>
   <header class="header">
     <a href="/dashboard" class="header-brand">Bunyi<span>.</span></a>
     <nav class="header-center">
@@ -121,6 +130,9 @@
       <a href="/chats" class="nav-link active">Messages</a>
     </nav>
     <div class="header-right">
+      <button class="hamburger-btn" onclick="toggleMobileNav()" id="hamburgerBtn">
+        <span></span><span></span><span></span>
+      </button>
       <a href="/cart" class="cart-btn" title="My Cart">
         🛒 <span class="cart-badge" id="cartBadge">0</span>
       </a>
@@ -335,8 +347,9 @@
       if (dd.classList.contains('open')) { await loadNotifications(); }
     }
     function toggleAccountDropdown() { const ad = document.getElementById('accountDropdown'); const nd = document.getElementById('notifDropdown'); if (nd) nd.classList.remove('open'); ad.classList.toggle('open'); }
-    document.addEventListener('click', function(e) { const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); } const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); } });
+      document.addEventListener('click', function(e) { const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); } const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); } const nav = document.getElementById('mobileNav'); const btn = document.getElementById('hamburgerBtn'); if (nav && btn && !nav.contains(e.target) && !btn.contains(e.target)) nav.classList.remove('open'); });
 
+    function toggleMobileNav() { document.getElementById('mobileNav').classList.toggle('open'); }
     function filterCaterers() {
       const search = document.getElementById('catererSearch').value.toLowerCase();
       document.querySelectorAll('.convo-item').forEach(item => {
