@@ -171,23 +171,20 @@
     .mobile-nav.open { display: block; }
     .mobile-nav a { display: block; color: #aaa; text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 12px 14px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
     .mobile-nav a:hover, .mobile-nav a.active { color: var(--white); background: rgba(255,255,255,0.18); }
-    @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; } .top-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr; } .table-head, .table-row { grid-template-columns: 1.4fr 1fr 1fr; } }
+    @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; } .top-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr; } .table-head, .table-row { grid-template-columns: 1.4fr 1fr 1fr; } .section-header { flex-wrap: wrap; } .section-link { margin-left: auto; margin-top: 4px; } }
     @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 <div class="color-strip"></div>
   <div class="mobile-nav" id="mobileNav">
-    <a href="/caterer-dashboard" class="active">🏠 Dashboard</a>
-    <a href="/caterer-bookings">📋 Bookings</a>
-    <a href="/caterer-products">🍽️ Products</a>
-    <a href="/caterer-messages">💬 Messages</a>
+    <a href="/caterer-dashboard" class="active">Dashboard</a>
+    <a href="/caterer-bookings">Bookings</a>
+    <a href="/caterer-products">Products</a>
+    <a href="/caterer-messages">Messages</a>
   </div>
   <header class="header">
     <a class="header-brand" href="/caterer-dashboard">Bunyi<span>.</span></a>
-    <button class="hamburger-btn" onclick="toggleMobileNav()" id="hamburgerBtn">
-      <span></span><span></span><span></span>
-    </button>
     <nav class="header-nav">
       <a class="nav-link active" href="/caterer-dashboard">Dashboard</a>
       <a class="nav-link" href="/caterer-bookings">Bookings</a>
@@ -195,6 +192,9 @@
       <a class="nav-link" href="/caterer-messages">Messages</a>
     </nav>
     <div class="header-right">
+      <button class="hamburger-btn" onclick="toggleMobileNav()" id="hamburgerBtn">
+        <span></span><span></span><span></span>
+      </button>
       <div class="notif-wrapper">
         <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">
           🔔 <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
