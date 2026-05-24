@@ -555,9 +555,16 @@
           return;
         }
         grid.innerHTML = c.qrCodes.map(function(qr, i) {
-          return '<div class="qr-img-wrap" onclick="openQrLightbox(\'' + qr.url + '\')">'
+          return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">'
+            + '<div class="qr-img-wrap" onclick="openQrLightbox(\'' + qr.url + '\')" style="width:100%;">'
             + '<img src="' + qr.url + '" alt="QR ' + (i+1) + '">'
             + '<div class="qr-label">' + (qr.label || 'QR ' + (i+1)) + '</div>'
+            + '</div>'
+            + '<div style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center;">'
+            + '<div style="font-size:0.75rem;font-weight:700;color:var(--orange);">' + (qr.label || 'QR ' + (i+1)) + '</div>'
+            + (qr.recipientName ? '<div style="font-size:0.78rem;font-weight:600;color:var(--dark);margin-top:2px;">👤 ' + qr.recipientName + '</div>' : '')
+            + (qr.accountNumber ? '<div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">📱 ' + qr.accountNumber + '</div>' : '')
+            + '</div>'
             + '</div>';
         }).join('');
       } catch(e) {
