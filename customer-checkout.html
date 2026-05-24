@@ -254,7 +254,7 @@
         const lineTotal = item.price * item.qty;
         const imgSrc = getPackageImage(item.catererName, item.pkgName);
         const imgHTML = imgSrc
-          ? `<img class="product-thumb" src="${imgSrc}" alt="${item.pkgName}">`
+          ? `<img class="product-thumb" src="${imgSrc}" alt="${item.pkgName}" style="object-fit:contain;background:#f8f8f8;">`
           : `<div class="product-thumb-placeholder">🍽️</div>`;
         return `
           <tr id="row-${idx}">
