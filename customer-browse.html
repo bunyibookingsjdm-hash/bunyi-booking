@@ -398,7 +398,7 @@
       if (!text) { document.getElementById('inquiryMsg').textContent = 'Please type a message first.'; return; }
       if (!currentCaterer) return;
       try {
-        await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: currentCaterer.name, sender: 'Customer', text: text }) });
+        await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: currentCaterer.name, sender: currentUserName || 'Customer', text: text }) });
         document.getElementById('inquiryMsg').textContent = '✅ Message sent! Check your Messages tab for the reply.';
         document.getElementById('inquiryText').value = '';
       } catch(e) { document.getElementById('inquiryMsg').textContent = 'Failed to send. Please try again.'; }
