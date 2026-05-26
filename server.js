@@ -820,21 +820,14 @@ app.post('/caterer-verify-remaining', requireCaterer, (req, res) => {
 app.get('/chats-data', (req, res) => {
   const userEmail = req.session.user ? req.session.user.email : null;
   const userName = req.session.user ? req.session.user.name : null;
+  if (!userEmail) return res.json([]);
   const seen = new Set(); const conversations = [];
   [...messages].reverse().forEach(m => {
-    // Match by email (new messages) OR by sender name (legacy messages)
-    const belongsToUser = userEmail && (
-      m.userEmail === userEmail ||
-      (!m.userEmail && m.sender === userName)
-    );
+    const belongsToUser = m.userEmail === userEmail ||
+      (!m.userEmail && m.sender === userName);
     if (belongsToUser && !seen.has(m.caterer)) {
       seen.add(m.caterer);
-      const thread = [...messages].filter(x => x.caterer === m.caterer && (
-        x.userEmail === userEmail ||
-        (!x.userEmail && x.sender === userName) ||
-        x.sender === m.caterer
-      ));
-      const last = thread.slice(-1)[0];
+      const last = [...messages].filter(x => x.caterer === m.caterer).slice(-1)[0];
       conversations.push({ caterer: m.caterer, lastMessage: last.text, lastTime: last.timestamp });
     }
   });
