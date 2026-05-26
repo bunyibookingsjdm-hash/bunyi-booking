@@ -262,16 +262,20 @@
 
   <script>
     async function loadCounts() {
-      try {
-        const res = await fetch('/bookings');
-        const data = await res.json();
-        const now = new Date(); now.setHours(0,0,0,0);
-        const upcoming = data.filter(b => new Date(b.date + 'T00:00:00') >= now);
-        const pending = data.filter(b => b.status === 'Partially Paid' || b.status === 'Pending Payment');
-        document.getElementById('countUpcoming').textContent = upcoming.length;
-        document.getElementById('countPending').textContent = pending.length;
-      } catch(e) {}
-    }
+    try {
+      const userRes = await fetch('/session-user');
+      const user = await userRes.json();
+      if (!user) return;
+      const res = await fetch('/bookings');
+      const data = await res.json();
+      const mine = data.filter(b => b.sender === user.name);
+      const now = new Date(); now.setHours(0,0,0,0);
+      const upcoming = mine.filter(b => new Date(b.date + 'T00:00:00') >= now);
+      const pending = mine.filter(b => b.status === 'Partially Paid' || b.status === 'Pending Payment');
+      document.getElementById('countUpcoming').textContent = upcoming.length;
+      document.getElementById('countPending').textContent = pending.length;
+    } catch(e) {}
+  }
 
     function loadCartBadge() {
       try {
@@ -367,9 +371,12 @@
 
     async function loadPartialBookings() {
       try {
+        const userRes = await fetch('/session-user');
+        const user = await userRes.json();
+        if (!user) return;
         const res = await fetch('/bookings');
         const data = await res.json();
-        const partial = data.filter(b => b.status === 'Partially Paid');
+        const partial = data.filter(b => b.status === 'Partially Paid' && b.sender === user.name);
         const section = document.getElementById('partialSection');
         const list = document.getElementById('partialList');
         if (partial.length === 0) { section.style.display = 'none'; return; }
