@@ -281,19 +281,40 @@ app.get('/caterer-messages', requireCaterer, (req, res) => res.sendFile(path.joi
 
 app.get('/caterer-session', (req, res) => { if (!req.session.caterer) return res.json({ loggedIn: false }); const cu = catererUsers.find(u => u.email === req.session.caterer.email); res.json({ loggedIn: true, businessName: req.session.caterer.businessName, email: req.session.caterer.email, photo: cu ? cu.photo : null }); });
 
+// ===== CATERER REGISTER — handled client-side via Firebase SDK =====
 app.post('/caterer-register', (req, res) => {
-  const { email, password, confirmPassword, businessName, businessAddress, contactNumber, description } = req.body;
-  if (password.length < 6) return res.redirect('/caterer-login?error=short');
-  if (password !== confirmPassword) return res.redirect('/caterer-login?error=mismatch');
-  if (catererUsers.find(u => u.email === email)) return res.redirect('/caterer-login?error=exists');
-  const newCaterer = { email, password, businessName, businessAddress, contactNumber, createdAt: new Date() };
-  catererUsers.push(newCaterer); saveToFirestore('catererUsers', newCaterer);
-  if (!caterers.find(c => c.name === businessName)) { caterers.push({ id: caterers.length + 1, name: businessName, description: description || 'Professional catering service.', location: businessAddress || '', image: '/placeholder.jpg', packages: [], qrCodes: [] }); }
-  saveToFirestore('caterers', { id: caterers.length, name: businessName, description: description || 'Professional catering service.', location: businessAddress || '', image: '/placeholder.jpg', packages: [], qrCodes: [] }, businessName);
-  req.session.caterer = { businessName, email }; res.redirect('/caterer-dashboard');
+  return res.redirect('/caterer-login?verify=1');
 });
 
-app.post('/caterer-login', (req, res) => { const { email, password } = req.body; const user = catererUsers.find(u => u.email === email && u.password === password); if (!user) return res.redirect('/caterer-login?loginerror=1'); req.session.caterer = { businessName: user.businessName, email: user.email }; res.redirect('/caterer-dashboard'); });
+app.post('/caterer-register-profile', async (req, res) => {
+  const { email, password, businessName, businessAddress, contactNumber, description } = req.body;
+  if (catererUsers.find(u => u.email === email)) return res.json({ ok: true });
+  const newCaterer = { email, password, businessName, businessAddress, contactNumber, createdAt: new Date() };
+  catererUsers.push(newCaterer);
+  saveToFirestore('catererUsers', newCaterer);
+  if (!caterers.find(c => c.name === businessName)) {
+    caterers.push({ id: caterers.length + 1, name: businessName, description: description || 'Professional catering service.', location: businessAddress || '', image: '/placeholder.jpg', packages: [], qrCodes: [] });
+  }
+  saveToFirestore('caterers', { id: caterers.length, name: businessName, description: description || 'Professional catering service.', location: businessAddress || '', image: '/placeholder.jpg', packages: [], qrCodes: [] }, businessName);
+  res.json({ ok: true });
+});
+
+app.post('/caterer-login', async (req, res) => {
+  const { email, password } = req.body;
+  const user = catererUsers.find(u => u.email === email && u.password === password);
+  if (!user) return res.redirect('/caterer-login?loginerror=1');
+  try {
+    const firebaseUser = await admin.auth().getUserByEmail(email);
+    if (!firebaseUser.emailVerified) {
+      return res.redirect('/caterer-login?notverified=1');
+    }
+  } catch(e) {
+    console.log('Firebase caterer check error:', e.message);
+    // Allow login if Firebase check fails (older accounts)
+  }
+  req.session.caterer = { businessName: user.businessName, email: user.email };
+  res.redirect('/caterer-dashboard');
+});
 
 let catererNotifications = {};
 function addCatererNotification(businessName, type, text) {
@@ -312,28 +333,20 @@ app.get('/browse', requireLogin, (req, res) => res.sendFile(path.join(__dirname,
 app.get('/book', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'customer-book-payment.html')));
 app.get('/dashboard', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'customer-dashboard.html')));
 
-// ===== CUSTOMER REGISTER — with Firebase Auth email verification =====
-app.post('/register', async (req, res) => {
-  const { name, email, password, confirmPassword, gender } = req.body;
-  if (password.length < 6) return res.redirect('/register?error=short');
-  if (password !== confirmPassword) return res.redirect('/register?error=mismatch');
-  if (users.find(u => u.email === email)) return res.redirect('/register?error=exists');
-  try {
-    // Create Firebase Auth user — Firebase will send verification email automatically
-    await admin.auth().createUser({ email, password, displayName: name });
-    // Generate verification link (Firebase Auth handles sending the email)
-    await admin.auth().generateEmailVerificationLink(email);
-    console.log('✅ Firebase Auth user created and verification email sent to:', email);
-  } catch(e) {
-    console.log('Firebase Auth register error:', e.message);
-    // Continue even if Firebase Auth fails — don't block registration
-  }
+// ===== CUSTOMER REGISTER — handled client-side via Firebase SDK =====
+app.post('/register', (req, res) => {
+  return res.redirect('/customer-login?verify=1');
+});
+
+app.post('/register-profile', async (req, res) => {
+  const { name, email, gender, password } = req.body;
+  if (users.find(u => u.email === email)) return res.json({ ok: true });
   const newUser = { name, email, password, gender, phone: '', isVerified: false, createdAt: new Date() };
   users.push(newUser);
   saveToFirestore('users', newUser);
-  // Redirect to login with verification notice — user must verify email first
-  return res.redirect('/customer-login?verify=1');
+  res.json({ ok: true });
 });
+
 // ===== CUSTOMER LOGIN — checks Firebase Auth email verification =====
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;

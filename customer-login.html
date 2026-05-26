@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bunyi Booking – Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -13,130 +13,48 @@
       --dark: #1A1A1A; --white: #ffffff;
       --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333;
     }
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--bg);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* HEADER */
-    .header {
-      background: var(--dark);
-      padding: 0 40px;
-      height: 62px;
-      display: flex;
-      align-items: center;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+    .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
     .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); text-decoration: none; }
     .header-brand span { color: var(--orange); }
-
-    /* LAYOUT */
-    .auth-wrap {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 48px 16px;
-    }
-    .auth-box {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 36px;
-      width: 100%;
-      max-width: 460px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-      animation: fadeUp 0.4s ease forwards;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .auth-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: var(--orange-light);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; margin-bottom: 16px;
-    }
+    .auth-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 16px; }
+    .auth-box { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 100%; max-width: 460px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); animation: fadeUp 0.4s ease forwards; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .auth-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 16px; }
     .auth-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
     .auth-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
     .auth-sub { font-size: 0.83rem; color: var(--muted); margin-bottom: 24px; }
-
-    .section-label {
-      font-size: 0.7rem; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.1em;
-      margin: 20px 0 12px; padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
+    .section-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
     .form-group { margin-bottom: 14px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    label {
-      display: block; font-size: 0.72rem; font-weight: 600;
-      color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.06em; margin-bottom: 5px;
-    }
-    input, select {
-      width: 100%; padding: 10px 13px;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      font-family: 'Poppins', sans-serif; font-size: 0.9rem;
-      color: var(--dark); background: var(--white); outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input:focus, select:focus {
-      border-color: var(--orange);
-      box-shadow: 0 0 0 3px rgba(232,69,10,0.1);
-    }
+    label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+    input, select { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    input:focus, select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.1); }
     select { cursor: pointer; -webkit-appearance: auto; appearance: auto; }
-
-    .error-msg {
-      background: #fff0eb; border: 1px solid #ffd0bc;
-      border-radius: 8px; padding: 10px 14px;
-      font-size: 0.82rem; color: #c93a08;
-      margin-bottom: 16px; display: none; align-items: center; gap: 8px;
-    }
+    .error-msg { background: #fff0eb; border: 1px solid #ffd0bc; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #c93a08; margin-bottom: 16px; display: none; align-items: center; gap: 8px; }
     .error-msg.show { display: flex; }
-
-    .btn-submit {
-      width: 100%; padding: 13px;
-      background: var(--orange); color: var(--white);
-      border: none; border-radius: 8px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.92rem; font-weight: 700;
-      cursor: pointer; margin-top: 6px;
-      transition: background 0.2s, transform 0.15s;
-    }
+    .info-msg { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #16a34a; margin-bottom: 16px; display: none; align-items: center; gap: 8px; }
+    .info-msg.show { display: flex; }
+    .btn-submit { width: 100%; padding: 13px; background: var(--orange); color: var(--white); border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.92rem; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background 0.2s, transform 0.15s; }
     .btn-submit:hover { background: #c93a08; transform: translateY(-1px); }
-
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; transform: none; }
     .divider { height: 1px; background: var(--border); margin: 24px 0; }
-
-    .switch-hint {
-      text-align: center; font-size: 0.82rem; color: var(--muted);
-    }
-    .switch-hint a {
-      color: var(--orange); font-weight: 600;
-      text-decoration: none; cursor: pointer;
-    }
+    .switch-hint { text-align: center; font-size: 0.82rem; color: var(--muted); }
+    .switch-hint a { color: var(--orange); font-weight: 600; text-decoration: none; cursor: pointer; }
     .switch-hint a:hover { text-decoration: underline; }
-
-    /* PANELS */
     .form-panel { display: none; }
     .form-panel.active { display: block; }
-
-    @media (max-width: 520px) {
-      .auth-box { padding: 28px 20px; }
-      .form-row { grid-template-columns: 1fr; }
-      .header { padding: 0 20px; }
-    }
+    .success-panel { text-align: center; padding: 10px 0; }
+    .success-panel .big-icon { font-size: 3rem; margin-bottom: 16px; }
+    .success-panel h2 { font-size: 1.2rem; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .success-panel p { font-size: 0.86rem; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+    .resend-link { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+    .resend-link a { color: var(--orange); font-weight: 600; cursor: pointer; text-decoration: none; }
+    .resend-link a:hover { text-decoration: underline; }
+    @media (max-width: 520px) { .auth-box { padding: 28px 20px; } .form-row { grid-template-columns: 1fr; } .header { padding: 0 20px; } }
   </style>
 </head>
 <body>
-
   <header class="header">
     <a href="/" class="header-brand">Bunyi<span>.</span></a>
   </header>
@@ -154,11 +72,14 @@
         <div class="error-msg" id="loginError">
           ⚠️ <span id="loginErrorText">Invalid email or password.</span>
         </div>
+        <div class="info-msg" id="loginInfo">
+          <span id="loginInfoText"></span>
+        </div>
 
-        <form action="/login" method="POST">
+        <form action="/login" method="POST" id="loginForm">
           <div class="form-group">
-            <label>Gmail Address</label>
-            <input type="email" name="email" placeholder="your@gmail.com" required>
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="your@email.com" required>
           </div>
           <div class="form-group">
             <label>Password</label>
@@ -184,15 +105,15 @@
           ⚠️ <span id="registerErrorText"></span>
         </div>
 
-        <form action="/register" method="POST">
+        <form id="registerForm">
           <p class="section-label">Personal Info</p>
           <div class="form-group">
             <label>Full Name</label>
-            <input type="text" name="name" placeholder="e.g. Maria Santos" required>
+            <input type="text" id="reg-name" placeholder="e.g. Maria Santos" required>
           </div>
           <div class="form-group">
             <label>Gender</label>
-            <select name="gender" required>
+            <select id="reg-gender" required>
               <option value="" disabled selected>Select gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
@@ -200,23 +121,23 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Gmail Address</label>
-            <input type="email" name="email" placeholder="your@gmail.com" required>
+            <label>Email Address</label>
+            <input type="email" id="reg-email" placeholder="your@email.com" required>
           </div>
 
           <p class="section-label">Password</p>
           <div class="form-row">
             <div class="form-group">
               <label>Password</label>
-              <input type="password" name="password" placeholder="Min. 6 characters" required>
+              <input type="password" id="reg-password" placeholder="Min. 6 characters" required>
             </div>
             <div class="form-group">
               <label>Confirm Password</label>
-              <input type="password" name="confirmPassword" placeholder="Repeat password" required>
+              <input type="password" id="reg-confirm" placeholder="Repeat password" required>
             </div>
           </div>
 
-          <button type="submit" class="btn-submit">Create Account →</button>
+          <button type="submit" class="btn-submit" id="registerBtn">Create Account →</button>
         </form>
 
         <div class="divider"></div>
@@ -225,43 +146,154 @@
         </div>
       </div>
 
+      <!-- SUCCESS PANEL (shown after registration) -->
+      <div class="form-panel" id="panelSuccess">
+        <div class="success-panel">
+          <div class="big-icon">📧</div>
+          <h2>Check your email!</h2>
+          <p>We sent a verification link to<br><strong id="sentToEmail"></strong>.<br><br>Click the link in your inbox to verify your account, then come back to log in.</p>
+          <button class="btn-submit" onclick="switchTo('login')">Go to Login →</button>
+          <div class="resend-link">
+            Didn't receive it? <a id="resendLink" onclick="resendVerification()">Resend email</a>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCCUqmHtG4_0Ilf4FcBqxEK3BIYghp8p2k",
+      authDomain: "bunyi-booking.firebaseapp.com",
+      projectId: "bunyi-booking",
+      storageBucket: "bunyi-booking.appspot.com",
+      messagingSenderId: "804848365019",
+      appId: "1:804848365019:web:22fc0265ef2d0baf6dcbfe"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Store last registered user for resend
+    window._lastRegisteredUser = null;
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const name     = document.getElementById('reg-name').value.trim();
+      const gender   = document.getElementById('reg-gender').value;
+      const email    = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const confirm  = document.getElementById('reg-confirm').value;
+
+      // Clear previous errors
+      document.getElementById('registerError').classList.remove('show');
+
+      // Validate
+      if (!name) return showRegErr('Please enter your full name.');
+      if (!gender) return showRegErr('Please select your gender.');
+      if (password.length < 6) return showRegErr('Password must be at least 6 characters.');
+      if (password !== confirm) return showRegErr('Passwords do not match.');
+
+      const btn = document.getElementById('registerBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        // 1. Create Firebase Auth user
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+        // 2. Send verification email
+        await sendEmailVerification(cred.user);
+
+        // 3. Save profile to server (without logging in)
+        await fetch('/register-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, gender, password })
+        });
+
+        // 4. Store user for resend
+        window._lastRegisteredUser = cred.user;
+
+        // 5. Show success panel
+        document.getElementById('sentToEmail').textContent = email;
+        switchTo('success');
+
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Create Account →';
+        if (err.code === 'auth/email-already-in-use') return showRegErr('An account with this email already exists.');
+        if (err.code === 'auth/invalid-email') return showRegErr('Please enter a valid email address.');
+        if (err.code === 'auth/weak-password') return showRegErr('Password must be at least 6 characters.');
+        showRegErr('Something went wrong. Please try again.');
+        console.error(err);
+      }
+    });
+
+    window.resendVerification = async function() {
+      if (!window._lastRegisteredUser) return;
+      try {
+        await sendEmailVerification(window._lastRegisteredUser);
+        document.getElementById('resendLink').textContent = 'Sent! Check your inbox.';
+        document.getElementById('resendLink').style.cursor = 'default';
+      } catch(e) {
+        alert('Could not resend. Please try again in a minute.');
+      }
+    };
+
+    function showRegErr(msg) {
+      document.getElementById('registerError').classList.add('show');
+      document.getElementById('registerErrorText').textContent = msg;
+    }
+  </script>
 
   <script>
     function switchTo(panel) {
       document.getElementById('panelLogin').classList.toggle('active', panel === 'login');
       document.getElementById('panelRegister').classList.toggle('active', panel === 'register');
+      document.getElementById('panelSuccess').classList.toggle('active', panel === 'success');
       document.querySelector('.auth-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     const params = new URLSearchParams(window.location.search);
-    const loginErr = params.get('error');
-    const regErr = params.get('error');
+    const err = params.get('error');
     const panel = params.get('panel');
 
-    // Login error
-    if (loginErr === '1') {
+    // Login errors
+    if (err === '1') {
       switchTo('login');
       document.getElementById('loginError').classList.add('show');
       document.getElementById('loginErrorText').textContent = 'Invalid email or password. Please try again.';
     }
-
-    // Register errors
-    const regErrors = {
-      short: 'Password must be at least 6 characters.',
-      mismatch: 'Passwords do not match.',
-      exists: 'An account with this email already exists.'
-    };
-    if (regErr && regErrors[regErr]) {
-      switchTo('register');
-      document.getElementById('registerError').classList.add('show');
-      document.getElementById('registerErrorText').textContent = regErrors[regErr];
+    if (params.get('notverified') === '1') {
+      switchTo('login');
+      document.getElementById('loginError').classList.add('show');
+      document.getElementById('loginErrorText').textContent = '⚠️ Please verify your email first. Check your inbox for the verification link.';
+    }
+    if (params.get('verify') === '1') {
+      switchTo('login');
+      document.getElementById('loginInfo').classList.add('show');
+      document.getElementById('loginInfoText').textContent = '✅ Account created! Please verify your email before logging in.';
     }
 
-    // If redirected to register panel
+    // Register errors (legacy server-side)
+    const regErrors = { short: 'Password must be at least 6 characters.', mismatch: 'Passwords do not match.', exists: 'An account with this email already exists.' };
+    if (err && regErrors[err]) {
+      switchTo('register');
+      document.getElementById('registerError').classList.add('show');
+      document.getElementById('registerErrorText').textContent = regErrors[err];
+    }
+
     if (panel === 'register') switchTo('register');
   </script>
   <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
 </body>
 </html>
+
