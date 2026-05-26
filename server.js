@@ -818,7 +818,15 @@ app.post('/caterer-verify-remaining', requireCaterer, (req, res) => {
 
 app.get('/chats-data', (req, res) => {
   const seen = new Set(); const conversations = [];
-  [...messages].reverse().forEach(m => { if (!seen.has(m.caterer)) { seen.add(m.caterer); const last = [...messages].filter(x => x.caterer === m.caterer).slice(-1)[0]; conversations.push({ caterer: m.caterer, lastMessage: last.text, lastTime: last.timestamp }); } });
+  [...messages].reverse().forEach(m => {
+    if (!seen.has(m.caterer)) {
+      seen.add(m.caterer);
+      const thread = [...messages].filter(x => x.caterer === m.caterer);
+      const last = thread.slice(-1)[0];
+      const senders = [...new Set(thread.map(x => x.sender))];
+      conversations.push({ caterer: m.caterer, lastMessage: last.text, lastTime: last.timestamp, senders });
+    }
+  });
   res.json(conversations);
 });
 
