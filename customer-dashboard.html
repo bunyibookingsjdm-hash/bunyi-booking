@@ -188,7 +188,7 @@
   <main class="main">
     <div class="welcome-row f1">
       <p class="welcome-eyebrow">Customer Portal</p>
-      <h1 class="welcome-title">Good day! Welcome to your Dashboard.</h1>
+      <h1 class="welcome-title">Good day, <span id="welcomeName"></span>!</h1>
       <p class="welcome-sub">Here's a summary of your activity.</p>
     </div>
 
@@ -297,6 +297,7 @@
           }
           document.getElementById('accountDropdownName').textContent = data.name;
           document.getElementById('accountDropdownEmail').textContent = data.email || '';
+          document.getElementById('welcomeName').textContent = data.name;
         }
       } catch(e) {}
     }
