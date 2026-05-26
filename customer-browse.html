@@ -772,7 +772,7 @@
       var comment = document.getElementById('reviewComment').value.trim();
       if (comment.split(/\s+/).length > 300) { setReviewMsg('Review exceeds 300 words.', 'error'); return; }
       try {
-        var res = await fetch('/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: currentCaterer.name, rating: selectedRating, comment: comment }) });
+        var res = await fetch('/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: currentCaterer.name, sender: currentUserName || 'Customer', text: text }) });
         var data = await res.json();
         if (!res.ok) { setReviewMsg(data.error, 'error'); return; }
         setReviewMsg('✅ Review submitted!', 'success');
