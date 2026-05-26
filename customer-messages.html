@@ -199,6 +199,7 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     let activeCaterer = urlParams.get('caterer') || '';
+    let currentUserName = '';
 
     function formatTime(ts) { const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
     function formatPreviewTime(ts) { const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); const now = new Date(); if ((now - d) / 3600000 < 24) return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
@@ -258,7 +259,7 @@
         }
         const timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
         const div = document.createElement('div');
-        div.className = 'msg-row ' + (m.sender === 'Customer' ? 'me' : 'them');
+        div.className = 'msg-row ' + (m.sender === currentUserName || m.sender === 'Customer' ? 'me' : 'them');
         div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
         box.appendChild(div);
       });
@@ -302,6 +303,7 @@
           }
           document.getElementById('accountDropdownName').textContent = data.name;
           document.getElementById('accountDropdownEmail').textContent = data.email || '';
+          currentUserName = data.name;
         }
       } catch(e) {}
     }
