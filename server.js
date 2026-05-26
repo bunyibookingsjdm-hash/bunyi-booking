@@ -772,7 +772,8 @@ app.get('/message', (req, res) => {
 app.post('/send-message', (req, res) => {
   const { caterer, sender, text } = req.body;
   if (!caterer || !sender || !text) return res.status(400).json({ error: 'Missing fields' });
-  const newMsg = { caterer, sender, text, timestamp: new Date() };
+  const userEmail = req.session.user ? req.session.user.email : null;
+  const newMsg = { caterer, sender, text, userEmail, timestamp: new Date() };
   messages.push(newMsg); saveToFirestore('messages', newMsg);
   const isCatererMsg = catererUsers.some(u => u.businessName === sender);
   if (isCatererMsg) {
@@ -817,14 +818,16 @@ app.post('/caterer-verify-remaining', requireCaterer, (req, res) => {
 });
 
 app.get('/chats-data', (req, res) => {
+  const userEmail = req.session.user ? req.session.user.email : null;
   const seen = new Set(); const conversations = [];
   [...messages].reverse().forEach(m => {
-    if (!seen.has(m.caterer)) {
+    // Show conversation if: userEmail matches, OR old message with no email (legacy)
+    const belongsToUser = userEmail && (m.userEmail === userEmail);
+    if (belongsToUser && !seen.has(m.caterer)) {
       seen.add(m.caterer);
-      const thread = [...messages].filter(x => x.caterer === m.caterer);
+      const thread = [...messages].filter(x => x.caterer === m.caterer && (x.userEmail === userEmail || x.sender === m.caterer));
       const last = thread.slice(-1)[0];
-      const senders = [...new Set(thread.map(x => x.sender))];
-      conversations.push({ caterer: m.caterer, lastMessage: last.text, lastTime: last.timestamp, senders });
+      conversations.push({ caterer: m.caterer, lastMessage: last.text, lastTime: last.timestamp });
     }
   });
   res.json(conversations);
