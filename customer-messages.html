@@ -204,16 +204,12 @@
     function formatPreviewTime(ts) { const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); const now = new Date(); if ((now - d) / 3600000 < 24) return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
 
     async function loadSidebar() {
-      const userRes = await fetch('/session-user');
-      const user = await userRes.json();
-      if (!user) return;
-      const res = await fetch('/chats-data');
-      const allData = await res.json();
-      const data = allData.filter(c => c.senders && c.senders.includes(user.name));
-      const list = document.getElementById('sidebarList');
-      if (data.length === 0) { list.innerHTML = '<p class="sidebar-empty">No conversations yet.</p>'; return; }
-      list.innerHTML = '';
-      data.forEach(c => {
+        const res = await fetch('/chats-data');
+        const data = await res.json();
+        const list = document.getElementById('sidebarList');
+        if (data.length === 0) { list.innerHTML = '<p class="sidebar-empty">No conversations yet.</p>'; return; }
+        list.innerHTML = '';
+        data.forEach(c => {
         const a = document.createElement('a');
         a.className = 'convo-item' + (c.caterer === activeCaterer ? ' active' : '');
         a.href = '#';
