@@ -235,12 +235,16 @@
         var myBookings = bookings.filter(function(b) { return b.caterer === myBusinessName; });
         var seen = {}; var customers = [];
         msgs.slice().reverse().forEach(function(m) {
-          if (m.sender !== myBusinessName && !seen[m.sender]) {
-            seen[m.sender] = true;
-            var displayName = m.sender;
-            if (m.sender === 'Customer' && myBookings.length > 0) { displayName = myBookings[0].sender || 'Customer'; }
-            var last = msgs.slice(-1)[0];
-            customers.push({ name: m.sender, displayName: displayName, lastMessage: last ? last.text : '', lastTime: last ? last.timestamp : m.timestamp });
+          if (m.sender !== myBusinessName) {
+            var key = m.userEmail || m.sender.toLowerCase();
+            if (!seen[key]) {
+              seen[key] = true;
+              var booking = myBookings.find(function(b) { return b.sender && b.sender.toLowerCase() === m.sender.toLowerCase(); });
+              var displayName = (booking && booking.sender) ? booking.sender : m.sender;
+              var customerMsgs = msgs.filter(function(msg) { return msg.userEmail === m.userEmail || msg.sender === m.sender; });
+              var last = customerMsgs[customerMsgs.length - 1];
+              customers.push({ name: m.sender, displayName: displayName, lastMessage: last ? last.text : '', lastTime: last ? last.timestamp : m.timestamp, userEmail: m.userEmail });
+            }
           }
         });
         allConvos = customers;

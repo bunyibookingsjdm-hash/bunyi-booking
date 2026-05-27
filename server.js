@@ -750,7 +750,13 @@ app.get('/result', (req, res) => {
   </body></html>`);
 });
 
-app.get('/messages', (req, res) => { const { caterer } = req.query; res.json(messages.filter(m => m.caterer === caterer)); });
+app.get('/messages', (req, res) => {
+  const { caterer, userEmail } = req.query;
+  const filtered = messages.filter(m => m.caterer === caterer);
+  if (userEmail) return res.json(filtered.filter(m => m.userEmail === userEmail || m.sender === caterer));
+  res.json(filtered);
+});
+
 app.get('/chats', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'customer-messages.html')));
 
 app.get('/message', (req, res) => {
