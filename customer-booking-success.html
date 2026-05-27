@@ -270,7 +270,7 @@
         badge.style.display = unread > 0 ? 'inline-block' : 'none'; badge.textContent = unread;
         if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
         list.innerHTML = '';
-        data.slice().reverse().forEach(n => {
+        data.forEach(n => {
           const a = document.createElement('a');
           a.className = 'notif-item' + (n.isRead ? '' : ' unread');
           a.href = '#';
