@@ -244,6 +244,11 @@
       const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
       box.innerHTML = '';
       if (data.length === 0) { box.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.85rem;margin:auto;">No messages yet. Say hello!</p>'; return; }
+      data.sort(function(a, b) {
+        var aTime = a.timestamp && a.timestamp._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
+        var bTime = b.timestamp && b.timestamp._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
+        return aTime - bTime;
+      });
       let lastDateStr = '';
       data.forEach(m => {
         // Parse Firestore timestamp correctly
