@@ -770,9 +770,12 @@ app.get('/message', (req, res) => {
 });
 
 app.post('/send-message', (req, res) => {
-  const { caterer, sender, text } = req.body;
-  if (!caterer || !sender || !text) return res.status(400).json({ error: 'Missing fields' });
+  const { caterer, text } = req.body;
+  if (!caterer || !text) return res.status(400).json({ error: 'Missing fields' });
   const userEmail = req.session.user ? req.session.user.email : null;
+  // Always use real session name for customers, fallback to sent sender only for caterers
+  const isCatererSender = catererUsers.some(u => u.businessName === req.body.sender);
+  const sender = isCatererSender ? req.body.sender : (req.session.user ? req.session.user.name : req.body.sender);
   const newMsg = { caterer, sender, text, userEmail, timestamp: new Date() };
   messages.push(newMsg); saveToFirestore('messages', newMsg);
   const isCatererMsg = catererUsers.some(u => u.businessName === sender);
