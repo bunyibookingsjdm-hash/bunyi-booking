@@ -75,7 +75,7 @@ let notifications = [], notifIdCounter = 1;
 
 function addNotification(type, text) {
   const n = { id: notifIdCounter++, user: 'default', type, text, isRead: false, createdAt: new Date() };
-  notifications.push(n);
+  notifications.unshift(n);
   // Save to Firestore and update in-memory id to the Firestore doc ID
   saveToFirestore('notifications', { user: n.user, type: n.type, text: n.text, isRead: false, createdAt: n.createdAt }).then(firestoreId => {
     if (firestoreId) { n.id = firestoreId; }
@@ -613,7 +613,7 @@ app.get('/account', requireLogin, (req, res) => {
             if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread; } else { badge.style.display = 'none'; }
             if (data.length === 0) { list.innerHTML = '<p class="notif-empty">No notifications yet.</p>'; return; }
             list.innerHTML = '';
-            data.slice().reverse().forEach(n => {
+            data.slice().reverse().forEach (n => {
             const a = document.createElement('a'); a.className = 'notif-item' + (n.isRead ? '' : ' unread'); a.href = '#'; a.onclick = async (e) => { e.preventDefault(); await fetch('/read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) }); loadNotifications(); }; a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + new Date(n.createdAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + new Date(n.createdAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) + '</div>'; list.appendChild(a); });
           } catch(e) {}
         }
@@ -852,7 +852,7 @@ app.post('/reviews', (req, res) => {
   reviews.push(newReview); saveToFirestore('reviews', newReview); res.json({ success: true });
 });
 
-app.get('/notifications', (req, res) => { res.json([...notifications].reverse()); });
+app.get('/notifications', (req, res) => { res.json([...notifications]); });
 app.post('/add-notification', (req, res) => { const { type, text } = req.body; if (!type || !text) return res.status(400).json({ error: 'Missing fields' }); addNotification(type, text); res.json({ success: true }); });
 app.post('/read-notifications', (req, res) => { notifications.forEach(n => n.isRead = true); res.json({ success: true }); });
 app.post('/read-notification', async (req, res) => {
