@@ -230,7 +230,7 @@
       noticeText.innerHTML = '⚠️ <strong>Down payment submitted!</strong> Your remaining balance is due <strong>7 days before your event</strong>. You will receive a reminder notification <strong>10 days before the due date</strong>. The caterer is reviewing your payment — please wait within the day for confirmation.';
     }
 
-    const bookingId = 'BNY-' + Date.now().toString(36).toUpperCase().slice(-6) + '-' + Math.random().toString(36).toUpperCase().slice(2, 6);
+    const bookingId = params.get('bookingId') || 'BNY-' + Date.now().toString(36).toUpperCase().slice(-6) + '-' + Math.random().toString(36).toUpperCase().slice(2, 6);
     document.getElementById('infoBookingId').textContent = bookingId;
     document.getElementById('bannerBookingId').textContent = bookingId;
 

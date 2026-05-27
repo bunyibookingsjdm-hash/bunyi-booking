@@ -697,7 +697,7 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   saveToFirestore('bookings', newBooking).then(async id => { if(id) newBooking.id = id; try { const snap = await db.collection('bookings').get(); bookings.length = 0; snap.docs.forEach(d => bookings.push({ id: d.id, ...d.data() })); } catch(e) { console.error('Reload bookings failed:', e); } });
   if (paymentType === 'full') { addNotification('booking', '🎉 Booking confirmed! Full payment received for your event on ' + date + '.'); addCatererNotification(caterer, 'booking', '📦 New booking received! Full payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
   else { addNotification('booking', '✅ Booking submitted! Down payment received for your event on ' + date + '. Remaining balance due 7 days before the event.'); addCatererNotification(caterer, 'booking', '📦 New booking received! Down payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
-  return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(status) + '&paymentType=' + paymentType + '&date=' + date);
+  return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(status) + '&paymentType=' + paymentType + '&date=' + date + '&bookingId=' + encodeURIComponent(bookingId));
 });
 
 app.get('/payment', (req, res) => {
@@ -824,7 +824,7 @@ app.get('/chats-data', (req, res) => {
   const seen = new Set(); const conversations = [];
   [...messages].reverse().forEach(m => {
     const belongsToUser = m.userEmail === userEmail ||
-      (!m.userEmail && m.sender === userName);
+      (!m.userEmail && (m.sender === userName || m.sender === 'Customer'));
     if (belongsToUser && !seen.has(m.caterer)) {
       seen.add(m.caterer);
       const last = [...messages].filter(x => x.caterer === m.caterer).slice(-1)[0];
