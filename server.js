@@ -1065,6 +1065,7 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
         <div class="card fade-in" style="animation-delay:0.06s;">
           <p class="section-label">Contact Information</p>
           <form action="/caterer-account/update" method="POST">
+            <div class="form-group"><label>Business Name</label><input type="text" name="businessName" value="${catererUser.businessName || ''}" placeholder="Your business name" required></div>
             <div class="form-group"><label>Email Address</label><input type="email" name="email" value="${catererUser.email}" required></div>
             <div class="form-group"><label>Business Address</label><input type="text" name="businessAddress" value="${catererUser.businessAddress || ''}" placeholder="Street, City, Province"></div>
             <div class="form-group"><label>Contact Number</label><input type="tel" name="contactNumber" value="${catererUser.contactNumber || ''}" placeholder="09XX XXX XXXX"></div>
