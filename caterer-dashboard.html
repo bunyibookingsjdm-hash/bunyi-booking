@@ -393,8 +393,9 @@
         var all = await (await fetch('/bookings')).json();
         var reviews = await (await fetch('/reviews?caterer='+encodeURIComponent(session.businessName))).json();
         var mine = all.filter(function(b) { return b.caterer === session.businessName; });
-        var today = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'})); today.setHours(0,0,0,0);
-        var todayStr = today.toISOString().split('T')[0];
+        var now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+        var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+        var today = new Date(todayStr + 'T00:00:00'); today.setHours(0,0,0,0);
         var nowMonth = today.getMonth(); var nowYear = today.getFullYear();
 
         document.getElementById('statTotal').textContent = mine.length;
