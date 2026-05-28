@@ -472,7 +472,15 @@
     }
 
     function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
-    function toggleNotifDropdown() { document.getElementById('notifDropdown').classList.toggle('open'); document.getElementById('profileDropdown').classList.remove('open'); }
+    async function toggleNotifDropdown() { 
+      const dd = document.getElementById('notifDropdown'); 
+      document.getElementById('profileDropdown').classList.remove('open'); 
+      dd.classList.toggle('open'); 
+      if (dd.classList.contains('open')) { 
+        await fetch('/caterer-read-notifications', { method: 'POST' }); 
+        await loadNotifications(); 
+      } 
+    }
     document.addEventListener('click', function(e) {
       var nw = document.querySelector('.notif-wrapper');
       var pw = document.querySelector('.profile-wrapper');

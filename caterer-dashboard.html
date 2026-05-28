@@ -430,7 +430,7 @@
     }
 
     function toggleProfileDropdown(){document.getElementById('profileDropdown').classList.toggle('open');document.getElementById('notifDropdown').classList.remove('open');}
-async function toggleNotifDropdown(){var dd=document.getElementById('notifDropdown');document.getElementById('profileDropdown').classList.remove('open');dd.classList.toggle('open');if(dd.classList.contains('open')){await loadNotifications();}}
+    async function toggleNotifDropdown(){var dd=document.getElementById('notifDropdown');document.getElementById('profileDropdown').classList.remove('open');dd.classList.toggle('open');if(dd.classList.contains('open')){await fetch('/caterer-read-notifications', { method: 'POST' });await loadNotifications();}}
     document.addEventListener('click',function(e){var nw=document.querySelector('.notif-wrapper');var pw=document.querySelector('.profile-wrapper');if(nw&&!nw.contains(e.target))document.getElementById('notifDropdown').classList.remove('open');if(pw&&!pw.contains(e.target))document.getElementById('profileDropdown').classList.remove('open');});
 
     function formatNotifTime(ts){var d=new Date(ts);return d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})+' · '+d.toLocaleDateString('en-PH',{month:'short',day:'numeric'});}

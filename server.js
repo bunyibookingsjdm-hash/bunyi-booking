@@ -1173,17 +1173,6 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
           </div>
           <div class="form-group"><label>Business Address</label><div class="read-field">${catererUser.businessAddress || '—'}</div></div>
         </div>
-        <div class="card fade-in" style="animation-delay:0.06s;">
-          <p class="section-label">Contact Information</p>
-          <div class="card fade-in">
-          <p class="section-label">Business Information</p>
-          <div class="form-row" style="margin-bottom:16px;">
-            <div class="form-group"><label>Business Name</label><div class="read-field">${catererUser.businessName}</div></div>
-            <div class="form-group"><label>Contact Number</label><div class="read-field">${catererUser.contactNumber || '—'}</div></div>
-          </div>
-          <div class="form-group"><label>Business Address</label><div class="read-field">${catererUser.businessAddress || '—'}</div></div>
-        </div>
-        </div>
         ` : `
         <div class="card fade-in">
           ${req.query.pwsaved === '1' ? '<div class="success-msg">✅ Password updated successfully.</div>' : ''}
