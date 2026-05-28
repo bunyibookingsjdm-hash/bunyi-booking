@@ -848,10 +848,10 @@ app.post('/send-message', async (req, res) => {
   // For caterers: they must pass the customer's email in the request body
   const userEmail = isCaterer
     ? (bodyUserEmail || null)
-    : (req.session.user ? req.session.user.email : null);
+    : (req.session.user ? req.session.user.email : bodyUserEmail || null);
   const sender = isCaterer
     ? req.session.caterer.businessName
-    : (req.session.user ? req.session.user.name : 'Customer');
+    : (req.session.user ? req.session.user.name : (req.body.senderName || 'Customer'));
   const newMsg = { caterer, sender, text, userEmail, timestamp: new Date() };
   try {
     const ref = await db.collection('messages').add(newMsg);
