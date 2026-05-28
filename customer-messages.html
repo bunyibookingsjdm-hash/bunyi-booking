@@ -239,8 +239,7 @@
 
     async function loadMessages() {
       if (!activeCaterer) return;
-      const res = await fetch('/messages?caterer=' + encodeURIComponent(activeCaterer) + '&userEmail=' + encodeURIComponent(currentUserEmail));
-      const data = await res.json();
+      const res = await fetch('/messages?caterer=' + encodeURIComponent(activeCaterer) + '&userEmail=' + encodeURIComponent(currentUserEmail) + '&userName=' + encodeURIComponent(currentUserName));      const data = await res.json();
       const box = document.getElementById('chatBox');
       const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
       box.innerHTML = '';
@@ -273,10 +272,15 @@
     }
 
     async function sendMessage() {
-    const input = document.getElementById('msgInput');
-    const text = input.value.trim();
-    if (!text || !activeCaterer) return;
-    await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: activeCaterer, text }) });
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
+      if (!text || !activeCaterer) return;
+      if (!currentUserEmail) {
+        const r = await fetch('/session-user');
+        const d = await r.json();
+        if (d) { currentUserEmail = d.email; currentUserName = d.name; }
+      }
+      await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: activeCaterer, text }) });
       input.value = '';
       await loadMessages();
       await loadSidebar();
