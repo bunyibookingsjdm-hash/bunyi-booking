@@ -239,7 +239,6 @@
     sessionStorage.removeItem('bunyi_cart');
     sessionStorage.removeItem('bunyi_checkout');
 
-    // ── USER INFO ──
     async function loadUserInfo() {
       try {
         const res = await fetch('/session-user'); const data = await res.json();
