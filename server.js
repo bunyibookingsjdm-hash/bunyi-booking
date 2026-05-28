@@ -748,6 +748,9 @@ app.post('/account/update', requireLogin, async (req, res) => {
 app.get('/caterers', (req, res) => res.json(caterers));
 
 app.post('/book', upload.single('receipt'), async (req, res) => {
+  const { caterer, date, time } = req.body;
+  const existing = bookings.find(b => b.caterer === caterer && b.date === date && b.time === time && b.sender === (req.session.user ? req.session.user.name : ''));
+  if (existing) return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(existing.status) + '&paymentType=' + (existing.amountPaid === existing.totalAmount ? 'full' : 'down') + '&date=' + date + '&bookingId=' + encodeURIComponent(existing.bookingId));
   const { caterer, packageName, price, eventType, otherEvent, date, time,
           guests, paymentType, platform, otherPlatform, reference, grandTotal, sender } = req.body;
   const existingCount = bookings.filter(b => b.caterer === caterer && b.date === date && b.time === time).length;
