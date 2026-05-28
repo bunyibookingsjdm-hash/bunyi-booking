@@ -987,7 +987,22 @@ app.post('/read-notification', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/caterer-read-notification', (req, res) => { if (!req.session.caterer) return res.json({ ok: true }); const { id } = req.body; const notes = catererNotifications[req.session.caterer.businessName] || []; const n = notes.find(n => n.id == id); if (n) n.isRead = true; res.json({ ok: true }); });
+app.post('/caterer-read-notification', async (req, res) => {
+  if (!req.session.caterer) return res.json({ ok: true });
+  const { id } = req.body;
+  const notes = catererNotifications[req.session.caterer.businessName] || [];
+  const n = notes.find(n => String(n.id) === String(id) || String(n._id) === String(id));
+  if (n) {
+    n.isRead = true;
+    try {
+      await mdb.collection('catererNotifications').updateOne(
+        { businessName: req.session.caterer.businessName },
+        { $set: { items: notes } }
+      );
+    } catch(e) {}
+  }
+  res.json({ ok: true });
+});
 
 app.get('/cart', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'customer-checkout.html')));
 app.get('/booking-success', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'customer-booking-success.html')));
