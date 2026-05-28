@@ -356,8 +356,21 @@ function addCatererNotification(businessName, type, text) {
   ).catch(e => {});
 }
 
-app.get('/caterer-notifications', (req, res) => { if (!req.session.caterer) return res.json([]); res.json(catererNotifications[req.session.caterer.businessName] || []); });
-app.post('/caterer-read-notifications', (req, res) => { if (!req.session.caterer) return res.json({ ok: true }); const notes = catererNotifications[req.session.caterer.businessName] || []; notes.forEach(n => n.isRead = true); res.json({ ok: true }); });
+app.get('/caterer-notifications', (req, res) => { if (!req.session.caterer) return res.json([]); const notes = catererNotifications[req.session.caterer.businessName] || []; res.json([...notes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))); });
+app.post('/caterer-read-notifications', async (req, res) => {
+  if (!req.session.caterer) return res.json({ ok: true });
+  const notes = catererNotifications[req.session.caterer.businessName] || [];
+  notes.forEach(n => n.isRead = true);
+  try {
+    await mdb.collection('catererNotifications').updateOne(
+      { businessName: req.session.caterer.businessName },
+      { $set: { items: notes } },
+      { upsert: true }
+    );
+  } catch(e) {}
+  res.json({ ok: true });
+});
+
 app.get('/caterer-logout', (req, res) => { req.session.caterer = null; res.redirect('/caterer-login'); });
 app.get('/login', (req, res) => res.redirect('/customer-login'));
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'customer-login.html')));
