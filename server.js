@@ -3,9 +3,7 @@ const app = express();
 const path = require('path');
 const multer = require('multer');
 
-// ===== FIREBASE =====
 const admin = require('firebase-admin');
-let db;
 try {
   const serviceAccount = {
     type: 'service_account',
@@ -18,10 +16,24 @@ try {
     token_uri: 'https://oauth2.googleapis.com/token',
   };
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  db = admin.firestore();
-  console.log('✅ Firebase connected');
+  console.log('✅ Firebase Auth connected');
 } catch(e) {
-  console.log('⚠️ Firebase error:', e.message);
+  console.log('⚠️ Firebase Auth error:', e.message);
+}
+
+// ===== MONGODB =====
+const { MongoClient } = require('mongodb');
+let mdb;
+let mongoClient;
+async function connectMongo() {
+  try {
+    mongoClient = new MongoClient(process.env.MONGODB_URI);
+    await mongoClient.connect();
+    mdb = mongoClient.db('bunyi');
+    console.log('✅ MongoDB connected');
+  } catch(e) {
+    console.log('⚠️ MongoDB error:', e.message);
+  }
 }
 
 app.use(express.urlencoded({ extended: true }));
@@ -32,14 +44,11 @@ app.get('/favicon.png', (req, res) => res.sendFile(path.join(__dirname, 'favicon
 
 const session = require('express-session');
 const {FirestoreStore} = require('@google-cloud/connect-firestore');
+
 app.use(session({
-  store: new FirestoreStore({
-    dataset: db,
-    kind: 'express-sessions',
-  }),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
+  secret: process.env.SESSION_SECRET || 'bunyi-secret-key',
+  resave: true,
+  saveUninitialized: true,
   name: 'bunyi.sid'
 }));
 
@@ -65,21 +74,38 @@ async function uploadToCloudinary(fileBuffer, mimetype, folder) {
 // ===== MULTER — memory storage (files go to Cloudinary, not local disk) =====
 const upload = multer({ storage: multer.memoryStorage() });
 
-async function getCollection(name) { const snap = await db.collection(name).get(); return snap.docs.map(d => ({ id: d.id, ...d.data() })); }
-async function addDoc(name, data) { const ref = await db.collection(name).add({ ...data, createdAt: new Date() }); return ref.id; }
-async function updateDoc(name, id, data) { await db.collection(name).doc(id).update(data); }
-async function deleteDoc(name, id) { await db.collection(name).doc(id).delete(); }
+async function getCollection(name) {
+  try { return await mdb.collection(name).find({}).toArray(); } catch(e) { return []; }
+}
+async function addDoc(name, data) {
+  try { const r = await mdb.collection(name).insertOne({ ...data, createdAt: new Date() }); return r.insertedId.toString(); } catch(e) { return null; }
+}
+async function updateDoc(name, id, data) {
+  try { const { ObjectId } = require('mongodb'); await mdb.collection(name).updateOne({ _id: new ObjectId(id) }, { $set: data }); } catch(e) {}
+}
+async function deleteDoc(name, id) {
+  try { const { ObjectId } = require('mongodb'); await mdb.collection(name).deleteOne({ _id: new ObjectId(id) }); } catch(e) {}
+}
+async function saveToMongo(collection, data, id) {
+  try {
+    if (id) {
+      await mdb.collection(collection).updateOne({ _id: id }, { $set: data }, { upsert: true });
+    } else {
+      const r = await mdb.collection(collection).insertOne({ ...data, createdAt: new Date() });
+      return r.insertedId.toString();
+    }
+  } catch(e) { console.log('MongoDB save error:', e.message); }
+}
 
 let bookings = [], messages = [], users = [], catererUsers = [];
 let notifications = [], notifIdCounter = 1;
 
 function addNotification(type, text) {
-  const n = { id: notifIdCounter++, user: 'default', type, text, isRead: false, createdAt: new Date() };
+  const n = { user: 'default', type, text, isRead: false, createdAt: new Date() };
   notifications.unshift(n);
-  // Save to Firestore and update in-memory id to the Firestore doc ID
-  saveToFirestore('notifications', { user: n.user, type: n.type, text: n.text, isRead: false, createdAt: n.createdAt }).then(firestoreId => {
-    if (firestoreId) { n.id = firestoreId; }
-  });
+  mdb.collection('notifications').insertOne(n).then(r => {
+    if (r) n.id = r.insertedId.toString();
+  }).catch(e => {});
 }
 
 setInterval(() => {
@@ -291,11 +317,12 @@ app.post('/caterer-register-profile', async (req, res) => {
   if (catererUsers.find(u => u.email === email)) return res.json({ ok: true });
   const newCaterer = { email, password, businessName, businessAddress, contactNumber, createdAt: new Date() };
   catererUsers.push(newCaterer);
-  saveToFirestore('catererUsers', newCaterer);
+  await mdb.collection('catererUsers').insertOne(newCaterer);
   if (!caterers.find(c => c.name === businessName)) {
-    caterers.push({ id: caterers.length + 1, name: businessName, description: description || 'Professional catering service.', location: businessAddress || '', image: '/placeholder.jpg', packages: [], qrCodes: [] });
+    const newCatererEntry = { id: caterers.length + 1, name: businessName, description: description || 'Professional catering service.', location: businessAddress || '', image: '/placeholder.jpg', packages: [], qrCodes: [] };
+    caterers.push(newCatererEntry);
+    await mdb.collection('caterers').insertOne(newCatererEntry);
   }
-  saveToFirestore('caterers', { id: caterers.length, name: businessName, description: description || 'Professional catering service.', location: businessAddress || '', image: '/placeholder.jpg', packages: [], qrCodes: [] }, businessName);
   res.json({ ok: true });
 });
 
@@ -317,11 +344,16 @@ app.post('/caterer-login', async (req, res) => {
 });
 
 let catererNotifications = {};
+
 function addCatererNotification(businessName, type, text) {
   if (!catererNotifications[businessName]) catererNotifications[businessName] = [];
-  const n = { id: Date.now(), type, text, isRead: false, createdAt: new Date() };
+  const n = { type, text, isRead: false, createdAt: new Date() };
   catererNotifications[businessName].unshift(n);
-  saveToFirestore('catererNotifications', { items: catererNotifications[businessName] }, businessName);
+  mdb.collection('catererNotifications').updateOne(
+    { businessName },
+    { $set: { items: catererNotifications[businessName] } },
+    { upsert: true }
+  ).catch(e => {});
 }
 
 app.get('/caterer-notifications', (req, res) => { if (!req.session.caterer) return res.json([]); res.json(catererNotifications[req.session.caterer.businessName] || []); });
@@ -343,7 +375,7 @@ app.post('/register-profile', async (req, res) => {
   if (users.find(u => u.email === email)) return res.json({ ok: true });
   const newUser = { name, email, password, gender, phone: '', isVerified: false, createdAt: new Date() };
   users.push(newUser);
-  saveToFirestore('users', newUser);
+  await mdb.collection('users').insertOne(newUser);
   res.json({ ok: true });
 });
 
@@ -649,8 +681,7 @@ app.post('/account/change-password', requireLogin, async (req, res) => {
   if (newPassword !== confirmPassword) return res.redirect('/account?tab=settings&pwerror=mismatch');
   user.password = newPassword;
   try {
-    const snap = await db.collection('users').where('email', '==', user.email).get();
-    if (!snap.empty) { await snap.docs[0].ref.set({ password: newPassword }, { merge: true }); }
+    await mdb.collection('users').updateOne({ email: user.email }, { $set: { password: newPassword } });
   } catch(e) { console.error('Change password failed:', e.message); }
   res.redirect('/account?tab=settings&pwsaved=1');
 });
@@ -665,8 +696,7 @@ app.post('/upload-profile-photo', requireLogin, upload.single('photo'), async (r
   try {
     const photoUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype, 'bunyi/profiles');
     user.photo = photoUrl; req.session.user.photo = photoUrl; req.session.save();
-    const snap = await db.collection('users').where('email', '==', user.email).get();
-    snap.forEach(doc => doc.ref.update({ photo: photoUrl }));
+    await mdb.collection('users').updateOne({ email: user.email }, { $set: { photo: photoUrl } });
     res.json({ success: true, photo: photoUrl });
   } catch(e) {
     console.log('Cloudinary upload error:', e.message);
@@ -684,9 +714,8 @@ app.post('/caterer-upload-profile-photo', requireCaterer, upload.single('photo')
     catererUser.photo = photoUrl; req.session.caterer.photo = photoUrl; req.session.save();
     const caterer = caterers.find(c => c.name === catererUser.businessName);
     if (caterer) caterer.photo = photoUrl;
-    const snap = await db.collection('catererUsers').where('email', '==', catererUser.email).get();
-    snap.forEach(doc => doc.ref.update({ photo: photoUrl }));
-    await db.collection('caterers').doc(catererUser.businessName).set({ photo: photoUrl }, { merge: true });
+    await mdb.collection('catererUsers').updateOne({ email: catererUser.email }, { $set: { photo: photoUrl } });
+    await mdb.collection('caterers').updateOne({ name: catererUser.businessName }, { $set: { photo: photoUrl } }, { upsert: true });
     res.json({ success: true, photo: photoUrl });
   } catch(e) {
     console.log('Cloudinary upload error:', e.message);
@@ -707,10 +736,11 @@ app.post('/account/update', requireLogin, async (req, res) => {
   req.session.user.email = email;
   req.session.user.name  = user.name;
   try {
-    const snap = await db.collection('users').where('email', '==', oldEmail).get();
-    if (!snap.empty) {
-      await snap.docs[0].ref.set({ name: user.name, email: user.email, gender: user.gender, phone: user.phone, address: user.address }, { merge: true });
-    }
+    await mdb.collection('users').updateOne(
+      { email: oldEmail },
+      { $set: { name: user.name, email: user.email, gender: user.gender, phone: user.phone, address: user.address } },
+      { upsert: true }
+    );
   } catch(e) { console.error('Update user failed:', e.message); }
   res.redirect('/account?saved=1');
 });
@@ -740,7 +770,10 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   }
   const newBooking = { bookingId, caterer, packageName, price: pricePerHead, eventType: finalEvent, date, time, guests: guestCount, totalAmount: total, amountPaid, status, receipt: receiptUrl, platform: finalPlatform, reference: reference || '', sender: sender || (req.session.user ? req.session.user.name : 'Customer'), verified: false, cartItems: (() => { try { return JSON.parse(req.body.cartItems || '[]'); } catch(e) { return []; } })(), createdAt: new Date() };
   bookings.push(newBooking);
-  saveToFirestore('bookings', newBooking).then(async id => { if(id) newBooking.id = id; try { const snap = await db.collection('bookings').get(); bookings.length = 0; snap.docs.forEach(d => bookings.push({ id: d.id, ...d.data() })); } catch(e) { console.error('Reload bookings failed:', e); } });
+  bookings.push(newBooking);
+  mdb.collection('bookings').insertOne(newBooking).then(r => {
+    if (r) newBooking.id = r.insertedId.toString();
+  }).catch(e => {});
   if (paymentType === 'full') { addNotification('booking', '🎉 Booking confirmed! Full payment received for your event on ' + date + '.'); addCatererNotification(caterer, 'booking', '📦 New booking received! Full payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
   else { addNotification('booking', '✅ Booking submitted! Down payment received for your event on ' + date + '. Remaining balance due 7 days before the event.'); addCatererNotification(caterer, 'booking', '📦 New booking received! Down payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
   return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(status) + '&paymentType=' + paymentType + '&date=' + date + '&bookingId=' + encodeURIComponent(bookingId));
@@ -799,24 +832,12 @@ app.get('/result', (req, res) => {
 app.get('/messages', async (req, res) => {
   const { caterer, userEmail, userName } = req.query;
   try {
-    const snap = await db.collection('messages').where('caterer', '==', caterer).get();
-    let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    msgs.sort((a, b) => {
-      const aT = a.timestamp?._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
-      const bT = b.timestamp?._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
-      return aT - bT;
-    });
-    // If userEmail given, only return messages belonging to that customer's thread
-    if (userEmail) {
-  msgs = msgs.filter(m =>
-    m.userEmail === userEmail ||
-    (m.sender === userName && m.userEmail == null)
-  );
-}
-    res.json(msgs);
+    const query = { caterer };
+    if (userEmail) query.userEmail = userEmail;
+    const msgs = await mdb.collection('messages').find(query).sort({ timestamp: 1 }).toArray();
+    res.json(msgs.map(m => ({ ...m, id: m._id ? m._id.toString() : m.id })));
   } catch(e) {
-    const fallback = messages.filter(m => m.caterer === caterer &&
-      (!userEmail || m.userEmail === userEmail));
+    const fallback = messages.filter(m => m.caterer === caterer && (!userEmail || m.userEmail === userEmail));
     res.json(fallback);
   }
 });
@@ -840,22 +861,20 @@ app.get('/message', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-  const { caterer, text, userEmail: bodyUserEmail } = req.body;
+  const { caterer, text, userEmail: bodyUserEmail, senderName } = req.body;
   if (!caterer || !text) return res.status(400).json({ error: 'Missing fields' });
   const isCaterer = !!req.session.caterer;
-  // userEmail always identifies WHICH CUSTOMER the thread belongs to
-  // For customers: use their own session email
-  // For caterers: they must pass the customer's email in the request body
   const userEmail = isCaterer
     ? (bodyUserEmail || null)
     : (req.session.user ? req.session.user.email : bodyUserEmail || null);
   const sender = isCaterer
     ? req.session.caterer.businessName
-    : (req.session.user ? req.session.user.name : (req.body.senderName || 'Customer'));
-  const newMsg = { caterer, sender, text, userEmail, timestamp: new Date() };
+    : (req.session.user ? req.session.user.name : (senderName || 'Customer'));
+  const chatId = userEmail ? userEmail.split('@')[0] + '_' + caterer.replace(/\s+/g, '_') : null;
+  const newMsg = { caterer, sender, text, userEmail, chatId, timestamp: new Date() };
   try {
-    const ref = await db.collection('messages').add(newMsg);
-    newMsg.id = ref.id;
+    const r = await mdb.collection('messages').insertOne(newMsg);
+    newMsg.id = r.insertedId.toString();
     messages.push(newMsg);
   } catch(e) { messages.push(newMsg); }
   if (isCaterer) {
@@ -875,8 +894,10 @@ app.post('/caterer-verify-booking', requireCaterer, (req, res) => {
   const booking = mine[parseInt(index)];
   if (!booking) return res.status(404).json({ error: 'Booking not found' });
   booking.verified = true;
-  const bookingRef = db.collection('bookings').doc(booking.id);
-  bookingRef.update({ verified: true }).catch(e => console.error('Firestore update failed:', e));
+  try {
+    const { ObjectId } = require('mongodb');
+    await mdb.collection('bookings').updateOne({ _id: new ObjectId(booking.id) }, { $set: { verified: true } });
+  } catch(e) {}
   addNotification('verify', '\u2705 Your payment for ' + booking.caterer + ' on ' + booking.date + ' has been verified!');
   res.json({ success: true });
 });
@@ -891,8 +912,10 @@ app.post('/caterer-verify-remaining', requireCaterer, (req, res) => {
   booking.status = 'Fully Paid';
   booking.amountPaid = booking.totalAmount;
   booking.receipt2confirmed = true;
-  const bookingRef = db.collection('bookings').doc(booking.id);
-  bookingRef.update({ verified: true, status: 'Fully Paid', amountPaid: booking.totalAmount, receipt2confirmed: true }).catch(e => console.error('Firestore update failed:', e));
+  try {
+    const { ObjectId } = require('mongodb');
+    await mdb.collection('bookings').updateOne({ _id: new ObjectId(booking.id) }, { $set: { verified: true, status: 'Fully Paid', amountPaid: booking.totalAmount, receipt2confirmed: true } });
+  } catch(e) {}
   addNotification('verify', '\u2705 Your remaining balance for ' + booking.caterer + ' on ' + booking.date + ' has been verified! Your booking is now fully paid.');
   res.json({ success: true });
 });
@@ -902,41 +925,19 @@ app.get('/chats-data', async (req, res) => {
   const userName = req.session.user ? req.session.user.name : null;
   if (!userEmail) return res.json([]);
   try {
-    const snap = await db.collection('messages')
-      .where('caterer', '!=', '')
-      .get();
-    const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Find messages belonging to this user — by email OR by sender name
-    const myMsgs = allMsgs.filter(m =>
-      m.userEmail === userEmail ||
-      (m.sender && m.sender === userName && m.userEmail == null)
-    );
+    const msgs = await mdb.collection('messages').find({ userEmail }).sort({ timestamp: 1 }).toArray();
     const catererSet = new Set();
-    myMsgs.forEach(m => { if (m.caterer) catererSet.add(m.caterer); });
+    msgs.forEach(m => { if (m.caterer) catererSet.add(m.caterer); });
     const conversations = [];
     for (const catererName of catererSet) {
-      const thread = allMsgs.filter(m =>
-        m.caterer === catererName &&
-        (m.userEmail === userEmail ||
-         (m.sender === userName && m.userEmail == null) ||
-         (m.sender === catererName && m.userEmail === userEmail) ||
-         (m.sender === catererName && m.userEmail == null && myMsgs.some(x => x.caterer === catererName)))
-      );
-      thread.sort((a, b) => {
-        const aT = a.timestamp?._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
-        const bT = b.timestamp?._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
-        return aT - bT;
-      });
-      const last = thread[thread.length - 1];
-      if (last) conversations.push({ caterer: catererName, lastMessage: last.text, lastTime: last.timestamp });
+      const thread = await mdb.collection('messages').find({ caterer: catererName, userEmail }).sort({ timestamp: -1 }).limit(1).toArray();
+      if (thread.length > 0) {
+        conversations.push({ caterer: catererName, lastMessage: thread[0].text, lastTime: thread[0].timestamp });
+      }
     }
-    conversations.sort((a, b) => {
-      const aT = a.lastTime?._seconds ? a.lastTime._seconds * 1000 : new Date(a.lastTime).getTime();
-      const bT = b.lastTime?._seconds ? b.lastTime._seconds * 1000 : new Date(b.lastTime).getTime();
-      return bT - aT;
-    });
+    conversations.sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
     res.json(conversations);
-  } catch(e) { console.error('chats-data error:', e.message); res.json([]); }
+  } catch(e) { res.json([]); }
 });
 
 app.get('/session-user', (req, res) => { if (!req.session.user) return res.json(null); const user = users.find(u => u.email === req.session.user.email); res.json({ ...req.session.user, photo: user ? user.photo : null }); });
@@ -951,27 +952,28 @@ app.post('/reviews', (req, res) => {
   const already = reviews.find(r => r.caterer === caterer && r.userName === user.name);
   if (already) return res.status(400).json({ error: 'You have already reviewed this caterer.' });
   const newReview = { id: reviewIdCounter++, caterer, userName: user.name, rating: parseInt(rating), comment, createdAt: new Date() };
-  reviews.push(newReview); saveToFirestore('reviews', newReview); res.json({ success: true });
+  reviews.push(newReview);
+  await mdb.collection('reviews').insertOne(newReview);
+  res.json({ success: true });
 });
 
 app.get('/notifications', (req, res) => { res.json([...notifications]); });
 app.post('/add-notification', (req, res) => { const { type, text } = req.body; if (!type || !text) return res.status(400).json({ error: 'Missing fields' }); addNotification(type, text); res.json({ success: true }); });
 app.post('/read-notifications', (req, res) => { notifications.forEach(n => n.isRead = true); res.json({ success: true }); });
+
 app.post('/read-notification', async (req, res) => {
   const { id } = req.body;
   const n = notifications.find(n => n.id == id);
   if (n) {
     n.isRead = true;
-    // Persist to Firestore if it has a Firestore doc ID
-    if (n.firestoreId) {
-      try { await db.collection('notifications').doc(n.firestoreId).update({ isRead: true }); } catch(e) {}
-    } else if (typeof n.id === 'string' && n.id.length > 8) {
-      // ID is the Firestore doc ID itself
-      try { await db.collection('notifications').doc(n.id).update({ isRead: true }); } catch(e) {}
-    }
+    try {
+      const { ObjectId } = require('mongodb');
+      await mdb.collection('notifications').updateOne({ _id: new ObjectId(id) }, { $set: { isRead: true } });
+    } catch(e) {}
   }
   res.json({ ok: true });
 });
+
 app.post('/caterer-read-notification', (req, res) => { if (!req.session.caterer) return res.json({ ok: true }); const { id } = req.body; const notes = catererNotifications[req.session.caterer.businessName] || []; const n = notes.find(n => n.id == id); if (n) n.isRead = true; res.json({ ok: true }); });
 
 app.get('/cart', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'customer-checkout.html')));
@@ -1264,18 +1266,16 @@ app.post('/caterer-account/update', requireCaterer, async (req, res) => {
   const caterer = caterers.find(c => c.name === oldBusinessName);
   if (caterer) { caterer.name = user.businessName; caterer.location = user.businessAddress; caterer.description = user.description; }
   try {
-    const snap = await db.collection('catererUsers').where('email', '==', oldEmail).get();
-    if (!snap.empty) {
-      await snap.docs[0].ref.set({ email: user.email, businessName: user.businessName, businessAddress: user.businessAddress, contactNumber: user.contactNumber, description: user.description }, { merge: true });
-    }
-    if (oldBusinessName !== user.businessName) {
-      const oldDoc = await db.collection('caterers').doc(oldBusinessName).get();
-      const existing = oldDoc.exists ? oldDoc.data() : {};
-      await db.collection('caterers').doc(user.businessName).set({ ...existing, name: user.businessName, location: user.businessAddress, description: user.description }, { merge: true });
-      await db.collection('caterers').doc(oldBusinessName).delete();
-    } else {
-      await db.collection('caterers').doc(user.businessName).set({ name: user.businessName, location: user.businessAddress, description: user.description }, { merge: true });
-    }
+    await mdb.collection('catererUsers').updateOne(
+      { email: oldEmail },
+      { $set: { email: user.email, businessName: user.businessName, businessAddress: user.businessAddress, contactNumber: user.contactNumber, description: user.description } },
+      { upsert: true }
+    );
+    await mdb.collection('caterers').updateOne(
+      { name: oldBusinessName },
+      { $set: { name: user.businessName, location: user.businessAddress, description: user.description } },
+      { upsert: true }
+    );
   } catch(e) { console.error('Caterer update failed:', e.message); }
   res.redirect('/caterer-account?tab=info&saved=1');
 });
@@ -1289,8 +1289,7 @@ app.post('/caterer-account/change-password', requireCaterer, async (req, res) =>
   if (newPassword !== confirmPassword) return res.redirect('/caterer-account?tab=settings&pwerror=mismatch');
   user.password = newPassword;
   try {
-    const snap = await db.collection('catererUsers').where('email', '==', user.email).get();
-    if (!snap.empty) { await snap.docs[0].ref.set({ password: newPassword }, { merge: true }); }
+    await mdb.collection('catererUsers').updateOne({ email: user.email }, { $set: { password: newPassword } });
   } catch(e) { console.error('Change caterer password failed:', e.message); }
   res.redirect('/caterer-account?tab=settings&pwsaved=1');
 });
@@ -1311,7 +1310,7 @@ app.post('/caterer-package/add', requireCaterer, upload.single('image'), async (
   const variantPrices = req.body.variantPrices ? (Array.isArray(req.body.variantPrices) ? req.body.variantPrices : [req.body.variantPrices]) : [];
   variantNames.forEach((vname, i) => { if (vname.trim()) { variants.push({ name: vname.trim(), price: parseFloat(variantPrices[i]) || 0 }); } });
   caterer.packages.push({ name, category: category || 'Packages', price: variants.length > 0 ? 0 : parseFloat(price) || 0, inclusions: inclusions || '', image: imagePath, variants });
-  saveToFirestore('caterers', { name: caterer.name, packages: caterer.packages, qrCodes: caterer.qrCodes || [], description: caterer.description, location: caterer.location, image: caterer.image }, caterer.name);
+  await mdb.collection('caterers').updateOne({ name: caterer.name }, { $set: { packages: caterer.packages } }, { upsert: true });
   res.json({ success: true, packages: caterer.packages });
 });
 
@@ -1330,16 +1329,16 @@ app.post('/caterer-package/edit', requireCaterer, upload.single('image'), async 
   if (req.file) {
     try { pkg.image = await uploadToCloudinary(req.file.buffer, req.file.mimetype, 'bunyi/packages'); } catch(e) { console.log('Image upload error:', e.message); }
   }
-  saveToFirestore('caterers', { name: caterer.name, packages: caterer.packages, qrCodes: caterer.qrCodes || [], description: caterer.description, location: caterer.location, image: caterer.image }, caterer.name);
+  await mdb.collection('caterers').updateOne({ name: caterer.name }, { $set: { packages: caterer.packages } }, { upsert: true });
   res.json({ success: true, packages: caterer.packages });
 });
 
-app.delete('/caterer-package', requireCaterer, (req, res) => {
+app.delete('/caterer-package', requireCaterer, async (req, res) => {
   const { index } = req.body;
   const caterer = caterers.find(c => c.name === req.session.caterer.businessName);
   if (!caterer) return res.status(404).json({ error: 'Caterer not found' });
   if (index !== undefined && caterer.packages[parseInt(index)]) { caterer.packages.splice(parseInt(index), 1); }
-  saveToFirestore('caterers', { name: caterer.name, packages: caterer.packages, qrCodes: caterer.qrCodes || [], description: caterer.description, location: caterer.location, image: caterer.image }, caterer.name);
+  await mdb.collection('caterers').updateOne({ name: caterer.name }, { $set: { packages: caterer.packages } }, { upsert: true });
   res.json({ success: true, packages: caterer.packages });
 });
 
@@ -1355,7 +1354,7 @@ app.post('/caterer-qr', upload.array('qrImages', 5), async (req, res) => {
     try { url = await uploadToCloudinary(f.buffer, f.mimetype, 'bunyi/qrcodes'); } catch(e) { console.log('QR upload error:', e.message); }
     caterer.qrCodes.push({ url, label: req.body.labels ? (Array.isArray(req.body.labels) ? req.body.labels[i] : req.body.labels) || '' : '', recipient: req.body.recipients ? (Array.isArray(req.body.recipients) ? req.body.recipients[i] : req.body.recipients) || '' : '', account: req.body.accounts ? (Array.isArray(req.body.accounts) ? req.body.accounts[i] : req.body.accounts) || '' : '' });
   }
-  saveToFirestore('caterers', { name: caterer.name, qrCodes: caterer.qrCodes, packages: caterer.packages, description: caterer.description, location: caterer.location, image: caterer.image }, caterer.name);
+  await mdb.collection('caterers').updateOne({ name: caterer.name }, { $set: { qrCodes: caterer.qrCodes } }, { upsert: true });
   res.json({ success: true, qrCodes: caterer.qrCodes });
 });
 
@@ -1374,7 +1373,7 @@ app.get('/admin-users', (req, res) => res.json(users));
 app.get('/admin-caterers', (req, res) => { const merged = caterers.map(c => { const cu = catererUsers.find(u => u.businessName === c.name); return { ...c, email: cu ? cu.email : '', contactNumber: cu ? cu.contactNumber : '', businessAddress: cu ? cu.businessAddress : '' }; }); res.json(merged); });
 app.get('/admin-bookings', (req, res) => res.json(bookings));
 app.post('/admin-delete-user', (req, res) => { const { index } = req.body; if (index !== undefined && users[index]) { users.splice(index, 1); } res.json({ success: true }); });
-app.post('/admin-delete-caterer', (req, res) => { const { index } = req.body; if (index !== undefined && caterers[index]) { const name = caterers[index].name; caterers.splice(index, 1); const cuIdx = catererUsers.findIndex(u => u.businessName === name); if (cuIdx !== -1) catererUsers.splice(cuIdx, 1); db.collection('caterers').doc(name).delete().catch(() => {}); } res.json({ success: true }); });
+app.post('/admin-delete-caterer', (req, res) => { const { index } = req.body; if (index !== undefined && caterers[index]) { const name = caterers[index].name; caterers.splice(index, 1); const cuIdx = catererUsers.findIndex(u => u.businessName === name); if (cuIdx !== -1) catererUsers.splice(cuIdx, 1); mdb.collection('caterers').doc(name).delete().catch(() => {}); } res.json({ success: true }); });
 
 app.post('/pay-remaining', upload.single('receipt'), async (req, res) => {
   const { bookingId, platform, reference } = req.body;
@@ -1390,9 +1389,11 @@ app.post('/pay-remaining', upload.single('receipt'), async (req, res) => {
   }
   booking.receipt2 = receipt2Url;
   booking.platform2 = platform; booking.reference2 = reference;
-  // Save to Firestore
   if (booking.id) {
-    db.collection('bookings').doc(booking.id).update({ remaining2, amountPaid: booking.amountPaid, status: 'Fully Paid', verified: false, receipt2: receipt2Url, platform2: platform, reference2: reference }).catch(e => console.log('Firestore update error:', e.message));
+    try {
+      const { ObjectId } = require('mongodb');
+      await mdb.collection('bookings').updateOne({ _id: new ObjectId(booking.id) }, { $set: { remaining2, amountPaid: booking.amountPaid, status: 'Fully Paid', verified: false, receipt2: receipt2Url, platform2: platform, reference2: reference } });
+    } catch(e) {}
   }
   addNotification('booking', '✅ Your remaining balance for your event on ' + booking.date + ' has been submitted!');
   res.json({ success: true });
@@ -1404,15 +1405,8 @@ let recurringDaysByBusiness = {}; // { 'BusinessName': [0,1] } — 0=Sun,1=Mon,.
 let maxOrdersByBusiness = {}; // { 'BusinessName': 1 } — default 1 per slot
 
 async function loadBlockedSlotsFromFirestore() {
-  try {
-    const snap = await db.collection('blockedSlots').get();
-    snap.docs.forEach(d => { blockedSlotsByBusiness[d.id] = d.data(); });
-    const rSnap = await db.collection('recurringDays').get();
-    rSnap.docs.forEach(d => { recurringDaysByBusiness[d.id] = d.data().days || []; });
-    const mSnap = await db.collection('maxOrders').get();
-    mSnap.docs.forEach(d => { maxOrdersByBusiness[d.id] = d.data().max || 1; });
-    console.log('✅ Blocked slots, recurring days, max orders loaded');
-  } catch(e) { console.log('Blocked slots load error:', e.message); }
+  // Now handled in loadFromFirestore with MongoDB
+  console.log('✅ Blocked slots loaded from MongoDB');
 }
 
 app.get('/caterer-blocked-slots', requireCaterer, (req, res) => {
@@ -1427,29 +1421,22 @@ app.get('/caterer-blocked-slots', requireCaterer, (req, res) => {
 app.post('/caterer-blocked-slots', requireCaterer, async (req, res) => {
   const bn = req.session.caterer.businessName;
   const { slots, recurringDays, maxOrders } = req.body;
-
-  // Update blocked slots
   if (slots) {
     if (!blockedSlotsByBusiness[bn]) blockedSlotsByBusiness[bn] = {};
     Object.entries(slots).forEach(([date, value]) => {
       if (value === null) { delete blockedSlotsByBusiness[bn][date]; }
       else { blockedSlotsByBusiness[bn][date] = value; }
     });
-    try { await db.collection('blockedSlots').doc(bn).set(blockedSlotsByBusiness[bn]); } catch(e) {}
+    try { await mdb.collection('blockedSlots').updateOne({ businessName: bn }, { $set: { slots: blockedSlotsByBusiness[bn] } }, { upsert: true }); } catch(e) {}
   }
-
-  // Update recurring days off
   if (recurringDays !== undefined) {
     recurringDaysByBusiness[bn] = recurringDays;
-    try { await db.collection('recurringDays').doc(bn).set({ days: recurringDays }); } catch(e) {}
+    try { await mdb.collection('recurringDays').updateOne({ businessName: bn }, { $set: { days: recurringDays } }, { upsert: true }); } catch(e) {}
   }
-
-  // Update max orders per slot
   if (maxOrders !== undefined) {
     maxOrdersByBusiness[bn] = parseInt(maxOrders) || 1;
-    try { await db.collection('maxOrders').doc(bn).set({ max: maxOrdersByBusiness[bn] }); } catch(e) {}
+    try { await mdb.collection('maxOrders').updateOne({ businessName: bn }, { $set: { max: maxOrdersByBusiness[bn] } }, { upsert: true }); } catch(e) {}
   }
-
   res.json({ success: true, slots: blockedSlotsByBusiness[bn] || {}, recurringDays: recurringDaysByBusiness[bn] || [], maxOrders: maxOrdersByBusiness[bn] || 1 });
 });
 
@@ -1480,30 +1467,40 @@ app.get('/booked-times', (req, res) => {
 
 async function loadFromFirestore() {
   try {
-    console.log('Loading data from Firestore...');
-    const [u, cu, b, m, r] = await Promise.all([getCollection('users'), getCollection('catererUsers'), getCollection('bookings'), getCollection('messages'), getCollection('reviews')]);
-    users = u; catererUsers = cu;
-    bookings = b.map(b => ({ ...b, verified: b.verified || false, status: b.status || 'Pending Payment' }));
-    messages = m; reviews = r;
-    const cnSnap = await db.collection('catererNotifications').get();
-    cnSnap.docs.forEach(d => { const items = (d.data().items || []).map(n => ({ ...n, createdAt: n.createdAt && n.createdAt.toDate ? n.createdAt.toDate() : n.createdAt })); catererNotifications[d.id] = items; });
-    const nSnap = await db.collection('notifications').orderBy('createdAt', 'desc').get();
-    notifications = nSnap.docs.map(d => { const data = d.data(); return { id: d.id, ...data, createdAt: data.createdAt && data.createdAt.toDate ? data.createdAt.toDate() : data.createdAt }; });
-    const catSnap = await db.collection('caterers').get();
-    if (catSnap.docs.length > 0) {
-      const firestoreCaterers = catSnap.docs.map(d => ({ ...d.data(), firestoreId: d.id }));
-      firestoreCaterers.forEach((fc) => { const idx = caterers.findIndex(c => c.name === fc.name); if (idx !== -1) { caterers[idx] = { ...caterers[idx], ...fc, id: idx + 1 }; } else { caterers.push({ ...fc, id: caterers.length + 1 }); } });
+    await connectMongo();
+    console.log('Loading data from MongoDB...');
+    users = await getCollection('users');
+    catererUsers = await getCollection('catererUsers');
+    const b = await getCollection('bookings');
+    bookings = b.map(b => ({ ...b, id: b._id ? b._id.toString() : b.id, verified: b.verified || false, status: b.status || 'Pending Payment' }));
+    const m = await getCollection('messages');
+    messages = m.map(m => ({ ...m, id: m._id ? m._id.toString() : m.id }));
+    const r = await getCollection('reviews');
+    reviews = r.map(r => ({ ...r, id: r._id ? r._id.toString() : r.id }));
+    const cn = await getCollection('catererNotifications');
+    cn.forEach(d => { catererNotifications[d.businessName || d._id] = d.items || []; });
+    const n = await getCollection('notifications');
+    notifications = n.map(n => ({ ...n, id: n._id ? n._id.toString() : n.id }));
+    const cats = await getCollection('caterers');
+    if (cats.length > 0) {
+      cats.forEach(fc => {
+        const idx = caterers.findIndex(c => c.name === fc.name);
+        if (idx !== -1) { caterers[idx] = { ...caterers[idx], ...fc, id: idx + 1 }; }
+        else { caterers.push({ ...fc, id: caterers.length + 1 }); }
+      });
     }
-    await loadBlockedSlotsFromFirestore();
-    console.log('✅ Data loaded from Firestore:', users.length, 'users,', bookings.length, 'bookings,', messages.length, 'messages');
-  } catch(e) { console.log('⚠️ Could not load from Firestore, using in-memory:', e.message); }
+    const bs = await getCollection('blockedSlots');
+    bs.forEach(d => { blockedSlotsByBusiness[d.businessName || d._id] = d.slots || {}; });
+    const rd = await getCollection('recurringDays');
+    rd.forEach(d => { recurringDaysByBusiness[d.businessName || d._id] = d.days || []; });
+    const mo = await getCollection('maxOrders');
+    mo.forEach(d => { maxOrdersByBusiness[d.businessName || d._id] = d.max || 1; });
+    console.log('✅ Data loaded from MongoDB:', users.length, 'users,', bookings.length, 'bookings,', messages.length, 'messages');
+  } catch(e) { console.log('⚠️ Could not load from MongoDB:', e.message); }
 }
 
 async function saveToFirestore(collection, data, id) {
-  try {
-    if (id) { await db.collection(collection).doc(id).set(data, { merge: true }); }
-    else { const ref = await db.collection(collection).add(data); return ref.id; }
-  } catch(e) { console.log('Firestore save error:', e.message); }
+  return await saveToMongo(collection, data, id);
 }
 
 async function startServer() {

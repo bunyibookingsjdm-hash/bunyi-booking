@@ -280,13 +280,13 @@ div.className = 'msg-row ' + (m.userEmail === currentUserEmail || m.sender === c
         const d = await r.json();
         if (d) { currentUserEmail = d.email; currentUserName = d.name; }
       }
-      await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: activeCaterer, text, userEmail: currentUserEmail, senderName: currentUserName }) });
+      await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ caterer: activeCaterer, text, userEmail: currentUserEmail, senderName: currentUserName }) });
       input.value = '';
       await loadMessages();
       await loadSidebar();
       document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
     }
-
+    
     document.getElementById('msgInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
 
     function loadCartBadge() {
