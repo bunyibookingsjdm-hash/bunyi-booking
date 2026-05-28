@@ -347,7 +347,7 @@ let catererNotifications = {};
 
 function addCatererNotification(businessName, type, text) {
   if (!catererNotifications[businessName]) catererNotifications[businessName] = [];
-  const n = { type, text, isRead: false, createdAt: new Date() };
+  const n = { id: Date.now() + Math.random().toString(36).substr(2, 9), type, text, isRead: false, createdAt: new Date() };
   catererNotifications[businessName].unshift(n);
   mdb.collection('catererNotifications').updateOne(
     { businessName },
