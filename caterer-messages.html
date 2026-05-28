@@ -348,7 +348,9 @@
       var text = input.value.trim();
       if (!text || !activeCustomer) return;
       try {
-        await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: myBusinessName, sender: myBusinessName, text: text }) });
+        var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
+        var activeUserEmail = activeConvo ? activeConvo.userEmail : null;
+        await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: myBusinessName, text: text, userEmail: activeUserEmail }) });
         input.value = '';
         await loadMessages();
         document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;

@@ -200,6 +200,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     let activeCaterer = urlParams.get('caterer') || '';
     let currentUserName = '';
+    let currentUserEmail = '';
 
     function formatTime(ts) { const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
     function formatPreviewTime(ts) { const d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); const now = new Date(); if ((now - d) / 3600000 < 24) return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
@@ -238,7 +239,7 @@
 
     async function loadMessages() {
       if (!activeCaterer) return;
-      const res = await fetch('/messages?caterer=' + encodeURIComponent(activeCaterer));
+      const res = await fetch('/messages?caterer=' + encodeURIComponent(activeCaterer) + '&userEmail=' + encodeURIComponent(currentUserEmail));
       const data = await res.json();
       const box = document.getElementById('chatBox');
       const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
@@ -272,10 +273,10 @@
     }
 
     async function sendMessage() {
-      const input = document.getElementById('msgInput');
-      const text = input.value.trim();
-      if (!text || !activeCaterer) return;
-      await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: activeCaterer, sender: 'Customer', text }) });
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text || !activeCaterer) return;
+    await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: activeCaterer, text }) });
       input.value = '';
       await loadMessages();
       await loadSidebar();
@@ -309,6 +310,7 @@
           document.getElementById('accountDropdownName').textContent = data.name;
           document.getElementById('accountDropdownEmail').textContent = data.email || '';
           currentUserName = data.name;
+          currentUserEmail = data.email;
         }
       } catch(e) {}
     }

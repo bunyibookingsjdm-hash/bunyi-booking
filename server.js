@@ -806,21 +806,14 @@ app.get('/messages', async (req, res) => {
       const bT = b.timestamp?._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
       return aT - bT;
     });
-    // CRITICAL: filter messages to only this customer's thread
-    // A message belongs to this thread if:
-    //   - it was sent by this user (userEmail matches), OR
-    //   - it was sent by the caterer (sender === caterer) AND it was a reply to this user's thread
+    // If userEmail given, only return messages belonging to that customer's thread
     if (userEmail) {
-      msgs = msgs.filter(m =>
-        m.userEmail === userEmail ||
-        (m.sender === caterer && m.replyToEmail === userEmail) ||
-        (m.sender === caterer && m.userEmail === userEmail)
-      );
+      msgs = msgs.filter(m => m.userEmail === userEmail);
     }
     res.json(msgs);
   } catch(e) {
     const fallback = messages.filter(m => m.caterer === caterer &&
-      (!userEmail || m.userEmail === userEmail || (m.sender === caterer && m.userEmail === userEmail)));
+      (!userEmail || m.userEmail === userEmail));
     res.json(fallback);
   }
 });
@@ -844,17 +837,29 @@ app.get('/message', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-  const { caterer, text, replyToEmail } = req.body;
+  const { caterer, text, userEmail: bodyUserEmail } = req.body;
   if (!caterer || !text) return res.status(400).json({ error: 'Missing fields' });
   const isCaterer = !!req.session.caterer;
+  // userEmail always identifies WHICH CUSTOMER the thread belongs to
+  // For customers: use their own session email
+  // For caterers: they must pass the customer's email in the request body
   const userEmail = isCaterer
-    ? (replyToEmail || null)   // caterer must pass whose thread they're replying to
+    ? (bodyUserEmail || null)
     : (req.session.user ? req.session.user.email : null);
-  const sender = isCaterer ? req.session.caterer.businessName : (req.session.user ? req.session.user.name : 'Customer');
+  const sender = isCaterer
+    ? req.session.caterer.businessName
+    : (req.session.user ? req.session.user.name : 'Customer');
   const newMsg = { caterer, sender, text, userEmail, timestamp: new Date() };
-  try { const ref = await db.collection('messages').add(newMsg); newMsg.id = ref.id; messages.push(newMsg); } catch(e) { messages.push(newMsg); }
-  if (isCaterer) { addNotification('message', '💬 New message from ' + sender); }
-  else { addCatererNotification(caterer, 'message', '💬 New message from ' + sender); }
+  try {
+    const ref = await db.collection('messages').add(newMsg);
+    newMsg.id = ref.id;
+    messages.push(newMsg);
+  } catch(e) { messages.push(newMsg); }
+  if (isCaterer) {
+    addNotification('message', '💬 New message from ' + sender);
+  } else {
+    addCatererNotification(caterer, 'message', '💬 New message from ' + sender);
+  }
   res.json({ success: true });
 });
 
@@ -893,16 +898,31 @@ app.get('/chats-data', async (req, res) => {
   const userEmail = req.session.user ? req.session.user.email : null;
   if (!userEmail) return res.json([]);
   try {
+    // Get only messages where this customer is the owner of the thread
     const snap = await db.collection('messages').where('userEmail', '==', userEmail).get();
     const catererSet = new Set();
     snap.docs.forEach(d => { const m = d.data(); if (m.caterer) catererSet.add(m.caterer); });
     const conversations = [];
     for (const catererName of catererSet) {
-      const threadSnap = await db.collection('messages').where('caterer', '==', catererName).get();
-      const msgs = threadSnap.docs.map(d => d.data()).sort((a, b) => { const aT = a.timestamp?._seconds ? a.timestamp._seconds*1000 : new Date(a.timestamp).getTime(); const bT = b.timestamp?._seconds ? b.timestamp._seconds*1000 : new Date(b.timestamp).getTime(); return aT - bT; });
+      // Get only THIS customer's thread with this caterer
+      const threadSnap = await db.collection('messages')
+        .where('caterer', '==', catererName)
+        .where('userEmail', '==', userEmail)
+        .get();
+      const msgs = threadSnap.docs.map(d => d.data()).sort((a, b) => {
+        const aT = a.timestamp?._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
+        const bT = b.timestamp?._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
+        return aT - bT;
+      });
       const last = msgs[msgs.length - 1];
       if (last) conversations.push({ caterer: catererName, lastMessage: last.text, lastTime: last.timestamp });
     }
+    // Sort conversations by most recent message first
+    conversations.sort((a, b) => {
+      const aT = a.lastTime?._seconds ? a.lastTime._seconds * 1000 : new Date(a.lastTime).getTime();
+      const bT = b.lastTime?._seconds ? b.lastTime._seconds * 1000 : new Date(b.lastTime).getTime();
+      return bT - aT;
+    });
     res.json(conversations);
   } catch(e) { res.json([]); }
 });
