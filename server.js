@@ -748,11 +748,10 @@ app.post('/account/update', requireLogin, async (req, res) => {
 app.get('/caterers', (req, res) => res.json(caterers));
 
 app.post('/book', upload.single('receipt'), async (req, res) => {
-  const { caterer, date, time } = req.body;
-  const existing = bookings.find(b => b.caterer === caterer && b.date === date && b.time === time && b.sender === (req.session.user ? req.session.user.name : ''));
-  if (existing) return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(existing.status) + '&paymentType=' + (existing.amountPaid === existing.totalAmount ? 'full' : 'down') + '&date=' + date + '&bookingId=' + encodeURIComponent(existing.bookingId));
   const { caterer, packageName, price, eventType, otherEvent, date, time,
           guests, paymentType, platform, otherPlatform, reference, grandTotal, sender } = req.body;
+  const existing = bookings.find(b => b.caterer === caterer && b.date === date && b.time === time && b.sender === (req.session.user ? req.session.user.name : ''));
+  if (existing) return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(existing.status) + '&paymentType=' + (existing.amountPaid === existing.totalAmount ? 'full' : 'down') + '&date=' + date + '&bookingId=' + encodeURIComponent(existing.bookingId));
   const existingCount = bookings.filter(b => b.caterer === caterer && b.date === date && b.time === time).length;
   const maxAllowed = maxOrdersByBusiness[caterer] || 1;
   if (existingCount >= maxAllowed) {
@@ -766,13 +765,11 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   const amountPaid = paymentType === 'full' ? total : total * 0.5;
   const status = paymentType === 'full' ? 'Fully Paid' : 'Partially Paid';
   const bookingId = 'BNY-' + Date.now().toString(36).toUpperCase();
-  // Upload receipt to Cloudinary
   let receiptUrl = null;
   if (req.file) {
     try { receiptUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype, 'bunyi/receipts'); } catch(e) { console.log('Receipt upload error:', e.message); }
   }
   const newBooking = { bookingId, caterer, packageName, price: pricePerHead, eventType: finalEvent, date, time, guests: guestCount, totalAmount: total, amountPaid, status, receipt: receiptUrl, platform: finalPlatform, reference: reference || '', sender: sender || (req.session.user ? req.session.user.name : 'Customer'), verified: false, cartItems: (() => { try { return JSON.parse(req.body.cartItems || '[]'); } catch(e) { return []; } })(), createdAt: new Date() };
-  bookings.push(newBooking);
   bookings.push(newBooking);
   mdb.collection('bookings').insertOne(newBooking).then(r => {
     if (r) newBooking.id = r.insertedId.toString();
