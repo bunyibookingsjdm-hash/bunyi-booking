@@ -236,6 +236,21 @@
 
     document.getElementById('msgBtn').href = '/chats?caterer=' + encodeURIComponent(caterer);
 
+    // Auto-send a first message so the conversation appears on both sides
+    async function sendFirstMessage() {
+      try {
+        await fetch('/send-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            caterer: caterer,
+            text: 'Hi! I just made a booking. Looking forward to working with you!'
+          })
+        });
+      } catch(e) {}
+    }
+    sendFirstMessage();
+
     sessionStorage.removeItem('bunyi_cart');
     sessionStorage.removeItem('bunyi_checkout');
 
