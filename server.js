@@ -785,9 +785,8 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   mdb.collection('bookings').insertOne(newBooking).then(r => {
     if (r) newBooking.id = r.insertedId.toString();
   }).catch(e => {});
-  if (paymentType === 'full') { addNotification('booking', '🎉 Booking confirmed! Full payment received for your event on ' + date + '.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Full payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.');
-  } else { addNotification('booking', '✅ Booking submitted! Down payment received for your event on ' + date + '. Remaining balance due 7 days before the event.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Down payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.');
-  return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(status) + '&paymentType=' + paymentType + '&date=' + date + '&bookingId=' + encodeURIComponent(bookingId));
+  if (paymentType === 'full') { addNotification('booking', '🎉 Booking confirmed! Full payment received for your event on ' + date + '.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Full payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
+  else { addNotification('booking', '✅ Booking submitted! Down payment received for your event on ' + date + '. Remaining balance due 7 days before the event.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Down payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
 });
 
 app.get('/payment', (req, res) => {
@@ -978,17 +977,7 @@ app.get('/notifications', (req, res) => {
 app.post('/add-notification', (req, res) => { const { type, text } = req.body; if (!type || !text) return res.status(400).json({ error: 'Missing fields' }); addNotification(type, text); res.json({ success: true }); });
 app.post('/read-notifications', (req, res) => { notifications.forEach(n => n.isRead = true); res.json({ success: true }); });
 
-app.post('/read-notification', async (req, res) => {
-  const { id } = req.body;
-  const n = notifications.find(n => String(n.id) === String(id));
-  if (n) {
-    n.isRead = true;
-    try {
-      await mdb.collection('notifications').updateOne({ id: String(id) }, { $set: { isRead: true } });
-    } catch(e) {}
-  }
-  res.json({ ok: true });
-});
+
 
 app.post('/caterer-read-notification', async (req, res) => {
   if (!req.session.caterer) return res.json({ ok: true });
