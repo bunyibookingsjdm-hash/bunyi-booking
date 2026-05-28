@@ -520,7 +520,13 @@
           a.onclick = function(e) {
             e.preventDefault();
             fetch('/caterer-read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) })
-              .then(function() { window.location.href = getNotifRoute(n); });
+              .then(function() { 
+                  var text = (n.text || '').toLowerCase();
+                  if (text.includes('payment') || text.includes('verify')) { window.location.href = '/caterer-bookings?filter=pending'; }
+                  else if (text.includes('booking')) { window.location.href = '/caterer-bookings'; }
+                  else if (text.includes('message') || text.includes('chat')) { window.location.href = '/caterer-messages'; }
+                  else { window.location.href = '/caterer-dashboard'; }
+                });
           };
           a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
           list.appendChild(a);
