@@ -957,7 +957,7 @@ app.post('/reviews', async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/notifications', (req, res) => { res.json([...notifications]); });
+app.get('/notifications', (req, res) => { res.json([...notifications].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))); });
 app.post('/add-notification', (req, res) => { const { type, text } = req.body; if (!type || !text) return res.status(400).json({ error: 'Missing fields' }); addNotification(type, text); res.json({ success: true }); });
 app.post('/read-notifications', (req, res) => { notifications.forEach(n => n.isRead = true); res.json({ success: true }); });
 
