@@ -264,7 +264,7 @@
         }
         const timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
         const div = document.createElement('div');
-        div.className = 'msg-row ' + (m.sender === currentUserName || m.sender === 'Customer' ? 'me' : 'them');
+div.className = 'msg-row ' + (m.userEmail === currentUserEmail || m.sender === currentUserName ? 'me' : 'them');
         div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
         box.appendChild(div);
       });
