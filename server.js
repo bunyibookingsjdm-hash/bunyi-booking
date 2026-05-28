@@ -1195,7 +1195,7 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
       </main>
       <script>
         function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
-        async function toggleNotifDropdown() { const dd = document.getElementById('notifDropdown'); document.getElementById('profileDropdown').classList.remove('open'); dd.classList.toggle('open'); if (dd.classList.contains('open')) { await fetch('/caterer-read-notifications', { method: 'POST' }); await loadNotifications(); } }
+        async function toggleNotifDropdown() { const dd = document.getElementById('notifDropdown'); document.getElementById('profileDropdown').classList.remove('open'); dd.classList.toggle('open'); if (dd.classList.contains('open')) { await loadNotifications(); } }
         function formatNotifTime(ts) { var d = new Date(ts); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
         async function loadNotifications() {
           try {
