@@ -100,12 +100,10 @@ async function saveToMongo(collection, data, id) {
 let bookings = [], messages = [], users = [], catererUsers = [];
 let notifications = [], notifIdCounter = 1;
 
-function addNotification(type, text) {
-  const n = { user: 'default', type, text, isRead: false, createdAt: new Date() };
+function addNotification(type, text, userEmail) {
+  const n = { id: Date.now() + Math.random().toString(36).substr(2, 9), user: userEmail || 'default', type, text, isRead: false, createdAt: new Date() };
   notifications.unshift(n);
-  mdb.collection('notifications').insertOne(n).then(r => {
-    if (r) n.id = r.insertedId.toString();
-  }).catch(e => {});
+  mdb.collection('notifications').insertOne(n).catch(e => {});
 }
 
 setInterval(() => {
@@ -787,8 +785,8 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   mdb.collection('bookings').insertOne(newBooking).then(r => {
     if (r) newBooking.id = r.insertedId.toString();
   }).catch(e => {});
-  if (paymentType === 'full') { addNotification('booking', '🎉 Booking confirmed! Full payment received for your event on ' + date + '.'); addCatererNotification(caterer, 'booking', '📦 New booking received! Full payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
-  else { addNotification('booking', '✅ Booking submitted! Down payment received for your event on ' + date + '. Remaining balance due 7 days before the event.'); addCatererNotification(caterer, 'booking', '📦 New booking received! Down payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
+  if (paymentType === 'full') { addNotification('booking', '🎉 Booking confirmed! Full payment received for your event on ' + date + '.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Full payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.');
+  } else { addNotification('booking', '✅ Booking submitted! Down payment received for your event on ' + date + '. Remaining balance due 7 days before the event.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Down payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.');
   return res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(status) + '&paymentType=' + paymentType + '&date=' + date + '&bookingId=' + encodeURIComponent(bookingId));
 });
 
@@ -970,18 +968,23 @@ app.post('/reviews', async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/notifications', (req, res) => { res.json([...notifications].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))); });
+app.get('/notifications', (req, res) => {
+  const userEmail = req.session.user ? req.session.user.email : null;
+  if (!userEmail) return res.json([]);
+  const userNotifs = notifications.filter(n => n.user === userEmail || n.user === 'default');
+  res.json([...userNotifs].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+});
+
 app.post('/add-notification', (req, res) => { const { type, text } = req.body; if (!type || !text) return res.status(400).json({ error: 'Missing fields' }); addNotification(type, text); res.json({ success: true }); });
 app.post('/read-notifications', (req, res) => { notifications.forEach(n => n.isRead = true); res.json({ success: true }); });
 
 app.post('/read-notification', async (req, res) => {
   const { id } = req.body;
-  const n = notifications.find(n => n.id == id);
+  const n = notifications.find(n => String(n.id) === String(id));
   if (n) {
     n.isRead = true;
     try {
-      const { ObjectId } = require('mongodb');
-      await mdb.collection('notifications').updateOne({ _id: new ObjectId(id) }, { $set: { isRead: true } });
+      await mdb.collection('notifications').updateOne({ id: String(id) }, { $set: { isRead: true } });
     } catch(e) {}
   }
   res.json({ ok: true });
