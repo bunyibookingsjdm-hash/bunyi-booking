@@ -888,8 +888,8 @@ app.post('/send-message', async (req, res) => {
 // booked-times moved below — now respects maxOrders per slot
 app.get('/bookings', (req, res) => res.json(bookings));
 
-app.post('/caterer-verify-booking', requireCaterer, (req, res) => {
-  const { index } = req.body;
+app.post('/caterer-verify-booking', requireCaterer, async (req, res) => {
+const { index } = req.body;
   const mine = bookings.filter(b => b.caterer === req.session.caterer.businessName);
   const booking = mine[parseInt(index)];
   if (!booking) return res.status(404).json({ error: 'Booking not found' });
@@ -903,8 +903,8 @@ app.post('/caterer-verify-booking', requireCaterer, (req, res) => {
 });
 
 // ── VERIFY REMAINING BALANCE PAYMENT (final verification) ──
-app.post('/caterer-verify-remaining', requireCaterer, (req, res) => {
-  const { index } = req.body;
+app.post('/caterer-verify-remaining', requireCaterer, async (req, res) => {
+const { index } = req.body;
   const mine = bookings.filter(b => b.caterer === req.session.caterer.businessName);
   const booking = mine[parseInt(index)];
   if (!booking) return res.status(404).json({ error: 'Booking not found' });
@@ -943,7 +943,7 @@ app.get('/chats-data', async (req, res) => {
 app.get('/session-user', (req, res) => { if (!req.session.user) return res.json(null); const user = users.find(u => u.email === req.session.user.email); res.json({ ...req.session.user, photo: user ? user.photo : null }); });
 app.get('/reviews', (req, res) => { const { caterer } = req.query; if (caterer) return res.json(reviews.filter(r => r.caterer === caterer)); res.json(reviews); });
 
-app.post('/reviews', (req, res) => {
+app.post('/reviews', async (req, res) => {
   const { caterer, rating, comment } = req.body;
   if (!req.session.user) return res.status(401).json({ error: 'Not logged in' });
   const user = req.session.user;
