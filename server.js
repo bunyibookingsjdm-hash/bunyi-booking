@@ -554,10 +554,22 @@ app.get('/account', requireLogin, (req, res) => {
           <div class="divider"></div>
           <p class="section-label">Contact Information</p>
           <form action="/account/update" method="POST">
-            <div class="form-group"><label>Gmail Address</label><input type="email" name="email" value="${user.email}" required></div>
-            <div class="form-group"><label>Phone Number</label><input type="tel" name="phone" value="${user.phone || ''}" placeholder="e.g. 09xxxxxxxxx"></div>
-            <button type="submit" class="save-btn">Save Changes</button>
-          </form>
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input type="text" name="name" value="${user.name || ''}" required></div>
+            <div class="form-group"><label>Gender</label>
+              <select name="gender">
+                <option value="" ${!user.gender ? 'selected' : ''}>Not specified</option>
+                <option value="Male" ${user.gender === 'Male' ? 'selected' : ''}>Male</option>
+                <option value="Female" ${user.gender === 'Female' ? 'selected' : ''}>Female</option>
+                <option value="Others" ${user.gender === 'Others' ? 'selected' : ''}>Others</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>Email Address</label><input type="email" name="email" value="${user.email}" required></div>
+          <div class="form-group"><label>Address</label><input type="text" name="address" value="${user.address || ''}" placeholder="Street, City, Province"></div>
+          <div class="form-group"><label>Contact Number</label><input type="tel" name="phone" value="${user.phone || ''}" placeholder="e.g. 09xxxxxxxxx"></div>
+          <button type="submit" class="save-btn">Save Changes</button>
+        </form>
           <div class="divider"></div>
           <a href="/logout" class="logout-btn">🚪 Log Out</a>
         </div>
@@ -628,7 +640,21 @@ app.get('/account', requireLogin, (req, res) => {
   `);
 });
 
-app.post('/account/change-password', requireLogin, (req, res) => { const { currentPassword, newPassword, confirmPassword } = req.body; const user = users.find(u => u.email === req.session.user.email); if (!user) return res.redirect('/customer-login'); if (user.password !== currentPassword) return res.redirect('/account?tab=settings&pwerror=wrong'); if (newPassword.length < 6) return res.redirect('/account?tab=settings&pwerror=short'); if (newPassword !== confirmPassword) return res.redirect('/account?tab=settings&pwerror=mismatch'); user.password = newPassword; res.redirect('/account?tab=settings&pwsaved=1'); });
+app.post('/account/change-password', requireLogin, async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  const user = users.find(u => u.email === req.session.user.email);
+  if (!user) return res.redirect('/customer-login');
+  if (user.password !== currentPassword) return res.redirect('/account?tab=settings&pwerror=wrong');
+  if (newPassword.length < 6) return res.redirect('/account?tab=settings&pwerror=short');
+  if (newPassword !== confirmPassword) return res.redirect('/account?tab=settings&pwerror=mismatch');
+  user.password = newPassword;
+  try {
+    const snap = await db.collection('users').where('email', '==', user.email).get();
+    if (!snap.empty) { await snap.docs[0].ref.set({ password: newPassword }, { merge: true }); }
+  } catch(e) { console.error('Change password failed:', e.message); }
+  res.redirect('/account?tab=settings&pwsaved=1');
+});
+
 app.post('/account/delete', requireLogin, (req, res) => { const { password } = req.body; const userIndex = users.findIndex(u => u.email === req.session.user.email); if (userIndex === -1) return res.redirect('/customer-login'); if (users[userIndex].password !== password) return res.redirect('/account?tab=settings&delerror=wrong'); users.splice(userIndex, 1); req.session.destroy(); res.redirect('/?deleted=1'); });
 
 // ===== UPLOAD PROFILE PHOTO — Cloudinary =====
@@ -668,7 +694,27 @@ app.post('/caterer-upload-profile-photo', requireCaterer, upload.single('photo')
   }
 });
 
-app.post('/account/update', requireLogin, (req, res) => { const { email, phone } = req.body; const user = users.find(u => u.email === req.session.user.email); if (!user) return res.redirect('/login'); user.email = email; user.phone = phone; req.session.user.email = email; res.redirect('/account?saved=1'); });
+app.post('/account/update', requireLogin, async (req, res) => {
+  const { name, email, gender, phone, address } = req.body;
+  const oldEmail = req.session.user.email;
+  const user = users.find(u => u.email === oldEmail);
+  if (!user) return res.redirect('/login');
+  user.name    = name    || user.name;
+  user.email   = email;
+  user.gender  = gender  || '';
+  user.phone   = phone   || '';
+  user.address = address || '';
+  req.session.user.email = email;
+  req.session.user.name  = user.name;
+  try {
+    const snap = await db.collection('users').where('email', '==', oldEmail).get();
+    if (!snap.empty) {
+      await snap.docs[0].ref.set({ name: user.name, email: user.email, gender: user.gender, phone: user.phone, address: user.address }, { merge: true });
+    }
+  } catch(e) { console.error('Update user failed:', e.message); }
+  res.redirect('/account?saved=1');
+});
+
 app.get('/caterers', (req, res) => res.json(caterers));
 
 app.post('/book', upload.single('receipt'), async (req, res) => {
@@ -750,11 +796,33 @@ app.get('/result', (req, res) => {
   </body></html>`);
 });
 
-app.get('/messages', (req, res) => {
+app.get('/messages', async (req, res) => {
   const { caterer, userEmail } = req.query;
-  const filtered = messages.filter(m => m.caterer === caterer);
-  if (userEmail) return res.json(filtered.filter(m => m.userEmail === userEmail || m.sender === caterer));
-  res.json(filtered);
+  try {
+    const snap = await db.collection('messages').where('caterer', '==', caterer).get();
+    let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    msgs.sort((a, b) => {
+      const aT = a.timestamp?._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
+      const bT = b.timestamp?._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
+      return aT - bT;
+    });
+    // CRITICAL: filter messages to only this customer's thread
+    // A message belongs to this thread if:
+    //   - it was sent by this user (userEmail matches), OR
+    //   - it was sent by the caterer (sender === caterer) AND it was a reply to this user's thread
+    if (userEmail) {
+      msgs = msgs.filter(m =>
+        m.userEmail === userEmail ||
+        (m.sender === caterer && m.replyToEmail === userEmail) ||
+        (m.sender === caterer && m.userEmail === userEmail)
+      );
+    }
+    res.json(msgs);
+  } catch(e) {
+    const fallback = messages.filter(m => m.caterer === caterer &&
+      (!userEmail || m.userEmail === userEmail || (m.sender === caterer && m.userEmail === userEmail)));
+    res.json(fallback);
+  }
 });
 
 app.get('/chats', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'customer-messages.html')));
@@ -775,23 +843,18 @@ app.get('/message', (req, res) => {
   </body></html>`);
 });
 
-app.post('/send-message', (req, res) => {
-  const { caterer, text } = req.body;
+app.post('/send-message', async (req, res) => {
+  const { caterer, text, replyToEmail } = req.body;
   if (!caterer || !text) return res.status(400).json({ error: 'Missing fields' });
-  const userEmail = req.session.user ? req.session.user.email : null;
-  // Always use real session name for customers, fallback to sent sender only for caterers
-  const isCatererSender = catererUsers.some(u => u.businessName === req.body.sender);
-  const sender = isCatererSender ? req.body.sender : (req.session.user ? req.session.user.name : req.body.sender);
+  const isCaterer = !!req.session.caterer;
+  const userEmail = isCaterer
+    ? (replyToEmail || null)   // caterer must pass whose thread they're replying to
+    : (req.session.user ? req.session.user.email : null);
+  const sender = isCaterer ? req.session.caterer.businessName : (req.session.user ? req.session.user.name : 'Customer');
   const newMsg = { caterer, sender, text, userEmail, timestamp: new Date() };
-  messages.push(newMsg); saveToFirestore('messages', newMsg);
-  const isCatererMsg = catererUsers.some(u => u.businessName === sender);
-  if (isCatererMsg) {
-    // Caterer sent → notify customer
-    addNotification('message', '💬 New message from ' + sender);
-  } else {
-    // Customer sent → notify caterer
-    addCatererNotification(caterer, 'message', '💬 New message from ' + sender);
-  }
+  try { const ref = await db.collection('messages').add(newMsg); newMsg.id = ref.id; messages.push(newMsg); } catch(e) { messages.push(newMsg); }
+  if (isCaterer) { addNotification('message', '💬 New message from ' + sender); }
+  else { addCatererNotification(caterer, 'message', '💬 New message from ' + sender); }
   res.json({ success: true });
 });
 
@@ -826,21 +889,22 @@ app.post('/caterer-verify-remaining', requireCaterer, (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/chats-data', (req, res) => {
+app.get('/chats-data', async (req, res) => {
   const userEmail = req.session.user ? req.session.user.email : null;
-  const userName = req.session.user ? req.session.user.name : null;
   if (!userEmail) return res.json([]);
-  const seen = new Set(); const conversations = [];
-  [...messages].reverse().forEach(m => {
-    const belongsToUser = m.userEmail === userEmail ||
-      (!m.userEmail && (m.sender === userName || m.sender === 'Customer'));
-    if (belongsToUser && !seen.has(m.caterer)) {
-      seen.add(m.caterer);
-      const last = [...messages].filter(x => x.caterer === m.caterer).slice(-1)[0];
-      conversations.push({ caterer: m.caterer, lastMessage: last.text, lastTime: last.timestamp });
+  try {
+    const snap = await db.collection('messages').where('userEmail', '==', userEmail).get();
+    const catererSet = new Set();
+    snap.docs.forEach(d => { const m = d.data(); if (m.caterer) catererSet.add(m.caterer); });
+    const conversations = [];
+    for (const catererName of catererSet) {
+      const threadSnap = await db.collection('messages').where('caterer', '==', catererName).get();
+      const msgs = threadSnap.docs.map(d => d.data()).sort((a, b) => { const aT = a.timestamp?._seconds ? a.timestamp._seconds*1000 : new Date(a.timestamp).getTime(); const bT = b.timestamp?._seconds ? b.timestamp._seconds*1000 : new Date(b.timestamp).getTime(); return aT - bT; });
+      const last = msgs[msgs.length - 1];
+      if (last) conversations.push({ caterer: catererName, lastMessage: last.text, lastTime: last.timestamp });
     }
-  });
-  res.json(conversations);
+    res.json(conversations);
+  } catch(e) { res.json([]); }
 });
 
 app.get('/session-user', (req, res) => { if (!req.session.user) return res.json(null); const user = users.find(u => u.email === req.session.user.email); res.json({ ...req.session.user, photo: user ? user.photo : null }); });
@@ -1064,14 +1128,14 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
         </div>
         <div class="card fade-in" style="animation-delay:0.06s;">
           <p class="section-label">Contact Information</p>
-          <form action="/caterer-account/update" method="POST">
-            <div class="form-group"><label>Business Name</label><input type="text" name="businessName" value="${catererUser.businessName || ''}" placeholder="Your business name" required></div>
-            <div class="form-group"><label>Email Address</label><input type="email" name="email" value="${catererUser.email}" required></div>
-            <div class="form-group"><label>Business Address</label><input type="text" name="businessAddress" value="${catererUser.businessAddress || ''}" placeholder="Street, City, Province"></div>
-            <div class="form-group"><label>Contact Number</label><input type="tel" name="contactNumber" value="${catererUser.contactNumber || ''}" placeholder="09XX XXX XXXX"></div>
-            <div class="form-group"><label>Description</label><textarea name="description" placeholder="Tell customers about your service...">${catererUser.description || ''}</textarea></div>
-            <button type="submit" class="save-btn">Save Changes</button>
-          </form>
+          <div class="card fade-in">
+          <p class="section-label">Business Information</p>
+          <div class="form-row" style="margin-bottom:16px;">
+            <div class="form-group"><label>Business Name</label><div class="read-field">${catererUser.businessName}</div></div>
+            <div class="form-group"><label>Contact Number</label><div class="read-field">${catererUser.contactNumber || '—'}</div></div>
+          </div>
+          <div class="form-group"><label>Business Address</label><div class="read-field">${catererUser.businessAddress || '—'}</div></div>
+        </div>
         </div>
         ` : `
         <div class="card fade-in">
@@ -1152,8 +1216,53 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
   `);
 });
 
-app.post('/caterer-account/update', requireCaterer, (req, res) => { const { email, businessName, businessAddress, contactNumber, description } = req.body; const user = catererUsers.find(u => u.email === req.session.caterer.email); if (!user) return res.redirect('/caterer-login'); const oldName = user.businessName; user.email = email; if (businessName) user.businessName = businessName; user.businessAddress = businessAddress; user.contactNumber = contactNumber; if (description !== undefined) user.description = description; req.session.caterer.email = email; if (businessName) req.session.caterer.businessName = businessName; const caterer = caterers.find(c => c.name === oldName); if (caterer) { if (businessName) caterer.name = businessName; caterer.location = businessAddress; if (description) caterer.description = description; } saveToFirestore('catererUsers', user); res.redirect('/caterer-account?tab=info&saved=1'); });
-app.post('/caterer-account/change-password', requireCaterer, (req, res) => { const { currentPassword, newPassword, confirmPassword } = req.body; const user = catererUsers.find(u => u.email === req.session.caterer.email); if (!user) return res.redirect('/caterer-login'); if (user.password !== currentPassword) return res.redirect('/caterer-account?tab=settings&pwerror=wrong'); if (newPassword.length < 6) return res.redirect('/caterer-account?tab=settings&pwerror=short'); if (newPassword !== confirmPassword) return res.redirect('/caterer-account?tab=settings&pwerror=mismatch'); user.password = newPassword; res.redirect('/caterer-account?tab=settings&pwsaved=1'); });
+app.post('/caterer-account/update', requireCaterer, async (req, res) => {
+  const { email, businessName, businessAddress, contactNumber, description } = req.body;
+  const oldEmail = req.session.caterer.email;
+  const user = catererUsers.find(u => u.email === oldEmail);
+  if (!user) return res.redirect('/caterer-login');
+  const oldBusinessName = user.businessName;
+  user.email           = email;
+  user.businessName    = businessName    || user.businessName;
+  user.businessAddress = businessAddress || '';
+  user.contactNumber   = contactNumber   || '';
+  user.description     = description     || '';
+  req.session.caterer.email        = email;
+  req.session.caterer.businessName = user.businessName;
+  const caterer = caterers.find(c => c.name === oldBusinessName);
+  if (caterer) { caterer.name = user.businessName; caterer.location = user.businessAddress; caterer.description = user.description; }
+  try {
+    const snap = await db.collection('catererUsers').where('email', '==', oldEmail).get();
+    if (!snap.empty) {
+      await snap.docs[0].ref.set({ email: user.email, businessName: user.businessName, businessAddress: user.businessAddress, contactNumber: user.contactNumber, description: user.description }, { merge: true });
+    }
+    if (oldBusinessName !== user.businessName) {
+      const oldDoc = await db.collection('caterers').doc(oldBusinessName).get();
+      const existing = oldDoc.exists ? oldDoc.data() : {};
+      await db.collection('caterers').doc(user.businessName).set({ ...existing, name: user.businessName, location: user.businessAddress, description: user.description }, { merge: true });
+      await db.collection('caterers').doc(oldBusinessName).delete();
+    } else {
+      await db.collection('caterers').doc(user.businessName).set({ name: user.businessName, location: user.businessAddress, description: user.description }, { merge: true });
+    }
+  } catch(e) { console.error('Caterer update failed:', e.message); }
+  res.redirect('/caterer-account?tab=info&saved=1');
+});
+
+app.post('/caterer-account/change-password', requireCaterer, async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  const user = catererUsers.find(u => u.email === req.session.caterer.email);
+  if (!user) return res.redirect('/caterer-login');
+  if (user.password !== currentPassword) return res.redirect('/caterer-account?tab=settings&pwerror=wrong');
+  if (newPassword.length < 6) return res.redirect('/caterer-account?tab=settings&pwerror=short');
+  if (newPassword !== confirmPassword) return res.redirect('/caterer-account?tab=settings&pwerror=mismatch');
+  user.password = newPassword;
+  try {
+    const snap = await db.collection('catererUsers').where('email', '==', user.email).get();
+    if (!snap.empty) { await snap.docs[0].ref.set({ password: newPassword }, { merge: true }); }
+  } catch(e) { console.error('Change caterer password failed:', e.message); }
+  res.redirect('/caterer-account?tab=settings&pwsaved=1');
+});
+
 app.post('/caterer-account/delete', requireCaterer, (req, res) => { const { password } = req.body; const idx = catererUsers.findIndex(u => u.email === req.session.caterer.email); if (idx === -1) return res.redirect('/caterer-login'); if (catererUsers[idx].password !== password) return res.redirect('/caterer-account?tab=settings&delerror=wrong'); catererUsers.splice(idx, 1); req.session.caterer = null; res.redirect('/caterer-login'); });
 
 app.post('/caterer-package/add', requireCaterer, upload.single('image'), async (req, res) => {
