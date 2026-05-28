@@ -797,7 +797,7 @@ app.get('/result', (req, res) => {
 });
 
 app.get('/messages', async (req, res) => {
-  const { caterer, userEmail } = req.query;
+  const { caterer, userEmail, userName } = req.query;
   try {
     const snap = await db.collection('messages').where('caterer', '==', caterer).get();
     let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -808,8 +808,11 @@ app.get('/messages', async (req, res) => {
     });
     // If userEmail given, only return messages belonging to that customer's thread
     if (userEmail) {
-      msgs = msgs.filter(m => m.userEmail === userEmail);
-    }
+  msgs = msgs.filter(m =>
+    m.userEmail === userEmail ||
+    (m.sender === userName && m.userEmail == null)
+  );
+}
     res.json(msgs);
   } catch(e) {
     const fallback = messages.filter(m => m.caterer === caterer &&
@@ -896,35 +899,44 @@ app.post('/caterer-verify-remaining', requireCaterer, (req, res) => {
 
 app.get('/chats-data', async (req, res) => {
   const userEmail = req.session.user ? req.session.user.email : null;
+  const userName = req.session.user ? req.session.user.name : null;
   if (!userEmail) return res.json([]);
   try {
-    // Get only messages where this customer is the owner of the thread
-    const snap = await db.collection('messages').where('userEmail', '==', userEmail).get();
+    const snap = await db.collection('messages')
+      .where('caterer', '!=', '')
+      .get();
+    const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Find messages belonging to this user — by email OR by sender name
+    const myMsgs = allMsgs.filter(m =>
+      m.userEmail === userEmail ||
+      (m.sender && m.sender === userName && m.userEmail == null)
+    );
     const catererSet = new Set();
-    snap.docs.forEach(d => { const m = d.data(); if (m.caterer) catererSet.add(m.caterer); });
+    myMsgs.forEach(m => { if (m.caterer) catererSet.add(m.caterer); });
     const conversations = [];
     for (const catererName of catererSet) {
-      // Get only THIS customer's thread with this caterer
-      const threadSnap = await db.collection('messages')
-        .where('caterer', '==', catererName)
-        .where('userEmail', '==', userEmail)
-        .get();
-      const msgs = threadSnap.docs.map(d => d.data()).sort((a, b) => {
+      const thread = allMsgs.filter(m =>
+        m.caterer === catererName &&
+        (m.userEmail === userEmail ||
+         (m.sender === userName && m.userEmail == null) ||
+         (m.sender === catererName && m.userEmail === userEmail) ||
+         (m.sender === catererName && m.userEmail == null && myMsgs.some(x => x.caterer === catererName)))
+      );
+      thread.sort((a, b) => {
         const aT = a.timestamp?._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
         const bT = b.timestamp?._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
         return aT - bT;
       });
-      const last = msgs[msgs.length - 1];
+      const last = thread[thread.length - 1];
       if (last) conversations.push({ caterer: catererName, lastMessage: last.text, lastTime: last.timestamp });
     }
-    // Sort conversations by most recent message first
     conversations.sort((a, b) => {
       const aT = a.lastTime?._seconds ? a.lastTime._seconds * 1000 : new Date(a.lastTime).getTime();
       const bT = b.lastTime?._seconds ? b.lastTime._seconds * 1000 : new Date(b.lastTime).getTime();
       return bT - aT;
     });
     res.json(conversations);
-  } catch(e) { res.json([]); }
+  } catch(e) { console.error('chats-data error:', e.message); res.json([]); }
 });
 
 app.get('/session-user', (req, res) => { if (!req.session.user) return res.json(null); const user = users.find(u => u.email === req.session.user.email); res.json({ ...req.session.user, photo: user ? user.photo : null }); });
