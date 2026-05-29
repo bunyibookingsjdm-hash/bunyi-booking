@@ -845,7 +845,15 @@ app.get('/messages', async (req, res) => {
   const { caterer, userEmail, userName } = req.query;
   try {
     const query = { caterer };
-    if (userEmail) query.userEmail = userEmail;
+    if (userEmail) {
+      query.userEmail = userEmail;
+    } else if (req.session.user) {
+      query.userEmail = req.session.user.email;
+    } else if (req.session.caterer) {
+      // caterer can see all messages for their business
+    } else {
+      return res.json([]); // unknown user gets nothing
+    }
     const msgs = await mdb.collection('messages').find(query).sort({ timestamp: 1 }).toArray();
     res.json(msgs.map(m => ({ ...m, id: m._id ? m._id.toString() : m.id })));
   } catch(e) {

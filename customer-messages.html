@@ -239,7 +239,7 @@
 
     async function loadMessages() {
       if (!activeCaterer) return;
-      const res = await fetch('/messages?caterer=' + encodeURIComponent(activeCaterer) + '&userEmail=' + encodeURIComponent(currentUserEmail) + '&userName=' + encodeURIComponent(currentUserName));      const data = await res.json();
+      fetch('/messages?caterer=' + catererName + '&userEmail=' + encodeURIComponent(currentUserEmail))
       const box = document.getElementById('chatBox');
       const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
       box.innerHTML = '';
