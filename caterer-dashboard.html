@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Caterer Dashboard – Bunyi</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -62,6 +62,7 @@
     .fade2 { opacity: 0; animation: fadeUp 0.5s ease 0.06s forwards; }
     .fade3 { opacity: 0; animation: fadeUp 0.5s ease 0.12s forwards; }
     .fade4 { opacity: 0; animation: fadeUp 0.5s ease 0.18s forwards; }
+    .fade5 { opacity: 0; animation: fadeUp 0.5s ease 0.24s forwards; }
     .welcome-block { margin-bottom: 28px; }
     .welcome-eyebrow { font-size: 0.7rem; font-weight: 600; color: var(--crimson); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
     .welcome-title { font-size: 1.6rem; font-weight: 700; color: var(--dark); }
@@ -91,7 +92,7 @@
     .badge-partial { background: var(--tangerine-light); color: var(--tangerine); }
     .badge-paid { background: var(--green-light); color: var(--green); }
     .empty-table { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 0.86rem; }
-    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; }
     .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s, box-shadow 0.2s; }
     .stat-card:hover { border-color: var(--crimson); box-shadow: 0 4px 16px rgba(215,38,56,0.1); }
     .stat-top { display: flex; align-items: flex-start; justify-content: space-between; }
@@ -108,7 +109,6 @@
     .insight-value.orange { color: var(--tangerine); }
     .insight-value.green { color: var(--green); }
     .stars-sm { color: var(--yellow); font-size: 0.78rem; }
-    /* CALENDAR */
     .cal-wrapper { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
     .cal-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg); }
     .cal-title { font-size: 0.78rem; font-weight: 700; color: var(--dark); }
@@ -135,15 +135,12 @@
     .cal-legend { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--border); background: var(--bg); flex-wrap: wrap; }
     .cal-legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.62rem; color: var(--muted); }
     .cal-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-    /* Settings cards */
     .settings-mini-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
     .settings-mini-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
     .settings-mini-sub { font-size: 0.68rem; color: var(--muted); margin-top: 8px; }
-    /* Recurring day buttons */
     .rec-day-btn { padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 7px; font-family: 'Poppins', sans-serif; font-size: 0.72rem; font-weight: 600; cursor: pointer; background: var(--white); color: var(--muted); transition: all 0.15s; }
     .rec-day-btn:hover { border-color: var(--crimson); color: var(--crimson); }
     .rec-day-btn.active { background: var(--crimson); color: var(--white); border-color: var(--crimson-mid); }
-    /* Time modal */
     .time-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
     .time-modal-overlay.open { display: flex; }
     .time-modal { background: var(--white); border-radius: 14px; width: 100%; max-width: 420px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); }
@@ -171,12 +168,19 @@
     .mobile-nav.open { display: block; }
     .mobile-nav a { display: block; color: #aaa; text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 12px 14px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
     .mobile-nav a:hover, .mobile-nav a.active { color: var(--white); background: rgba(255,255,255,0.18); }
-    @media (max-width: 780px) { .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; } .top-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr; } .table-head { display: none; } .table-row { grid-template-columns: 1fr; gap: 4px; } .section-header { flex-wrap: wrap; } .section-link { margin-left: auto; } .today-card { min-height: auto; } .fade4 { display: flex !important; flex-direction: column !important; } }
-    @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
+    @media (max-width: 780px) {
+      .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; }
+      .top-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr; }
+      .table-head { display: none; }
+      .table-row { grid-template-columns: 1fr; gap: 4px; }
+      .cal-settings-row { grid-template-columns: 1fr !important; }
+      .insights-grid { grid-template-columns: 1fr !important; }
+    }
   </style>
 </head>
 <body>
-<div class="color-strip"></div>
+  <div class="color-strip"></div>
   <div class="mobile-nav" id="mobileNav">
     <a href="/caterer-dashboard" class="active">Dashboard</a>
     <a href="/caterer-bookings">Bookings</a>
@@ -222,12 +226,15 @@
   </header>
 
   <main class="main">
+
+    <!-- WELCOME -->
     <div class="welcome-block fade1">
       <p class="welcome-eyebrow">Caterer Dashboard</p>
       <h1 class="welcome-title">Welcome back, <span id="welcomeName">—</span>!</h1>
       <p class="welcome-sub">Here's an overview of your catering business today.</p>
     </div>
 
+    <!-- TODAY + UPCOMING -->
     <div class="top-row fade2">
       <div>
         <div class="section-header"><span class="section-title">🔴 Today's Events</span><div class="section-line"></div></div>
@@ -245,58 +252,62 @@
       </div>
     </div>
 
+    <!-- STAT CARDS -->
     <div class="stats-row fade3">
       <div class="stat-card">
         <div class="stat-top"><div class="stat-icon">📋</div><a class="stat-quick-link" href="/caterer-bookings">View Bookings →</a></div>
-        <div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Bookings</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Total Bookings</div>
       </div>
       <div class="stat-card">
         <div class="stat-top"><div class="stat-icon">⏳</div><a class="stat-quick-link" href="/caterer-bookings?filter=pending">Verify Payments →</a></div>
-        <div class="stat-value" id="statVerify">0</div><div class="stat-label">Awaiting Verification</div>
+        <div class="stat-value" id="statVerify">0</div>
+        <div class="stat-label">Awaiting Verification</div>
       </div>
     </div>
 
+    <!-- AVAILABILITY CALENDAR SECTION -->
     <div class="fade4" style="margin-bottom:24px;">
+      <div class="section-header" style="margin-bottom:12px;">
+        <span class="section-title">📆 Availability Calendar</span>
+        <div class="section-line"></div>
+        <span style="font-size:0.65rem;color:var(--muted);margin-left:10px;white-space:nowrap;">Click date to block</span>
+      </div>
 
-      <!-- LEFT: AVAILABILITY SETTINGS + CALENDAR -->
-      <div>
-        <div class="section-header" style="margin-bottom:10px;">
-          <span class="section-title">📆 Availability Calendar</span>
-          <div class="section-line"></div>
-          <span style="font-size:0.65rem;color:var(--muted);margin-left:10px;white-space:nowrap;">Click date to block</span>
-        </div>
+      <!-- LEFT: Settings | RIGHT: Calendar -->
+      <div class="cal-settings-row" style="display:grid;grid-template-columns:1fr 1.6fr;gap:16px;align-items:start;">
 
-        <!-- RECURRING DAYS OFF -->
-        <div class="settings-mini-card">
-          <div class="settings-mini-label">🔁 Recurring Days Off</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="recurringDaysRow">
-            <button class="rec-day-btn" data-day="0" onclick="toggleRecurringDay(0)">Sun</button>
-            <button class="rec-day-btn" data-day="1" onclick="toggleRecurringDay(1)">Mon</button>
-            <button class="rec-day-btn" data-day="2" onclick="toggleRecurringDay(2)">Tue</button>
-            <button class="rec-day-btn" data-day="3" onclick="toggleRecurringDay(3)">Wed</button>
-            <button class="rec-day-btn" data-day="4" onclick="toggleRecurringDay(4)">Thu</button>
-            <button class="rec-day-btn" data-day="5" onclick="toggleRecurringDay(5)">Fri</button>
-            <button class="rec-day-btn" data-day="6" onclick="toggleRecurringDay(6)">Sat</button>
-          </div>
-          <div class="settings-mini-sub">These days of the week will always be blocked for new bookings.</div>
-        </div>
-
-        <!-- MAX ORDERS PER SLOT -->
-        <div class="settings-mini-card">
-          <div class="settings-mini-label">📦 Max Bookings Per Time Slot</div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="display:inline-flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;">
-              <button onclick="changeMaxOrders(-1)" style="width:34px;height:34px;border:none;background:var(--bg);cursor:pointer;font-size:1.1rem;font-weight:700;font-family:'Poppins',sans-serif;color:var(--dark);">−</button>
-              <span id="maxOrdersDisplay" style="min-width:36px;text-align:center;font-size:1rem;font-weight:700;color:var(--dark);">1</span>
-              <button onclick="changeMaxOrders(1)" style="width:34px;height:34px;border:none;background:var(--bg);cursor:pointer;font-size:1.1rem;font-weight:700;font-family:'Poppins',sans-serif;color:var(--dark);">+</button>
+        <!-- LEFT: Settings -->
+        <div>
+          <div class="settings-mini-card">
+            <div class="settings-mini-label">🔁 Recurring Days Off</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="recurringDaysRow">
+              <button class="rec-day-btn" data-day="0" onclick="toggleRecurringDay(0)">Sun</button>
+              <button class="rec-day-btn" data-day="1" onclick="toggleRecurringDay(1)">Mon</button>
+              <button class="rec-day-btn" data-day="2" onclick="toggleRecurringDay(2)">Tue</button>
+              <button class="rec-day-btn" data-day="3" onclick="toggleRecurringDay(3)">Wed</button>
+              <button class="rec-day-btn" data-day="4" onclick="toggleRecurringDay(4)">Thu</button>
+              <button class="rec-day-btn" data-day="5" onclick="toggleRecurringDay(5)">Fri</button>
+              <button class="rec-day-btn" data-day="6" onclick="toggleRecurringDay(6)">Sat</button>
             </div>
-            <button onclick="saveMaxOrders()" style="padding:7px 16px;background:var(--crimson);color:var(--white);border:none;border-radius:7px;font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;">Save</button>
-            <span id="maxOrdersMsg" style="font-size:0.75rem;color:var(--green);font-weight:600;"></span>
+            <div class="settings-mini-sub">These days of the week will always be blocked for new bookings.</div>
           </div>
-          <div class="settings-mini-sub">How many bookings to accept per time slot. (e.g. 2 = two customers can book the same time)</div>
+          <div class="settings-mini-card">
+            <div class="settings-mini-label">📦 Max Bookings Per Time Slot</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="display:inline-flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;">
+                <button onclick="changeMaxOrders(-1)" style="width:34px;height:34px;border:none;background:var(--bg);cursor:pointer;font-size:1.1rem;font-weight:700;font-family:'Poppins',sans-serif;color:var(--dark);">−</button>
+                <span id="maxOrdersDisplay" style="min-width:36px;text-align:center;font-size:1rem;font-weight:700;color:var(--dark);">1</span>
+                <button onclick="changeMaxOrders(1)" style="width:34px;height:34px;border:none;background:var(--bg);cursor:pointer;font-size:1.1rem;font-weight:700;font-family:'Poppins',sans-serif;color:var(--dark);">+</button>
+              </div>
+              <button onclick="saveMaxOrders()" style="padding:7px 16px;background:var(--crimson);color:var(--white);border:none;border-radius:7px;font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;">Save</button>
+              <span id="maxOrdersMsg" style="font-size:0.75rem;color:var(--green);font-weight:600;"></span>
+            </div>
+            <div class="settings-mini-sub">How many bookings to accept per time slot. (e.g. 2 = two customers can book the same time)</div>
+          </div>
         </div>
 
-        <!-- CALENDAR -->
+        <!-- RIGHT: Calendar -->
         <div class="cal-wrapper">
           <div class="cal-header">
             <div class="cal-title">Your Availability</div>
@@ -321,13 +332,17 @@
             <div class="cal-legend-item"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;flex-shrink:0;margin-right:2px;"></span>Booked</div>
           </div>
         </div>
-    <!-- BUSINESS INSIGHTS BELOW -->
-    <div class="fade4" style="margin-bottom:24px;">
-      <div class="section-header" style="margin-bottom:10px;">
-        <span class="section-title">Business Insights</span>
+
+      </div>
+    </div>
+
+    <!-- BUSINESS INSIGHTS — full width below calendar -->
+    <div class="fade5" style="margin-bottom:24px;">
+      <div class="section-header" style="margin-bottom:14px;">
+        <span class="section-title">📊 Business Insights</span>
         <div class="section-line"></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="insights-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <div class="insights-card">
           <div class="insight-row"><div class="insight-label">💰 Total Revenue</div><div class="insight-value orange" id="statRevenue">₱0</div></div>
           <div class="insight-row"><div class="insight-label">📈 This Month</div><div class="insight-value" id="statMonthly">₱0</div></div>
@@ -364,6 +379,7 @@
         </div>
       </div>
     </div>
+
   </main>
 
   <script>
@@ -380,7 +396,6 @@
         document.getElementById('dropdownName').textContent = data.businessName;
         document.getElementById('dropdownEmail').textContent = data.email;
         sessionBusinessName = data.businessName;
-        loadUnreadMessages();
       } catch(e) {}
     }
 
@@ -428,7 +443,7 @@
     }
 
     function toggleProfileDropdown(){document.getElementById('profileDropdown').classList.toggle('open');document.getElementById('notifDropdown').classList.remove('open');}
-async function toggleNotifDropdown() { const dd = document.getElementById('notifDropdown'); document.getElementById('profileDropdown').classList.remove('open'); dd.classList.toggle('open'); if (dd.classList.contains('open')) { await loadNotifications(); } }
+    async function toggleNotifDropdown() { const dd = document.getElementById('notifDropdown'); document.getElementById('profileDropdown').classList.remove('open'); dd.classList.toggle('open'); if (dd.classList.contains('open')) { await loadNotifications(); } }
     document.addEventListener('click',function(e){var nw=document.querySelector('.notif-wrapper');var pw=document.querySelector('.profile-wrapper');if(nw&&!nw.contains(e.target))document.getElementById('notifDropdown').classList.remove('open');if(pw&&!pw.contains(e.target))document.getElementById('profileDropdown').classList.remove('open');});
 
     function formatNotifTime(ts){var d=new Date(ts);return d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})+' · '+d.toLocaleDateString('en-PH',{month:'short',day:'numeric'});}
@@ -438,9 +453,6 @@ async function toggleNotifDropdown() { const dd = document.getElementById('notif
       data.forEach(function(n){var a=document.createElement('a');a.className='notif-item'+(n.isRead?'':' unread');a.href='#';a.onclick=function(e){e.preventDefault();fetch('/caterer-read-notification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:n.id})}).then(function(){var text=(n.text||'').toLowerCase();if(text.includes('booking')){window.location.href='/caterer-bookings';}else if(text.includes('message')||text.includes('chat')){window.location.href='/caterer-messages';}else{window.location.href='/caterer-dashboard';}});};a.innerHTML='<div class="notif-text">'+n.text+'</div><div class="notif-time">'+formatNotifTime(n.createdAt)+'</div>';list.appendChild(a);});}catch(e){}
     }
 
-    async function loadUnreadMessages(){try{var res=await fetch('/messages?caterer='+encodeURIComponent(sessionBusinessName));var msgs=await res.json();function toDate(ts){return ts&&ts.toDate?ts.toDate():(ts&&ts._seconds?new Date(ts._seconds*1000):new Date(ts));}var last=msgs.slice().reverse().find(function(m){return m.sender===sessionBusinessName;});var lastTime=last?toDate(last.timestamp):new Date(0);document.getElementById('statMessages').textContent=msgs.filter(function(m){return m.sender!==sessionBusinessName&&toDate(m.timestamp)>lastTime;}).length;}catch(e){}}
-
-    // ===== CALENDAR & SETTINGS =====
     var calYear, calMonth, blockedSlots={}, recurringDays=[], currentMaxOrders=1, calBookingDates=[], selectedCalDate=null, pendingSlots={};
     var PH_TIMES=['12:00 AM','1:00 AM','2:00 AM','3:00 AM','4:00 AM','5:00 AM','6:00 AM','7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM','8:00 PM','9:00 PM','10:00 PM','11:00 PM'];
     var PH_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -452,11 +464,9 @@ async function toggleNotifDropdown() { const dd = document.getElementById('notif
       renderCalendar();
     }
 
-    // RECURRING DAYS
     function renderRecurringDays(){document.querySelectorAll('.rec-day-btn').forEach(function(btn){btn.classList.toggle('active',recurringDays.indexOf(parseInt(btn.getAttribute('data-day')))!==-1);});}
     function toggleRecurringDay(day){var idx=recurringDays.indexOf(day);if(idx===-1){recurringDays.push(day);}else{recurringDays.splice(idx,1);}renderRecurringDays();fetch('/caterer-blocked-slots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recurringDays:recurringDays})}).then(function(){renderCalendar();});}
 
-    // MAX ORDERS
     function changeMaxOrders(delta){currentMaxOrders=Math.max(1,currentMaxOrders+delta);document.getElementById('maxOrdersDisplay').textContent=currentMaxOrders;document.getElementById('maxOrdersMsg').textContent='';}
     async function saveMaxOrders(){try{await fetch('/caterer-blocked-slots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({maxOrders:currentMaxOrders})});var msg=document.getElementById('maxOrdersMsg');msg.textContent='✓ Saved!';setTimeout(function(){msg.textContent='';},2000);}catch(e){}}
 
@@ -519,20 +529,10 @@ async function toggleNotifDropdown() { const dd = document.getElementById('notif
       try{var res=await fetch('/caterer-blocked-slots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slots:payload})});if(res.ok){var data=await res.json();blockedSlots=data.slots||{};closeTimeModal();renderCalendar();}}catch(e){}
     }
 
-    function toggleMobileNav() {
-      var nav = document.getElementById('mobileNav');
-      nav.classList.toggle('open');
-    }
-    document.addEventListener('click', function(e) {
-      var nav = document.getElementById('mobileNav');
-      var btn = document.getElementById('hamburgerBtn');
-      if (nav && btn && !nav.contains(e.target) && !btn.contains(e.target)) {
-        nav.classList.remove('open');
-      }
-    });
+    function toggleMobileNav(){document.getElementById('mobileNav').classList.toggle('open');}
+    document.addEventListener('click',function(e){var nav=document.getElementById('mobileNav');var btn=document.getElementById('hamburgerBtn');if(nav&&btn&&!nav.contains(e.target)&&!btn.contains(e.target))nav.classList.remove('open');});
 
-    loadProfile();loadDashboard();loadNotifications();initCalendar();setInterval(loadNotifications,5000);
-
+    loadProfile(); loadDashboard(); loadNotifications(); initCalendar(); setInterval(loadNotifications,5000);
   </script>
   <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
 </body>
