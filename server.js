@@ -98,12 +98,14 @@ async function saveToMongo(collection, data, id) {
 }
 
 let bookings = [], messages = [], users = [], catererUsers = [];
-let notifications = [], notifIdCounter = 1;
+let notifications = {};
 
 function addNotification(type, text, userEmail) {
-  const n = { id: Date.now() + Math.random().toString(36).substr(2, 9), user: userEmail || 'default', type, text, isRead: false, createdAt: new Date() };
-  notifications.unshift(n);
-  mdb.collection('notifications').insertOne(n).catch(e => {});
+  if (!userEmail) return;
+  const n = { id: Date.now().toString() + Math.random().toString(36).substr(2,9), type, text, isRead: false, createdAt: new Date() };
+  if (!notifications[userEmail]) notifications[userEmail] = [];
+  notifications[userEmail].unshift(n);
+  if (mdb) mdb.collection('notifications').updateOne({ userEmail }, { $set: { items: notifications[userEmail] } }, { upsert: true }).catch(e => {});
 }
 
 setInterval(() => {
@@ -780,7 +782,7 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   if (req.file) {
     try { receiptUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype, 'bunyi/receipts'); } catch(e) { console.log('Receipt upload error:', e.message); }
   }
-  const newBooking = { bookingId, caterer, packageName, price: pricePerHead, eventType: finalEvent, date, time, guests: guestCount, totalAmount: total, amountPaid, status, receipt: receiptUrl, platform: finalPlatform, reference: reference || '', sender: sender || (req.session.user ? req.session.user.name : 'Customer'), senderEmail: req.session.user ? req.session.user.email : null, verified: false,
+  const newBooking = { bookingId, caterer, packageName, price: pricePerHead, eventType: finalEvent, date, time, guests: guestCount, totalAmount: total, amountPaid, status, receipt: receiptUrl, platform: finalPlatform, reference: reference || '', sender: sender || (req.session.user ? req.session.user.name : 'Customer'), senderEmail: req.session.user ? req.session.user.email : null, verified: false, cartItems: (() => { try { return JSON.parse(req.body.cartItems || '[]'); } catch(e) { return []; } })(), createdAt: new Date() };
   bookings.push(newBooking);
   mdb.collection('bookings').insertOne(newBooking).then(r => {
     if (r) newBooking.id = r.insertedId.toString();
@@ -972,13 +974,25 @@ app.post('/reviews', async (req, res) => {
 app.get('/notifications', (req, res) => {
   const userEmail = req.session.user ? req.session.user.email : null;
   if (!userEmail) return res.json([]);
-  const userNotifs = notifications.filter(n => n.user === userEmail || n.user === 'default');
+  const userNotifs = notifications[userEmail] || [];
   res.json([...userNotifs].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
 });
 
 app.post('/add-notification', (req, res) => { const { type, text } = req.body; if (!type || !text) return res.status(400).json({ error: 'Missing fields' }); addNotification(type, text); res.json({ success: true }); });
-app.post('/read-notifications', (req, res) => { notifications.forEach(n => n.isRead = true); res.json({ success: true }); });
+app.post('/read-notifications', (req, res) => { res.json({ success: true }); });
 
+app.post('/read-notification', async (req, res) => {
+  const { id } = req.body;
+  const userEmail = req.session.user ? req.session.user.email : null;
+  if (!userEmail) return res.json({ ok: true });
+  const notes = notifications[userEmail] || [];
+  const n = notes.find(n => String(n.id) === String(id));
+  if (n) {
+    n.isRead = true;
+    try { await mdb.collection('notifications').updateOne({ userEmail }, { $set: { items: notes } }); } catch(e) {}
+  }
+  res.json({ ok: true });
+});
 
 
 app.post('/caterer-read-notification', async (req, res) => {
@@ -1487,7 +1501,8 @@ async function loadFromFirestore() {
     const cn = await getCollection('catererNotifications');
     cn.forEach(d => { catererNotifications[d.businessName || d._id] = d.items || []; });
     const n = await getCollection('notifications');
-    notifications = n.map(n => ({ ...n, id: n._id ? n._id.toString() : n.id }));
+    notifications = {};
+    n.forEach(doc => { if (doc.userEmail && doc.items) { notifications[doc.userEmail] = doc.items; } });
     const cats = await getCollection('caterers');
     if (cats.length > 0) {
       cats.forEach(fc => {
