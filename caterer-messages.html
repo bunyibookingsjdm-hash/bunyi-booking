@@ -299,66 +299,73 @@
     }
     
     async function loadMessages() {
-      if (!activeCustomer) return;
-      try {
-        var res = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName));
-        var msgs = await res.json();
-        var activeConvoData = allConvos.find(function(c) { return c.name === activeCustomer; });
-        var activeEmail = activeConvoData ? activeConvoData.userEmail : null;
-        var convo = msgs.filter(function(m) {
-          if (activeEmail) {
-            return m.userEmail === activeEmail;
-          }
-          return m.sender.toLowerCase() === activeCustomer.toLowerCase()
-            || (m.sender === myBusinessName && m.userEmail === null && m.sender.toLowerCase() === activeCustomer.toLowerCase());
-        });
-        convo.sort(function(a, b) {
-          var aTime = a.timestamp && a.timestamp._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
-          var bTime = b.timestamp && b.timestamp._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
-          return aTime - bTime;
-        });
-        var box = document.getElementById('chatMessages');
-        if (convo.length === 0) { box.innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>No messages yet.</p></div>'; return; }
-        var wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
-        box.innerHTML = '';
-        var lastDateStr = '';
-        convo.forEach(function(m) {
-          // Parse Firestore timestamp correctly
-          var ts = m.timestamp && m.timestamp.toDate ? m.timestamp.toDate() : (m.timestamp && m.timestamp._seconds ? new Date(m.timestamp._seconds * 1000) : new Date(m.timestamp));
-          // Add date separator when date changes
-          var dateStr = ts.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
-          if (dateStr !== lastDateStr) {
-            lastDateStr = dateStr;
-            var sep = document.createElement('div');
-            sep.style.cssText = 'text-align:center;font-size:0.68rem;color:var(--muted);font-weight:600;margin:12px 0 8px;position:relative;';
-            sep.innerHTML = '<span style="background:var(--bg);padding:0 10px;position:relative;z-index:1;">' + dateStr + '</span><div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0;"></div>';
-            box.appendChild(sep);
-          }
-          var timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-          var isMe = m.sender === myBusinessName;
-          var div = document.createElement('div');
-          div.className = 'msg-row ' + (isMe ? 'me' : 'them');
-          div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
-          box.appendChild(div);
-        });
-        if (wasAtBottom) box.scrollTop = box.scrollHeight;
-      } catch(e) {}
+  if (!activeCustomer) return;
+  try {
+    var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
+    var activeEmail = activeConvo ? activeConvo.userEmail : null;
+    if (!activeEmail) return;
+
+    var res = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName) + '&userEmail=' + encodeURIComponent(activeEmail));
+    var convo = await res.json();
+
+    convo.sort(function(a, b) {
+      var aTime = a.timestamp && a.timestamp._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
+      var bTime = b.timestamp && b.timestamp._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
+      return aTime - bTime;
+    });
+
+    var box = document.getElementById('chatMessages');
+    if (convo.length === 0) {
+      box.innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>No messages yet.</p></div>';
+      return;
     }
+    var wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
+    box.innerHTML = '';
+    var lastDateStr = '';
+    convo.forEach(function(m) {
+      var ts = m.timestamp && m.timestamp._seconds ? new Date(m.timestamp._seconds * 1000) : new Date(m.timestamp);
+      var dateStr = ts.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+      if (dateStr !== lastDateStr) {
+        lastDateStr = dateStr;
+        var sep = document.createElement('div');
+        sep.style.cssText = 'text-align:center;font-size:0.68rem;color:var(--muted);font-weight:600;margin:12px 0 8px;position:relative;';
+        sep.innerHTML = '<span style="background:var(--bg);padding:0 10px;position:relative;z-index:1;">' + dateStr + '</span><div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0;"></div>';
+        box.appendChild(sep);
+      }
+      var timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+      var isMe = m.sender === myBusinessName;
+      var div = document.createElement('div');
+      div.className = 'msg-row ' + (isMe ? 'me' : 'them');
+      div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
+      box.appendChild(div);
+    });
+    if (wasAtBottom) box.scrollTop = box.scrollHeight;
+  } catch(e) {}
+}
 
     async function sendMessage() {
-      var input = document.getElementById('msgInput');
-      var text = input.value.trim();
-      if (!text || !activeCustomer) return;
-      try {
-        var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
-        var activeUserEmail = activeConvo ? activeConvo.userEmail : null;
-        await fetch('/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caterer: myBusinessName, text: text, userEmail: activeUserEmail }) });
-        input.value = '';
-        await loadMessages();
-        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-        await loadConversations();
-      } catch(e) {}
-    }
+        var input = document.getElementById('msgInput');
+        var text = input.value.trim();
+        if (!text || !activeCustomer) return;
+        try {
+          var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
+          var activeUserEmail = activeConvo ? activeConvo.userEmail : null;
+          if (!activeUserEmail) return;
+          await fetch('/send-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              caterer: myBusinessName,
+              text: text,
+              userEmail: activeUserEmail
+            })
+          });
+          input.value = '';
+          await loadMessages();
+          document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+          await loadConversations();
+        } catch(e) {}
+      }
 
     document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.activeElement === document.getElementById('msgInput')) sendMessage(); });
 

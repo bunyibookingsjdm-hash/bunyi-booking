@@ -842,22 +842,35 @@ app.get('/result', (req, res) => {
 });
 
 app.get('/messages', async (req, res) => {
-  const { caterer, userEmail, userName } = req.query;
+  const { caterer, userEmail } = req.query;
+  if (!caterer) return res.json([]);
+
+  // Resolve which email to use
+  let resolvedEmail = userEmail || null;
+  if (!resolvedEmail && req.session.user) {
+    resolvedEmail = req.session.user.email;
+  }
+
+  // Caterer with no userEmail = listing conversations (allow)
+  // Customer with no email = blocked
+  if (!resolvedEmail && !req.session.caterer) {
+    return res.json([]);
+  }
+
   try {
     const query = { caterer };
-    if (userEmail) {
-      query.userEmail = userEmail;
-    } else if (req.session.user) {
-      query.userEmail = req.session.user.email;
-    } else if (req.session.caterer) {
-      // caterer can see all messages for their business
-    } else {
-      return res.json([]); // unknown user gets nothing
-    }
-    const msgs = await mdb.collection('messages').find(query).sort({ timestamp: 1 }).toArray();
+    if (resolvedEmail) query.userEmail = resolvedEmail;
+    const msgs = await mdb.collection('messages')
+      .find(query)
+      .sort({ timestamp: 1 })
+      .toArray();
     res.json(msgs.map(m => ({ ...m, id: m._id ? m._id.toString() : m.id })));
   } catch(e) {
-    const fallback = messages.filter(m => m.caterer === caterer && (!userEmail || m.userEmail === userEmail));
+    const fallback = messages.filter(m => {
+      if (m.caterer !== caterer) return false;
+      if (resolvedEmail) return m.userEmail === resolvedEmail;
+      return true;
+    });
     res.json(fallback);
   }
 });
@@ -883,25 +896,52 @@ app.get('/message', (req, res) => {
 app.post('/send-message', async (req, res) => {
   const { caterer, text, userEmail: bodyUserEmail, senderName } = req.body;
   if (!caterer || !text) return res.status(400).json({ error: 'Missing fields' });
+
   const isCaterer = !!req.session.caterer;
-  const userEmail = isCaterer
-    ? (bodyUserEmail || null)
-    : (req.session.user ? req.session.user.email : bodyUserEmail || null);
+  const isCustomer = !!req.session.user;
+
+  // Always resolve the customer email
+  let userEmail = null;
+  if (isCustomer) {
+    userEmail = req.session.user.email;
+  } else if (isCaterer) {
+    userEmail = bodyUserEmail || null;
+  } else {
+    userEmail = bodyUserEmail || null;
+  }
+
+  if (!userEmail) return res.status(400).json({ error: 'Cannot identify customer' });
+
+  // conversationId is the permanent unique key per customer-caterer pair
+  const conversationId = caterer.replace(/\s+/g, '_') + '__' + userEmail.replace(/[@.]/g, '_');
+
   const sender = isCaterer
     ? req.session.caterer.businessName
-    : (req.session.user ? req.session.user.name : (senderName || 'Customer'));
-  const chatId = userEmail ? userEmail.split('@')[0] + '_' + caterer.replace(/\s+/g, '_') : null;
-  const newMsg = { caterer, sender, text, userEmail, chatId, timestamp: new Date() };
+    : (isCustomer ? req.session.user.name : (senderName || 'Customer'));
+
+  const newMsg = {
+    caterer,
+    sender,
+    text,
+    userEmail,
+    conversationId,
+    timestamp: new Date()
+  };
+
   try {
     const r = await mdb.collection('messages').insertOne(newMsg);
     newMsg.id = r.insertedId.toString();
     messages.push(newMsg);
-  } catch(e) { messages.push(newMsg); }
+  } catch(e) {
+    messages.push(newMsg);
+  }
+
   if (isCaterer) {
     addNotification('message', '💬 New message from ' + sender, userEmail);
   } else {
     addCatererNotification(caterer, 'message', '💬 New message from ' + sender);
   }
+
   res.json({ success: true });
 });
 
