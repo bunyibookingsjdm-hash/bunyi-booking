@@ -890,7 +890,7 @@ app.post('/send-message', async (req, res) => {
     messages.push(newMsg);
   } catch(e) { messages.push(newMsg); }
   if (isCaterer) {
-    addNotification('message', '💬 New message from ' + sender);
+    addNotification('message', '💬 New message from ' + sender, userEmail);
   } else {
     addCatererNotification(caterer, 'message', '💬 New message from ' + sender);
   }
