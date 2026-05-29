@@ -306,9 +306,11 @@
         var activeConvoData = allConvos.find(function(c) { return c.name === activeCustomer; });
         var activeEmail = activeConvoData ? activeConvoData.userEmail : null;
         var convo = msgs.filter(function(m) {
-          if (m.sender === myBusinessName) return true;
-          if (activeEmail && m.userEmail === activeEmail) return true;
-          return m.sender.toLowerCase() === activeCustomer.toLowerCase();
+          if (activeEmail) {
+            return m.userEmail === activeEmail;
+          }
+          return m.sender.toLowerCase() === activeCustomer.toLowerCase()
+            || (m.sender === myBusinessName && m.userEmail === null && m.sender.toLowerCase() === activeCustomer.toLowerCase());
         });
         convo.sort(function(a, b) {
           var aTime = a.timestamp && a.timestamp._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
