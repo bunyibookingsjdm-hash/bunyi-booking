@@ -780,7 +780,7 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   if (req.file) {
     try { receiptUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype, 'bunyi/receipts'); } catch(e) { console.log('Receipt upload error:', e.message); }
   }
-  const newBooking = { bookingId, caterer, packageName, price: pricePerHead, eventType: finalEvent, date, time, guests: guestCount, totalAmount: total, amountPaid, status, receipt: receiptUrl, platform: finalPlatform, reference: reference || '', sender: sender || (req.session.user ? req.session.user.name : 'Customer'), verified: false, cartItems: (() => { try { return JSON.parse(req.body.cartItems || '[]'); } catch(e) { return []; } })(), createdAt: new Date() };
+  const newBooking = { bookingId, caterer, packageName, price: pricePerHead, eventType: finalEvent, date, time, guests: guestCount, totalAmount: total, amountPaid, status, receipt: receiptUrl, platform: finalPlatform, reference: reference || '', sender: sender || (req.session.user ? req.session.user.name : 'Customer'), senderEmail: req.session.user ? req.session.user.email : null, verified: false,
   bookings.push(newBooking);
   mdb.collection('bookings').insertOne(newBooking).then(r => {
     if (r) newBooking.id = r.insertedId.toString();
@@ -908,7 +908,9 @@ const { index } = req.body;
     const { ObjectId } = require('mongodb');
     await mdb.collection('bookings').updateOne({ _id: new ObjectId(booking.id) }, { $set: { verified: true } });
   } catch(e) {}
-  addNotification('verify', '\u2705 Your payment for ' + booking.caterer + ' on ' + booking.date + ' has been verified!');
+  const senderUser = users.find(u => u.name === booking.sender);
+  const senderEmail = senderUser ? senderUser.email : booking.senderEmail || null;
+  addNotification('verify', '✅ Your payment for ' + booking.caterer + ' on ' + booking.date + ' has been verified!', senderEmail);
   res.json({ success: true });
 });
 
