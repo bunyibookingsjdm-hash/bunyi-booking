@@ -845,33 +845,24 @@ app.get('/messages', async (req, res) => {
   const { caterer, userEmail } = req.query;
   if (!caterer) return res.json([]);
 
-  // Resolve which email to use
-  let resolvedEmail = userEmail || null;
-  if (!resolvedEmail && req.session.user) {
-    resolvedEmail = req.session.user.email;
-  }
-
-  // Caterer with no userEmail = listing conversations (allow)
-  // Customer with no email = blocked
-  if (!resolvedEmail && !req.session.caterer) {
-    return res.json([]);
-  }
+  let resolvedEmail = userEmail || (req.session.user ? req.session.user.email : null);
+  if (!resolvedEmail && !req.session.caterer) return res.json([]);
 
   try {
-    const query = { caterer };
-    if (resolvedEmail) query.userEmail = resolvedEmail;
-    const msgs = await mdb.collection('messages')
-      .find(query)
-      .sort({ timestamp: 1 })
-      .toArray();
-    res.json(msgs.map(m => ({ ...m, id: m._id ? m._id.toString() : m.id })));
+    if (resolvedEmail) {
+      // Get one specific conversation
+      const doc = await mdb.collection('messages').findOne({ 
+        userEmail: resolvedEmail, 
+        caterer: caterer 
+      });
+      return res.json(doc ? doc.items : []);
+    } else {
+      // Caterer fetching all conversations list
+      const docs = await mdb.collection('messages').find({ caterer }).toArray();
+      return res.json(docs);
+    }
   } catch(e) {
-    const fallback = messages.filter(m => {
-      if (m.caterer !== caterer) return false;
-      if (resolvedEmail) return m.userEmail === resolvedEmail;
-      return true;
-    });
-    res.json(fallback);
+    return res.json([]);
   }
 });
 
@@ -900,40 +891,37 @@ app.post('/send-message', async (req, res) => {
   const isCaterer = !!req.session.caterer;
   const isCustomer = !!req.session.user;
 
-  // Always resolve the customer email
+  // Always resolve customer email
   let userEmail = null;
-  if (isCustomer) {
-    userEmail = req.session.user.email;
-  } else if (isCaterer) {
-    userEmail = bodyUserEmail || null;
-  } else {
-    userEmail = bodyUserEmail || null;
-  }
+  if (isCustomer) userEmail = req.session.user.email;
+  else if (isCaterer) userEmail = bodyUserEmail || null;
+  else userEmail = bodyUserEmail || null;
 
   if (!userEmail) return res.status(400).json({ error: 'Cannot identify customer' });
-
-  // conversationId is the permanent unique key per customer-caterer pair
-  const conversationId = caterer.replace(/\s+/g, '_') + '__' + userEmail.replace(/[@.]/g, '_');
 
   const sender = isCaterer
     ? req.session.caterer.businessName
     : (isCustomer ? req.session.user.name : (senderName || 'Customer'));
 
-  const newMsg = {
-    caterer,
+  const newItem = {
     sender,
     text,
-    userEmail,
-    conversationId,
     timestamp: new Date()
   };
 
   try {
-    const r = await mdb.collection('messages').insertOne(newMsg);
-    newMsg.id = r.insertedId.toString();
-    messages.push(newMsg);
+    // Upsert — create document if not exists, push to items array if exists
+    await mdb.collection('messages').updateOne(
+      { userEmail, caterer },
+      { 
+        $push: { items: newItem },
+        $set: { userEmail, caterer, updatedAt: new Date() }
+      },
+      { upsert: true }
+    );
   } catch(e) {
-    messages.push(newMsg);
+    console.log('Send message error:', e.message);
+    return res.status(500).json({ error: 'Failed to send' });
   }
 
   if (isCaterer) {
@@ -945,7 +933,6 @@ app.post('/send-message', async (req, res) => {
   res.json({ success: true });
 });
 
-// booked-times moved below — now respects maxOrders per slot
 app.get('/bookings', (req, res) => res.json(bookings));
 
 app.post('/caterer-verify-booking', requireCaterer, async (req, res) => {
@@ -984,22 +971,25 @@ const { index } = req.body;
 
 app.get('/chats-data', async (req, res) => {
   const userEmail = req.session.user ? req.session.user.email : null;
-  const userName = req.session.user ? req.session.user.name : null;
   if (!userEmail) return res.json([]);
   try {
-    const msgs = await mdb.collection('messages').find({ userEmail }).sort({ timestamp: 1 }).toArray();
-    const catererSet = new Set();
-    msgs.forEach(m => { if (m.caterer) catererSet.add(m.caterer); });
-    const conversations = [];
-    for (const catererName of catererSet) {
-      const thread = await mdb.collection('messages').find({ caterer: catererName, userEmail }).sort({ timestamp: -1 }).limit(1).toArray();
-      if (thread.length > 0) {
-        conversations.push({ caterer: catererName, lastMessage: thread[0].text, lastTime: thread[0].timestamp });
-      }
-    }
-    conversations.sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
+    const docs = await mdb.collection('messages')
+      .find({ userEmail })
+      .sort({ updatedAt: -1 })
+      .toArray();
+    const conversations = docs.map(doc => {
+      const items = doc.items || [];
+      const last = items[items.length - 1];
+      return {
+        caterer: doc.caterer,
+        lastMessage: last ? last.text : '',
+        lastTime: last ? last.timestamp : doc.updatedAt
+      };
+    });
     res.json(conversations);
-  } catch(e) { res.json([]); }
+  } catch(e) {
+    res.json([]);
+  }
 });
 
 app.get('/session-user', (req, res) => { if (!req.session.user) return res.json(null); const user = users.find(u => u.email === req.session.user.email); res.json({ ...req.session.user, photo: user ? user.photo : null }); });

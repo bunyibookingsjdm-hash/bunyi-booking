@@ -227,30 +227,26 @@
     }
 
     async function loadConversations() {
-      try {
-        var msgRes = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName));
-        var msgs = await msgRes.json();
-        var bookRes = await fetch('/bookings');
-        var bookings = await bookRes.json();
-        var myBookings = bookings.filter(function(b) { return b.caterer === myBusinessName; });
-        var seen = {}; var customers = [];
-        msgs.slice().reverse().forEach(function(m) {
-          if (m.sender !== myBusinessName) {
-            var key = m.userEmail || m.sender.toLowerCase();
-            if (!seen[key]) {
-              seen[key] = true;
-              var booking = myBookings.find(function(b) { return b.sender && b.sender.toLowerCase() === m.sender.toLowerCase(); });
-              var displayName = (booking && booking.sender) ? booking.sender : m.sender;
-              var customerMsgs = msgs.filter(function(msg) { return msg.userEmail === m.userEmail || msg.sender === m.sender; });
-              var last = customerMsgs[customerMsgs.length - 1];
-              customers.push({ name: m.sender, displayName: displayName, lastMessage: last ? last.text : '', lastTime: last ? last.timestamp : m.timestamp, userEmail: m.userEmail });
-            }
-          }
-        });
-        allConvos = customers;
-        renderSidebar();
-      } catch(e) {}
-    }
+        try {
+          const docs = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName))
+            .then(r => r.json());
+          
+          allConvos = docs.map(function(doc) {
+            const items = doc.items || [];
+            const last = items[items.length - 1];
+            // Get display name from last customer message
+            const customerMsg = items.find(function(m) { return m.sender !== myBusinessName; });
+            return {
+              name: customerMsg ? customerMsg.sender : doc.userEmail,
+              displayName: customerMsg ? customerMsg.sender : doc.userEmail,
+              userEmail: doc.userEmail,
+              lastMessage: last ? last.text : '',
+              lastTime: last ? last.timestamp : doc.updatedAt
+            };
+          });
+          renderSidebar();
+        } catch(e) {}
+      }
 
     function renderSidebar() {
       var list = document.getElementById('sidebarList');
@@ -299,73 +295,67 @@
     }
     
     async function loadMessages() {
-  if (!activeCustomer) return;
-  try {
-    var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
-    var activeEmail = activeConvo ? activeConvo.userEmail : null;
-    if (!activeEmail) return;
+      if (!activeCustomer) return;
+      try {
+        var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
+        var activeEmail = activeConvo ? activeConvo.userEmail : null;
+        if (!activeEmail) return;
 
-    var res = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName) + '&userEmail=' + encodeURIComponent(activeEmail));
-    var convo = await res.json();
+        var items = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName) + '&userEmail=' + encodeURIComponent(activeEmail))
+          .then(r => r.json());
 
-    convo.sort(function(a, b) {
-      var aTime = a.timestamp && a.timestamp._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
-      var bTime = b.timestamp && b.timestamp._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
-      return aTime - bTime;
-    });
-
-    var box = document.getElementById('chatMessages');
-    if (convo.length === 0) {
-      box.innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>No messages yet.</p></div>';
-      return;
+        var box = document.getElementById('chatMessages');
+        if (!items || items.length === 0) {
+          box.innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>No messages yet.</p></div>';
+          return;
+        }
+        var wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
+        box.innerHTML = '';
+        var lastDateStr = '';
+        items.forEach(function(m) {
+          var ts = new Date(m.timestamp);
+          var dateStr = ts.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+          if (dateStr !== lastDateStr) {
+            lastDateStr = dateStr;
+            var sep = document.createElement('div');
+            sep.style.cssText = 'text-align:center;font-size:0.68rem;color:var(--muted);font-weight:600;margin:12px 0 8px;position:relative;';
+            sep.innerHTML = '<span style="background:var(--bg);padding:0 10px;position:relative;z-index:1;">' + dateStr + '</span><div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0;"></div>';
+            box.appendChild(sep);
+          }
+          var timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+          var isMe = m.sender === myBusinessName;
+          var div = document.createElement('div');
+          div.className = 'msg-row ' + (isMe ? 'me' : 'them');
+          div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
+          box.appendChild(div);
+        });
+        if (wasAtBottom) box.scrollTop = box.scrollHeight;
+      } catch(e) {}
     }
-    var wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
-    box.innerHTML = '';
-    var lastDateStr = '';
-    convo.forEach(function(m) {
-      var ts = m.timestamp && m.timestamp._seconds ? new Date(m.timestamp._seconds * 1000) : new Date(m.timestamp);
-      var dateStr = ts.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
-      if (dateStr !== lastDateStr) {
-        lastDateStr = dateStr;
-        var sep = document.createElement('div');
-        sep.style.cssText = 'text-align:center;font-size:0.68rem;color:var(--muted);font-weight:600;margin:12px 0 8px;position:relative;';
-        sep.innerHTML = '<span style="background:var(--bg);padding:0 10px;position:relative;z-index:1;">' + dateStr + '</span><div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0;"></div>';
-        box.appendChild(sep);
-      }
-      var timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-      var isMe = m.sender === myBusinessName;
-      var div = document.createElement('div');
-      div.className = 'msg-row ' + (isMe ? 'me' : 'them');
-      div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
-      box.appendChild(div);
-    });
-    if (wasAtBottom) box.scrollTop = box.scrollHeight;
-  } catch(e) {}
-}
 
     async function sendMessage() {
-        var input = document.getElementById('msgInput');
-        var text = input.value.trim();
-        if (!text || !activeCustomer) return;
-        try {
-          var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
-          var activeUserEmail = activeConvo ? activeConvo.userEmail : null;
-          if (!activeUserEmail) return;
-          await fetch('/send-message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              caterer: myBusinessName,
-              text: text,
-              userEmail: activeUserEmail
-            })
-          });
-          input.value = '';
-          await loadMessages();
-          document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-          await loadConversations();
-        } catch(e) {}
-      }
+      var input = document.getElementById('msgInput');
+      var text = input.value.trim();
+      if (!text || !activeCustomer) return;
+      try {
+        var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
+        var activeUserEmail = activeConvo ? activeConvo.userEmail : null;
+        if (!activeUserEmail) return;
+        await fetch('/send-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            caterer: myBusinessName,
+            text: text,
+            userEmail: activeUserEmail
+          })
+        });
+        input.value = '';
+        await loadMessages();
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        await loadConversations();
+      } catch(e) {}
+    }
 
     document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.activeElement === document.getElementById('msgInput')) sendMessage(); });
 
