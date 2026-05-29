@@ -422,18 +422,7 @@
       } catch(e) {}
     }
 
-    async function loadUserBookings() {
-      try {
-        var sessionRes = await fetch('/session-user');
-        var sessionUser = await sessionRes.json();
-        var res = await fetch('/bookings');
-        var allBookings = await res.json();
-        // Filter to only THIS user's bookings
-        userBookings = allBookings.filter(function(b) {
-          return b.senderEmail === sessionUser.email;
-        });
-      } catch(e) {}
-    }
+    async function loadUserBookings() { try { var res = await fetch('/bookings'); userBookings = await res.json(); } catch(e) {} }
 
     async function loadCaterers() {
       try {
