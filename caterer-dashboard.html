@@ -256,7 +256,7 @@
       </div>
     
 
-    <div class="fade4" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;align-items:start;">
+    <div class="fade4" style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:24px;align-items:start;"></div>
 
       <!-- LEFT: AVAILABILITY SETTINGS + CALENDAR -->
       <div>
@@ -321,12 +321,16 @@
             <div class="cal-legend-item"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;flex-shrink:0;margin-right:2px;"></span>Booked</div>
           </div>
         </div>
-      </div>
+    </div>
 
-      <!-- RIGHT: BUSINESS INSIGHTS -->
-      <div>
-        <div class="section-header" style="margin-bottom:10px;"><span class="section-title">Business Insights</span><div class="section-line"></div></div>
-        <div class="insights-card" style="margin-bottom:10px;">
+    <!-- BUSINESS INSIGHTS BELOW -->
+    <div class="fade4" style="margin-bottom:24px;">
+      <div class="section-header" style="margin-bottom:10px;">
+        <span class="section-title">Business Insights</span>
+        <div class="section-line"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="insights-card">
           <div class="insight-row"><div class="insight-label">💰 Total Revenue</div><div class="insight-value orange" id="statRevenue">₱0</div></div>
           <div class="insight-row"><div class="insight-label">📈 This Month</div><div class="insight-value" id="statMonthly">₱0</div></div>
           <div class="insight-row"><div class="insight-label">✅ Fully Paid</div><div class="insight-value green" id="statPaid">0</div></div>
