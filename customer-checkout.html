@@ -538,6 +538,15 @@
       if (!pickupTime) { alert('Please select a pickup time.'); return; }
       const today = new Date().toISOString().split('T')[0];
       if (pickupDate < today) { alert('Pickup date cannot be in the past.'); return; }
+      // Block past times for today
+      if (pickupDate === today) {
+        const currentHour = new Date().getHours();
+        const selectedHour = parseInt(pickupTime.split(':')[0]);
+        if (selectedHour <= currentHour) {
+          alert('⚠️ This time has already passed. Please select a future time.');
+          return;
+        }
+      }
       // Final guard: block if recurring day or blocked slot
       const blocked = window._blockedSlots || {};
       const recurringDays = window._recurringDays || [];
