@@ -374,7 +374,17 @@
         </div>`;
 
       const pd = document.getElementById('pickupDate');
-      if (pd) pd.min = new Date().toISOString().split('T')[0];
+      if (pd) {
+        const now = new Date();
+        // If it's past 10 PM, block today too
+        if (now.getHours() >= 22) {
+          const tomorrow = new Date(now);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          pd.min = tomorrow.toISOString().split('T')[0];
+        } else {
+          pd.min = now.toISOString().split('T')[0];
+        }
+      }
 
       // Apply blocked slots immediately after DOM is built
       applyBlockedSlots();
@@ -401,7 +411,6 @@
       const blocked = window._blockedSlots || {};
       const recurringDays = window._recurringDays || [];
       const entry = blocked[dateStr] || {};
-      // Check recurring day of week
       if (dateStr) {
         const parts = dateStr.split('-');
         const dow = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])).getDay();
@@ -419,6 +428,34 @@
         return;
       }
       updateTimeSlots(dateStr);
+      disablePastTimes(dateStr);
+    }
+
+    function disablePastTimes(dateStr) {
+      const timeSelect = document.getElementById('pickupTime');
+      if (!timeSelect) return;
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      const currentHour = now.getHours();
+      Array.from(timeSelect.options).forEach(function(opt) {
+        if (!opt.value) return;
+        if (dateStr === todayStr) {
+          const optHour = parseInt(opt.value.split(':')[0]);
+          if (optHour <= currentHour) {
+            opt.disabled = true;
+            const base = opt.text.replace(' (Unavailable)', '').replace(' (Past)', '');
+            opt.text = base + ' (Past)';
+          } else if (!opt.disabled) {
+            opt.text = opt.text.replace(' (Past)', '');
+          }
+        } else {
+          opt.text = opt.text.replace(' (Past)', '');
+        }
+      });
+      // Clear selected time if now disabled
+      if (timeSelect.value && timeSelect.options[timeSelect.selectedIndex] && timeSelect.options[timeSelect.selectedIndex].disabled) {
+        timeSelect.value = '';
+      }
     }
 
     // ── Disable/enable time options based on blocked slots for the given date ──
