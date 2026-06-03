@@ -862,7 +862,10 @@ app.get('/messages', async (req, res) => {
       }));
       return res.json(tagged);
     } else {
-      const docs = await mdb.collection('messages').find({ caterer }).toArray();
+      const decodedCaterer = decodeURIComponent(caterer);
+      const docs = await mdb.collection('messages').find({ 
+        caterer: { $in: [caterer, decodedCaterer] }
+      }).toArray();
       return res.json(docs);
     }
   } catch(e) {
