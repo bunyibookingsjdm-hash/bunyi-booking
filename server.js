@@ -108,31 +108,6 @@ function addNotification(type, text, userEmail) {
   if (mdb) mdb.collection('notifications').updateOne({ userEmail }, { $set: { items: notifications[userEmail] } }, { upsert: true }).catch(e => {});
 }
 
-// ── AUTO-REFRESH FROM MONGODB EVERY 2 MINUTES ──
-setInterval(async () => {
-  try {
-    const freshBookings = await getCollection('bookings');
-    if (freshBookings.length > 0) {
-      bookings = freshBookings.map(b => ({ ...b, id: b._id ? b._id.toString() : b.id, verified: b.verified || false, status: b.status || 'Pending Payment' }));
-    }
-    const freshUsers = await getCollection('users');
-    if (freshUsers.length > 0) users = freshUsers;
-    const freshCatererUsers = await getCollection('catererUsers');
-    if (freshCatererUsers.length > 0) catererUsers = freshCatererUsers;
-    const freshCaterers = await getCollection('caterers');
-    if (freshCaterers.length > 0) {
-      freshCaterers.forEach(fc => {
-        const idx = caterers.findIndex(c => c.name === fc.name);
-        if (idx !== -1) { caterers[idx] = { ...caterers[idx], ...fc }; }
-        else { caterers.push({ ...fc, id: caterers.length + 1 }); }
-      });
-    }
-    const n = await getCollection('notifications');
-    n.forEach(doc => { if (doc.userEmail && doc.items) notifications[doc.userEmail] = doc.items; });
-    const cn = await getCollection('catererNotifications');
-    cn.forEach(d => { catererNotifications[d.businessName || d._id] = d.items || []; });
-  } catch(e) { console.log('Auto-refresh error:', e.message); }
-}, 2 * 60 * 1000);
 
 setInterval(() => {
   const now = new Date(); now.setHours(0, 0, 0, 0);
