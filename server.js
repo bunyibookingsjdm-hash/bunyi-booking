@@ -108,6 +108,49 @@ function addNotification(type, text, userEmail) {
   if (mdb) mdb.collection('notifications').updateOne({ userEmail }, { $set: { items: notifications[userEmail] } }, { upsert: true }).catch(e => {});
 }
 
+// ── AUTO-REFRESH FROM MONGODB EVERY 2 MINUTES ──
+setInterval(async () => {
+  try {
+    const freshBookings = await getCollection('bookings');
+    if (freshBookings.length > 0) {
+      bookings = freshBookings.map(b => ({ ...b, id: b._id ? b._id.toString() : b.id, verified: b.verified || false, status: b.status || 'Pending Payment' }));
+    }
+    const freshUsers = await getCollection('users');
+    if (freshUsers.length > 0) users = freshUsers;
+    const freshCatererUsers = await getCollection('catererUsers');
+    if (freshCatererUsers.length > 0) catererUsers = freshCatererUsers;
+    const freshCaterers = await getCollection('caterers');
+    if (freshCaterers.length > 0) {
+      freshCaterers.forEach(fc => {
+        const idx = caterers.findIndex(c => c.name === fc.name);
+        if (idx !== -1) { caterers[idx] = { ...caterers[idx], ...fc }; }
+        else { caterers.push({ ...fc, id: caterers.length + 1 }); }
+      });
+    }
+    const freshMessages = await getCollection('messages');
+    if (freshMessages.length > 0) messages = freshMessages;
+    const n = await getCollection('notifications');
+    n.forEach(doc => { if (doc.userEmail && doc.items) notifications[doc.userEmail] = doc.items; });
+    const cn = await getCollection('catererNotifications');
+    cn.forEach(d => { catererNotifications[d.businessName || d._id] = d.items || []; });
+  } catch(e) { console.log('Auto-refresh error:', e.message); }
+}, 2 * 60 * 1000);
+
+setInterval(() => {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  bookings.forEach(b => {
+    if (b.status === 'Partially Paid') {
+      const eventDate = new Date(b.date + 'T00:00:00');
+      const daysUntilEvent = Math.ceil((eventDate - now) / (1000 * 60 * 60 * 24));
+      const dueDate = new Date(eventDate); dueDate.setDate(dueDate.getDate() - 7);
+      const daysUntilDue = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+      if (daysUntilDue === 10) addNotification('reminder', '⏰ Reminder: Your remaining balance for your event on ' + b.date + ' is due in 10 days (' + dueDate.toLocaleDateString('en-PH', { month: 'long', day: 'numeric' }) + '). Please prepare your payment.');
+      if (daysUntilDue <= 0 && daysUntilEvent >= 0) addNotification('reminder', '🚨 Urgent: Your remaining balance for your event on ' + b.date + ' is now due! Please complete your payment immediately.');
+      if (daysUntilEvent === 3) addNotification('reminder', '⚠️ Final Reminder: Your event is in 3 days (' + b.date + '). Please settle your remaining balance as soon as possible.');
+    }
+  });
+}, 24 * 60 * 60 * 1000);
+
 setInterval(() => {
   const now = new Date(); now.setHours(0, 0, 0, 0);
   bookings.forEach(b => {
