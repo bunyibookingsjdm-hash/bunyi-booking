@@ -127,8 +127,6 @@ setInterval(async () => {
         else { caterers.push({ ...fc, id: caterers.length + 1 }); }
       });
     }
-    const freshMessages = await getCollection('messages');
-    if (freshMessages.length > 0) messages = freshMessages;
     const n = await getCollection('notifications');
     n.forEach(doc => { if (doc.userEmail && doc.items) notifications[doc.userEmail] = doc.items; });
     const cn = await getCollection('catererNotifications');
