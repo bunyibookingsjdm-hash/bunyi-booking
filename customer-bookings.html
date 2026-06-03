@@ -205,7 +205,8 @@
     }
 
     function getStatusBadge(b) {
-      // Status reflects caterer verification
+      if (b.status === 'Order Completed') return '<span class="status-badge badge-full" style="background:#dcfce7;color:#15803d;">✅ Order Completed</span>';
+      if (b.status === 'Ready for Pick-up') return '<span class="status-badge" style="background:#fff0eb;color:#E8450A;font-weight:700;">🚀 Ready for Pick-up</span>';
       if (b.status === 'Fully Paid' && b.verified) return '<span class="status-badge badge-full">✅ Fully Paid</span>';
       if (b.status === 'Fully Paid' && !b.verified) return '<span class="status-badge badge-pending">⏳ Awaiting Verification</span>';
       if (b.status === 'Partially Paid') return '<span class="status-badge badge-partial">💳 Partially Paid</span>';
@@ -250,6 +251,16 @@
     function bookingCard(b, type) {
       const extra = type === 'today' ? ' today' : type === 'past' ? ' past' : '';
       const tagHTML = type === 'today' ? '<span class="today-tag">TODAY 🎉</span>' : '';
+      const receivedBtn = b.status === 'Ready for Pick-up'
+        ? `<div style="padding:14px 20px;background:#fff8f0;border-top:1.5px solid #ffd0bc;">
+            <p style="font-size:0.82rem;color:#c93a08;font-weight:600;margin-bottom:10px;">🚀 Your order is ready! Please pick it up and confirm receipt.</p>
+            <button onclick="markReceived('${b.bookingId || b.id}')" style="width:100%;padding:12px;background:#E8450A;color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">📦 Mark as Received</button>
+           </div>`
+        : b.status === 'Order Completed'
+        ? `<div style="padding:12px 20px;background:#f0fdf4;border-top:1.5px solid #86efac;">
+            <p style="font-size:0.82rem;color:#16a34a;font-weight:600;">✅ Order Completed — Thank you for your order!</p>
+           </div>`
+        : '';
       return `
         <div class="booking-card${extra} fade-in">
           <div class="card-top">
@@ -281,6 +292,7 @@
             </div>
           </div>
           ${renderOrders(b)}
+          ${receivedBtn}
         </div>`;
     }
 
@@ -301,8 +313,10 @@
       const todayStr = now.toISOString().split('T')[0];
       document.getElementById('eventsContainer').innerHTML =
         sectionHTML('Today', data.filter(b => b.date === todayStr), 'today', '🔴') +
-        sectionHTML('Upcoming', data.filter(b => b.date > todayStr), 'upcoming', '📅') +
-        sectionHTML('Past', data.filter(b => b.date < todayStr).reverse(), 'past', '🕐');
+        sectionHTML('Upcoming', data.filter(b => b.date > todayStr && b.status !== 'Ready for Pick-up' && b.status !== 'Order Completed'), 'upcoming', '📅') +
+        sectionHTML('Ready for Pick-up', data.filter(b => b.status === 'Ready for Pick-up'), 'pickup', '🚀') +
+        sectionHTML('Received', data.filter(b => b.status === 'Order Completed'), 'received', '✅') +
+        sectionHTML('Past', data.filter(b => b.date < todayStr && b.status !== 'Order Completed').reverse(), 'past', '🕐');
     }
 
     function handleSearch(query) {
@@ -343,6 +357,30 @@
       }
     }
 
+    async function markReceived(bookingId) {
+      if (!confirm('Confirm that you have received your order?')) return;
+      try {
+        const res = await fetch('/customer-mark-received', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bookingId }) });
+        const data = await res.json();
+        if (data.success) {
+          const b = allBookings.find(x => (x.bookingId || x.id) === bookingId);
+          if (b) b.status = 'Order Completed';
+          renderBookings(allBookings);
+          alert('✅ Order marked as received! Thank you!');
+        }
+      } catch(e) { alert('Error. Please try again.'); }
+    }
+
+    function loadCartBadge() {
+      try {
+        const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
+        const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        const badge = document.getElementById('cartBadge');
+        badge.textContent = total;
+        badge.style.display = total > 0 ? 'inline-block' : 'none';
+      } catch(e) {}
+    }
+    
     function loadCartBadge() {
       try {
         const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
