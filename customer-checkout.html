@@ -434,33 +434,48 @@
     function disablePastTimes(dateStr) {
       const timeSelect = document.getElementById('pickupTime');
       if (!timeSelect) return;
+
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
-      const currentHour = now.getHours();
+
       Array.from(timeSelect.options).forEach(function(opt) {
         if (!opt.value) return;
+
         if (dateStr === todayStr) {
-          const optHour = parseInt(opt.value.split(':')[0]);
-          if (optHour <= currentHour) {
+
+          const [hour, minute] = opt.value.split(':').map(Number);
+
+          const slotTime = new Date();
+          slotTime.setHours(hour, minute, 0, 0);
+
+          const isPast = now > slotTime;
+
+          if (isPast) {
             opt.disabled = true;
             opt.style.display = 'none';
           } else {
-            opt.disabled = false;
+            if (!opt.getAttribute('data-blocked')) {
+              opt.disabled = false;
+            }
             opt.style.display = '';
-            opt.text = opt.text.replace(' (Past)', '').replace(' (Unavailable)', '');
           }
+
         } else {
-          opt.style.display = '';
           if (!opt.getAttribute('data-blocked')) {
             opt.disabled = false;
-            opt.text = opt.text.replace(' (Past)', '');
           }
+          opt.style.display = '';
         }
       });
-      if (timeSelect.value && timeSelect.options[timeSelect.selectedIndex] && timeSelect.options[timeSelect.selectedIndex].disabled) {
-        timeSelect.value = '';
-      }
-    }
+
+  if (
+    timeSelect.value &&
+    timeSelect.options[timeSelect.selectedIndex] &&
+    timeSelect.options[timeSelect.selectedIndex].disabled
+  ) {
+    timeSelect.value = '';
+  }
+}
 
     // ── Disable/enable time options based on blocked slots for the given date ──
     // Convert HH:MM value to AM/PM string to match dashboard blocked slots format
@@ -544,9 +559,11 @@
       if (pickupDate < today) { alert('Pickup date cannot be in the past.'); return; }
       // Block past times for today
       if (pickupDate === today) {
-        const currentHour = new Date().getHours();
-        const selectedHour = parseInt(pickupTime.split(':')[0]);
-        if (selectedHour <= currentHour) {
+        const now = new Date();
+        const [hour, minute] = pickupTime.split(':').map(Number);
+        const selectedTime = new Date();
+        selectedTime.setHours(hour, minute, 0, 0);
+        if (selectedTime < now) {
           alert('⚠️ This time has already passed. Please select a future time.');
           return;
         }

@@ -453,29 +453,42 @@
       if (!timeSelect) return;
       var now = new Date();
       var todayStr = now.toISOString().split('T')[0];
-      var currentHour = now.getHours();
       Array.from(timeSelect.options).forEach(function(opt) {
         if (!opt.value) return;
         if (dateStr === todayStr) {
-          var optHour = parseInt(opt.value.split(':')[0]);
-          if (optHour <= currentHour) {
+          var parts = opt.value.split(':');
+          var hour = parseInt(parts[0]);
+          var minute = parseInt(parts[1]);
+          var slotTime = new Date();
+          slotTime.setHours(hour, minute, 0, 0);
+          var isPast = now > slotTime;
+          if (isPast) {
             opt.disabled = true;
-            var base = opt.text.replace(' (Unavailable)', '').replace(' (Past)', '');
+            var base = opt.text
+              .replace(' (Unavailable)', '')
+              .replace(' (Past)', '');
             opt.text = base + ' (Past)';
-          } else if (!opt.disabled) {
+          } else {
+            if (!opt.text.includes('(Unavailable)')) {
+              opt.disabled = false;
+            }
             opt.text = opt.text.replace(' (Past)', '');
           }
         } else {
-          if (!opt.disabled) {
-            opt.text = opt.text.replace(' (Past)', '');
+          if (!opt.text.includes('(Unavailable)')) {
+            opt.disabled = false;
           }
+          opt.text = opt.text.replace(' (Past)', '');
         }
       });
-      if (timeSelect.value && timeSelect.options[timeSelect.selectedIndex] && timeSelect.options[timeSelect.selectedIndex].disabled) {
+      if (
+        timeSelect.value &&
+        timeSelect.options[timeSelect.selectedIndex] &&
+        timeSelect.options[timeSelect.selectedIndex].disabled
+      ) {
         timeSelect.value = '';
       }
     }
-
     function resetTimeSlots() {
       var timeSelect = document.getElementById('time');
       Array.from(timeSelect.options).forEach(function(opt) {
@@ -665,15 +678,41 @@
     function closeQrLightbox() { document.getElementById('qrLightbox').classList.remove('open'); }
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeQrLightbox(); });
 
+    
     // ── FORM SUBMIT VALIDATION ──
+    
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
-      const timeSelect = document.getElementById('time');
-      if (!timeSelect.value) { e.preventDefault(); alert('Please select a pickup time.'); return; }
-      if (timeSelect.options[timeSelect.selectedIndex].disabled) {
-        e.preventDefault(); alert('This time slot is not available. Please choose another.'); return;
-      }
+
+  const dateVal = document.getElementById('date').value;
+  const timeVal = document.getElementById('time').value;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  if (dateVal === todayStr && timeVal) {
+
+    const [hour, minute] = timeVal.split(':').map(Number);
+
+    const selectedTime = new Date();
+    selectedTime.setHours(hour, minute, 0, 0);
+
+    if (selectedTime <= new Date()) {
+      e.preventDefault();
+      alert('⚠️ This time has already passed. Please select a future time.');
+      return;
+    }
+  }
+
+  const timeSelect = document.getElementById('time');
+
+  if (!timeSelect.value) {
+    e.preventDefault();
+    alert('Please select a pickup time.');
+    return;
+  }
+
+  // Existing code continues here...
       // Final blocked slots guard
-      const dateVal = document.getElementById('date').value;
+
       // Check recurring day
       const dateParts = dateVal.split('-');
       const dow = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2])).getDay();
