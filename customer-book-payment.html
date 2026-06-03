@@ -348,8 +348,15 @@
     document.getElementById('package').value  = pkg;
     document.getElementById('price').value    = price;
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    document.getElementById('date').min = todayStr;
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    if (now.getHours() >= 22) {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('date').min = tomorrow.toISOString().split('T')[0];
+    } else {
+      document.getElementById('date').min = todayStr;
+    }
 
     if (preDate)  document.getElementById('date').value = preDate;
     if (preTime) {
@@ -415,6 +422,35 @@
         return;
       }
       updateTimeSlots(dateStr);
+      disablePastTimes(dateStr);
+    }
+
+    function disablePastTimes(dateStr) {
+      var timeSelect = document.getElementById('time');
+      if (!timeSelect) return;
+      var now = new Date();
+      var todayStr = now.toISOString().split('T')[0];
+      var currentHour = now.getHours();
+      Array.from(timeSelect.options).forEach(function(opt) {
+        if (!opt.value) return;
+        if (dateStr === todayStr) {
+          var optHour = parseInt(opt.value.split(':')[0]);
+          if (optHour <= currentHour) {
+            opt.disabled = true;
+            var base = opt.text.replace(' (Unavailable)', '').replace(' (Past)', '');
+            opt.text = base + ' (Past)';
+          } else if (!opt.disabled) {
+            opt.text = opt.text.replace(' (Past)', '');
+          }
+        } else {
+          if (!opt.disabled) {
+            opt.text = opt.text.replace(' (Past)', '');
+          }
+        }
+      });
+      if (timeSelect.value && timeSelect.options[timeSelect.selectedIndex] && timeSelect.options[timeSelect.selectedIndex].disabled) {
+        timeSelect.value = '';
+      }
     }
 
     function resetTimeSlots() {
