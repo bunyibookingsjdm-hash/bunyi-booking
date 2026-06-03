@@ -702,6 +702,9 @@
         const savedCart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
         cartItemsInput.value = JSON.stringify(savedCart);
       }
+      // Clear cart immediately on submit — even if internet is slow or page refreshes
+      sessionStorage.removeItem('bunyi_cart');
+      sessionStorage.removeItem('bunyi_checkout');
     });
 
     // ── CART BADGE ──
