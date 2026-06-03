@@ -633,15 +633,14 @@
     // ── QR CODES ──
     async function loadCatererQR() {
       try {
-        const res  = await fetch('/caterers');
-        const data = await res.json();
-        const c    = data.find(x => x.name === caterer || decodeURIComponent(caterer) === x.name);
+        const res  = await fetch('/caterer-qr-codes?caterer=' + encodeURIComponent(caterer));
+        const qrCodes = await res.json();
         const grid = document.getElementById('qrGrid');
-        if (!c || !c.qrCodes || c.qrCodes.length === 0) {
+        if (!qrCodes || qrCodes.length === 0) {
           grid.innerHTML = '<div class="qr-empty">No QR codes uploaded by this caterer yet.</div>';
           return;
         }
-        grid.innerHTML = c.qrCodes.map(function(qr, i) {
+        grid.innerHTML = qrCodes.map(function(qr, i) {
           return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">'
             + '<div class="qr-img-wrap" onclick="openQrLightbox(\'' + qr.url + '\')" style="width:100%;">'
             + '<img src="' + qr.url + '" alt="QR ' + (i+1) + '">'
