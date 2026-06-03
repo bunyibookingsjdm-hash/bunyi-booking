@@ -8,10 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A;
-      --white: #ffffff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333;
-    }
+    :root { --orange: #E8450A; --orange-light: #fff0eb; --dark: #1A1A1A; --white: #ffffff; --bg: #f8f8f8; --border: #e8e8e8; --muted: #888; --text: #333; }
     body { font-family: 'Poppins', sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
     .header { background: var(--dark); padding: 0 40px; height: 62px; display: flex; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
     .header-brand { font-size: 1.25rem; font-weight: 700; color: var(--white); text-decoration: none; }
@@ -27,8 +24,9 @@
     .form-group { margin-bottom: 14px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
-    input, textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
-    input:focus, textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.1); }
+    input, select, textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,69,10,0.1); }
+    select { cursor: pointer; -webkit-appearance: auto; appearance: auto; }
     textarea { resize: vertical; min-height: 76px; }
     .pw-wrap { position: relative; }
     .pw-wrap input { padding-right: 40px; }
@@ -42,7 +40,6 @@
     .pw-rules span { display: block; }
     .pw-rules span.ok { color: #16a34a; }
     .pw-rules span.fail { color: #e53e3e; }
-    .address-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
     .error-msg { background: #fff0eb; border: 1px solid #ffd0bc; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #c93a08; margin-bottom: 16px; display: none; align-items: center; gap: 8px; }
     .error-msg.show { display: flex; }
     .info-msg { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #16a34a; margin-bottom: 16px; display: none; align-items: center; gap: 8px; }
@@ -63,14 +60,13 @@
     .resend-link { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
     .resend-link a { color: var(--orange); font-weight: 600; cursor: pointer; text-decoration: none; }
     .resend-link a:hover { text-decoration: underline; }
-    @media (max-width: 520px) { .auth-box { padding: 28px 20px; } .form-row { grid-template-columns: 1fr; } .address-row { grid-template-columns: 1fr; } .header { padding: 0 20px; } }
+    @media (max-width: 520px) { .auth-box { padding: 28px 20px; } .form-row { grid-template-columns: 1fr; } .header { padding: 0 20px; } }
   </style>
 </head>
 <body>
   <header class="header">
     <a href="/" class="header-brand">Bunyi<span>.</span></a>
   </header>
-
   <div class="auth-wrap">
     <div class="auth-box">
 
@@ -80,14 +76,8 @@
         <p class="auth-eyebrow">Caterer Portal</p>
         <h1 class="auth-title">Welcome back!</h1>
         <p class="auth-sub">Sign in to manage your catering business.</p>
-
-        <div class="error-msg" id="loginError">
-          ⚠️ <span id="loginErrorText">Invalid email or password.</span>
-        </div>
-        <div class="info-msg" id="loginInfo">
-          <span id="loginInfoText"></span>
-        </div>
-
+        <div class="error-msg" id="loginError">⚠️ <span id="loginErrorText">Invalid email or password.</span></div>
+        <div class="info-msg" id="loginInfo"><span id="loginInfoText"></span></div>
         <form action="/caterer-login" method="POST">
           <div class="form-group">
             <label>Email Address</label>
@@ -102,11 +92,8 @@
           </div>
           <button type="submit" class="btn-submit">Sign In →</button>
         </form>
-
         <div class="divider"></div>
-        <div class="switch-hint">
-          Don't have an account? <a onclick="switchTo('register')">Create one here</a>
-        </div>
+        <div class="switch-hint">Don't have an account? <a onclick="switchTo('register')">Create one here</a></div>
       </div>
 
       <!-- REGISTER PANEL -->
@@ -115,10 +102,7 @@
         <p class="auth-eyebrow">Caterer Portal</p>
         <h1 class="auth-title">Create Account</h1>
         <p class="auth-sub">Join Bunyi and start receiving bookings from customers.</p>
-
-        <div class="error-msg" id="registerError">
-          ⚠️ <span id="registerErrorText"></span>
-        </div>
+        <div class="error-msg" id="registerError">⚠️ <span id="registerErrorText"></span></div>
 
         <form id="catererRegisterForm" autocomplete="off">
           <p class="section-label">Account Info</p>
@@ -156,23 +140,6 @@
             <label>Name of Business *</label>
             <input type="text" id="reg-businessName" placeholder="e.g. Bulacan Feast Catering" required>
           </div>
-
-          <!-- Street + City/Province -->
-          <div class="form-group">
-            <label>Street / Barangay *</label>
-            <input type="text" id="reg-street" placeholder="e.g. 123 Rizal St., Brgy. San Jose" required>
-          </div>
-          <div class="address-row">
-            <div class="form-group">
-              <label>City / Municipality *</label>
-              <input type="text" id="reg-city" placeholder="e.g. San Jose del Monte" required>
-            </div>
-            <div class="form-group">
-              <label>Province *</label>
-              <input type="text" id="reg-province" placeholder="e.g. Bulacan" required>
-            </div>
-          </div>
-
           <div class="form-group">
             <label>Contact Number *</label>
             <input type="tel" id="reg-contactNumber" placeholder="e.g. 09XX XXX XXXX" required>
@@ -182,13 +149,114 @@
             <textarea id="reg-description" placeholder="Tell customers about your catering service..."></textarea>
           </div>
 
+          <p class="section-label">Business Address</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>House/Building No. <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+              <input type="text" id="reg-houseno" placeholder="e.g. 123">
+            </div>
+            <div class="form-group">
+              <label>Street Name <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+              <input type="text" id="reg-street" placeholder="e.g. Rizal Street">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Barangay *</label>
+            <select id="reg-barangay" required>
+              <option value="" disabled selected>Select barangay</option>
+              <option value="Assumption">Assumption</option>
+              <option value="Bagong Buhay">Bagong Buhay</option>
+              <option value="Bagong Buhay II">Bagong Buhay II</option>
+              <option value="Bagong Buhay III">Bagong Buhay III</option>
+              <option value="Citrus">Citrus</option>
+              <option value="Ciudad Real">Ciudad Real</option>
+              <option value="Dulong Bayan">Dulong Bayan</option>
+              <option value="Fatima">Fatima</option>
+              <option value="Fatima II">Fatima II</option>
+              <option value="Fatima III">Fatima III</option>
+              <option value="Fatima IV">Fatima IV</option>
+              <option value="Fatima V">Fatima V</option>
+              <option value="Francisco Homes – Guijo">Francisco Homes – Guijo</option>
+              <option value="Francisco Homes – Mulawin">Francisco Homes – Mulawin</option>
+              <option value="Francisco Homes – Narra">Francisco Homes – Narra</option>
+              <option value="Francisco Homes – Yakal">Francisco Homes – Yakal</option>
+              <option value="Gaya-Gaya">Gaya-Gaya</option>
+              <option value="Graceville">Graceville</option>
+              <option value="Gumaoc Central">Gumaoc Central</option>
+              <option value="Gumaoc East">Gumaoc East</option>
+              <option value="Gumaoc West">Gumaoc West</option>
+              <option value="Kaybanban">Kaybanban</option>
+              <option value="Kaypian">Kaypian</option>
+              <option value="Lawang Pari">Lawang Pari</option>
+              <option value="Maharlika">Maharlika</option>
+              <option value="Minuyan">Minuyan</option>
+              <option value="Minuyan II">Minuyan II</option>
+              <option value="Minuyan III">Minuyan III</option>
+              <option value="Minuyan IV">Minuyan IV</option>
+              <option value="Minuyan Proper">Minuyan Proper</option>
+              <option value="Minuyan V">Minuyan V</option>
+              <option value="Muzon East">Muzon East</option>
+              <option value="Muzon Proper">Muzon Proper</option>
+              <option value="Muzon South">Muzon South</option>
+              <option value="Muzon West">Muzon West</option>
+              <option value="Paradise III">Paradise III</option>
+              <option value="Poblacion">Poblacion</option>
+              <option value="Poblacion I">Poblacion I</option>
+              <option value="Saint Martin de Porres">Saint Martin de Porres</option>
+              <option value="San Isidro">San Isidro</option>
+              <option value="San Manuel">San Manuel</option>
+              <option value="San Martin I">San Martin I</option>
+              <option value="San Martin II">San Martin II</option>
+              <option value="San Martin III">San Martin III</option>
+              <option value="San Martin IV">San Martin IV</option>
+              <option value="San Pedro">San Pedro</option>
+              <option value="San Rafael I">San Rafael I</option>
+              <option value="San Rafael II">San Rafael II</option>
+              <option value="San Rafael III">San Rafael III</option>
+              <option value="San Rafael IV">San Rafael IV</option>
+              <option value="San Rafael V">San Rafael V</option>
+              <option value="San Roque">San Roque</option>
+              <option value="Santa Cruz I">Santa Cruz I</option>
+              <option value="Santa Cruz II">Santa Cruz II</option>
+              <option value="Santa Cruz III">Santa Cruz III</option>
+              <option value="Santa Cruz IV">Santa Cruz IV</option>
+              <option value="Santa Cruz V">Santa Cruz V</option>
+              <option value="Santo Cristo">Santo Cristo</option>
+              <option value="Santo Niño I">Santo Niño I</option>
+              <option value="Santo Niño II">Santo Niño II</option>
+              <option value="Sapang Palay">Sapang Palay</option>
+              <option value="Tungkong Mangga">Tungkong Mangga</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Municipality/City *</label>
+              <input type="text" id="reg-city" placeholder="e.g. San Jose del Monte" required>
+            </div>
+            <div class="form-group">
+              <label>Province *</label>
+              <input type="text" id="reg-province" placeholder="e.g. Bulacan" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Region *</label>
+              <input type="text" id="reg-region" placeholder="e.g. Central Luzon" required>
+            </div>
+            <div class="form-group">
+              <label>ZIP Code *</label>
+              <input type="text" id="reg-zip" placeholder="e.g. 2009" required maxlength="4">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Landmark <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+            <input type="text" id="reg-landmark" placeholder="e.g. Near Holy Angel University">
+          </div>
+
           <button type="submit" class="btn-submit" id="catererRegisterBtn">Create Account →</button>
         </form>
-
         <div class="divider"></div>
-        <div class="switch-hint">
-          Already have an account? <a onclick="switchTo('login')">Sign in here</a>
-        </div>
+        <div class="switch-hint">Already have an account? <a onclick="switchTo('login')">Sign in here</a></div>
       </div>
 
       <!-- SUCCESS PANEL -->
@@ -198,16 +266,13 @@
           <h2>Check your email!</h2>
           <p>We sent a verification link to<br><strong id="sentToEmail"></strong>.<br><br>Click the link in your inbox to verify your account, then come back to log in.</p>
           <button class="btn-submit" onclick="switchTo('login')">Go to Login →</button>
-          <div class="resend-link">
-            Didn't receive it? <a id="resendLink" onclick="resendVerification()">Resend email</a>
-          </div>
+          <div class="resend-link">Didn't receive it? <a id="resendLink" onclick="resendVerification()">Resend email</a></div>
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, sendEmailVerification }
@@ -229,21 +294,25 @@
     document.getElementById('catererRegisterForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const email          = document.getElementById('reg-email').value.trim();
-      const password       = document.getElementById('reg-password').value;
-      const confirm        = document.getElementById('reg-confirm').value;
-      const businessName   = document.getElementById('reg-businessName').value.trim();
-      const street         = document.getElementById('reg-street').value.trim();
-      const city           = document.getElementById('reg-city').value.trim();
-      const province       = document.getElementById('reg-province').value.trim();
-      const contactNumber  = document.getElementById('reg-contactNumber').value.trim();
-      const description    = document.getElementById('reg-description').value.trim();
+      const email         = document.getElementById('reg-email').value.trim();
+      const password      = document.getElementById('reg-password').value;
+      const confirm       = document.getElementById('reg-confirm').value;
+      const businessName  = document.getElementById('reg-businessName').value.trim();
+      const contactNumber = document.getElementById('reg-contactNumber').value.trim();
+      const description   = document.getElementById('reg-description').value.trim();
+      const houseNo       = document.getElementById('reg-houseno').value.trim();
+      const street        = document.getElementById('reg-street').value.trim();
+      const barangay      = document.getElementById('reg-barangay').value;
+      const city          = document.getElementById('reg-city').value.trim();
+      const province      = document.getElementById('reg-province').value.trim();
+      const region        = document.getElementById('reg-region').value.trim();
+      const zip           = document.getElementById('reg-zip').value.trim();
+      const landmark      = document.getElementById('reg-landmark').value.trim();
 
-      const businessAddress = `${street}, ${city}, ${province}`;
+      const businessAddress = `${houseNo ? houseNo + ' ' : ''}${street ? street + ', ' : ''}Brgy. ${barangay}, ${city}, ${province} ${zip}${landmark ? ' (Near: ' + landmark + ')' : ''}`;
 
       document.getElementById('registerError').classList.remove('show');
 
-      // Validations
       if (!email) return showRegErr('Please enter your email address.');
       if (password.length < 8) return showRegErr('Password must be at least 8 characters.');
       if (!/[A-Z]/.test(password)) return showRegErr('Password must contain at least 1 uppercase letter.');
@@ -251,11 +320,14 @@
       if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return showRegErr('Password must contain at least 1 special character.');
       if (password !== confirm) return showRegErr('Passwords do not match.');
       if (!businessName) return showRegErr('Please enter your business name.');
-      if (!street) return showRegErr('Please enter your street/barangay.');
-      if (!city) return showRegErr('Please enter your city/municipality.');
-      if (!province) return showRegErr('Please enter your province.');
       if (!contactNumber) return showRegErr('Please enter your contact number.');
       if (!/^(09|\+639)\d{9}$/.test(contactNumber.replace(/\s/g, ''))) return showRegErr('Please enter a valid Philippine mobile number (09XXXXXXXXX).');
+      if (!barangay) return showRegErr('Please select your barangay.');
+      if (!city) return showRegErr('Please enter your city/municipality.');
+      if (!province) return showRegErr('Please enter your province.');
+      if (!region) return showRegErr('Please enter your region.');
+      if (!zip) return showRegErr('Please enter your ZIP code.');
+      if (!/^\d{4}$/.test(zip)) return showRegErr('ZIP code must be 4 digits.');
 
       const btn = document.getElementById('catererRegisterBtn');
       btn.disabled = true;
@@ -267,7 +339,7 @@
         await fetch('/caterer-register-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, businessName, businessAddress, contactNumber, description })
+          body: JSON.stringify({ email, password, businessName, contactNumber, description, houseNo, street, barangay, city, province, region, zip, landmark, businessAddress })
         });
         window._lastCatererUser = cred.user;
         document.getElementById('sentToEmail').textContent = email;
@@ -289,9 +361,7 @@
         await sendEmailVerification(window._lastCatererUser);
         document.getElementById('resendLink').textContent = 'Sent! Check your inbox.';
         document.getElementById('resendLink').style.cursor = 'default';
-      } catch(e) {
-        alert('Could not resend. Please try again in a minute.');
-      }
+      } catch(e) { alert('Could not resend. Please try again in a minute.'); }
     };
 
     function showRegErr(msg) {
@@ -303,43 +373,30 @@
   <script>
     function togglePw(inputId, btn) {
       const input = document.getElementById(inputId);
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.textContent = '🙈';
-      } else {
-        input.type = 'password';
-        btn.textContent = '👁️';
-      }
+      if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+      else { input.type = 'password'; btn.textContent = '👁️'; }
     }
 
     function checkPasswordStrength(pw) {
       const strengthDiv = document.getElementById('pwStrength');
-      const fill = document.getElementById('pwFill');
-      const text = document.getElementById('pwText');
       strengthDiv.style.display = pw.length > 0 ? 'block' : 'none';
-
-      const hasLen     = pw.length >= 8;
-      const hasUpper   = /[A-Z]/.test(pw);
-      const hasNum     = /[0-9]/.test(pw);
+      const hasLen = pw.length >= 8, hasUpper = /[A-Z]/.test(pw), hasNum = /[0-9]/.test(pw);
       const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
-
-      document.getElementById('rule-len').textContent     = (hasLen     ? '✓' : '✗') + ' At least 8 characters';
-      document.getElementById('rule-upper').textContent   = (hasUpper   ? '✓' : '✗') + ' At least 1 uppercase letter';
-      document.getElementById('rule-num').textContent     = (hasNum     ? '✓' : '✗') + ' At least 1 number';
+      document.getElementById('rule-len').textContent = (hasLen ? '✓' : '✗') + ' At least 8 characters';
+      document.getElementById('rule-upper').textContent = (hasUpper ? '✓' : '✗') + ' At least 1 uppercase letter';
+      document.getElementById('rule-num').textContent = (hasNum ? '✓' : '✗') + ' At least 1 number';
       document.getElementById('rule-special').textContent = (hasSpecial ? '✓' : '✗') + ' At least 1 special character (!@#$%)';
-
-      document.getElementById('rule-len').className     = hasLen     ? 'ok' : 'fail';
-      document.getElementById('rule-upper').className   = hasUpper   ? 'ok' : 'fail';
-      document.getElementById('rule-num').className     = hasNum     ? 'ok' : 'fail';
+      document.getElementById('rule-len').className = hasLen ? 'ok' : 'fail';
+      document.getElementById('rule-upper').className = hasUpper ? 'ok' : 'fail';
+      document.getElementById('rule-num').className = hasNum ? 'ok' : 'fail';
       document.getElementById('rule-special').className = hasSpecial ? 'ok' : 'fail';
-
       const score = [hasLen, hasUpper, hasNum, hasSpecial].filter(Boolean).length;
       const colors = ['#e53e3e', '#e53e3e', '#f59e0b', '#16a34a'];
       const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-      fill.style.width = (score * 25) + '%';
-      fill.style.background = colors[score - 1] || '#e8e8e8';
-      text.textContent = labels[score] || '';
-      text.style.color = colors[score - 1] || '#888';
+      document.getElementById('pwFill').style.width = (score * 25) + '%';
+      document.getElementById('pwFill').style.background = colors[score - 1] || '#e8e8e8';
+      document.getElementById('pwText').textContent = labels[score] || '';
+      document.getElementById('pwText').style.color = colors[score - 1] || '#888';
     }
 
     function switchTo(panel) {
@@ -355,18 +412,10 @@
     }
 
     const params = new URLSearchParams(window.location.search);
-    const loginErr = params.get('loginerror');
-    if (loginErr === '1') {
-      switchTo('login');
-      document.getElementById('loginError').classList.add('show');
-      document.getElementById('loginErrorText').textContent = 'Invalid email or password. Please try again.';
-    }
-    if (params.get('notverified') === '1') {
-      switchTo('login');
-      document.getElementById('loginError').classList.add('show');
-      document.getElementById('loginErrorText').textContent = '⚠️ Please verify your email first. Check your inbox for the verification link.';
-    }
+    if (params.get('loginerror') === '1') { switchTo('login'); document.getElementById('loginError').classList.add('show'); document.getElementById('loginErrorText').textContent = 'Invalid email or password. Please try again.'; }
+    if (params.get('notverified') === '1') { switchTo('login'); document.getElementById('loginError').classList.add('show'); document.getElementById('loginErrorText').textContent = '⚠️ Please verify your email first. Check your inbox for the verification link.'; }
   </script>
   <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
 </body>
 </html>
+
