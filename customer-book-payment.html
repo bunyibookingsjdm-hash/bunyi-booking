@@ -357,7 +357,7 @@
 
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
-    if (now.getHours() >= 22) {
+    if (now.getHours() >= 23) {
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       document.getElementById('date').min = tomorrow.toISOString().split('T')[0];

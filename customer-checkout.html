@@ -377,7 +377,7 @@
       if (pd) {
         const now = new Date();
         // If it's past 10 PM, block today too
-        if (now.getHours() >= 22) {
+        if (now.getHours() >= 23) {
           const tomorrow = new Date(now);
           tomorrow.setDate(tomorrow.getDate() + 1);
           pd.min = tomorrow.toISOString().split('T')[0];
@@ -443,16 +443,20 @@
           const optHour = parseInt(opt.value.split(':')[0]);
           if (optHour <= currentHour) {
             opt.disabled = true;
-            const base = opt.text.replace(' (Unavailable)', '').replace(' (Past)', '');
-            opt.text = base + ' (Past)';
-          } else if (!opt.disabled) {
-            opt.text = opt.text.replace(' (Past)', '');
+            opt.style.display = 'none';
+          } else {
+            opt.disabled = false;
+            opt.style.display = '';
+            opt.text = opt.text.replace(' (Past)', '').replace(' (Unavailable)', '');
           }
         } else {
-          opt.text = opt.text.replace(' (Past)', '');
+          opt.style.display = '';
+          if (!opt.getAttribute('data-blocked')) {
+            opt.disabled = false;
+            opt.text = opt.text.replace(' (Past)', '');
+          }
         }
       });
-      // Clear selected time if now disabled
       if (timeSelect.value && timeSelect.options[timeSelect.selectedIndex] && timeSelect.options[timeSelect.selectedIndex].disabled) {
         timeSelect.value = '';
       }
