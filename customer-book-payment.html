@@ -365,10 +365,26 @@
     }
     if (preEventType) {
       const etEl = document.getElementById('eventType');
+      let found = false;
       for (let opt of etEl.options) {
-        if (opt.value === preEventType || opt.text === preEventType) { opt.selected = true; break; }
+        if (opt.value === preEventType || opt.text === preEventType) {
+          opt.selected = true;
+          found = true;
+          break;
+        }
+      }
+      // If not found in options, it's a custom "Other" event
+      if (!found) {
+        for (let opt of etEl.options) {
+          if (opt.value === 'Other') { opt.selected = true; break; }
+        }
+        const otherBox = document.getElementById('otherBox');
+        const otherInput = document.getElementById('otherEvent');
+        if (otherBox) otherBox.style.display = 'block';
+        if (otherInput) otherInput.value = preEventType;
       }
     }
+  
 
     // ── BLOCKED SLOTS ──
     var _blockedSlots = {};
