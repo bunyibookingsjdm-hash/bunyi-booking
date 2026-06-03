@@ -376,13 +376,23 @@
       const pd = document.getElementById('pickupDate');
       if (pd) {
         const now = new Date();
-        // If it's past 10 PM, block today too
+        let minDate;
         if (now.getHours() >= 23) {
           const tomorrow = new Date(now);
           tomorrow.setDate(tomorrow.getDate() + 1);
-          pd.min = tomorrow.toISOString().split('T')[0];
+          minDate =
+            tomorrow.getFullYear() + '-' +
+            String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' +
+            String(tomorrow.getDate()).padStart(2, '0');
         } else {
-          pd.min = now.toISOString().split('T')[0];
+          minDate =
+            now.getFullYear() + '-' +
+            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+            String(now.getDate()).padStart(2, '0');
+        }
+        pd.min = minDate;
+        if (pd.value && pd.value < minDate) {
+          pd.value = '';
         }
       }
 
@@ -436,7 +446,10 @@
       if (!timeSelect) return;
 
       const now = new Date();
-      const todayStr = now.toISOString().split('T')[0];
+      const todayStr =
+        now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
 
       Array.from(timeSelect.options).forEach(function(opt) {
         if (!opt.value) return;
@@ -550,12 +563,21 @@
       if (cart.length === 0) return;
       const eventType  = document.getElementById('eventType')  ? document.getElementById('eventType').value  : '';
       const pickupDate = document.getElementById('pickupDate') ? document.getElementById('pickupDate').value : '';
+      const minDate = document.getElementById('pickupDate').min;
+      if (pickupDate < minDate) {
+        alert('⚠️ You cannot select a past date.');
+        return;
+      }
       const pickupTime = document.getElementById('pickupTime') ? document.getElementById('pickupTime').value : '';
       const otherEvent = document.getElementById('otherEvent') ? document.getElementById('otherEvent').value : '';
       if (!eventType)  { alert('Please select an event type.'); return; }
       if (!pickupDate) { alert('Please select a pickup date.'); return; }
       if (!pickupTime) { alert('Please select a pickup time.'); return; }
-      const today = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const today =
+        now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
       if (pickupDate < today) { alert('Pickup date cannot be in the past.'); return; }
       // Block past times for today
       if (pickupDate === today) {
