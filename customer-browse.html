@@ -525,8 +525,8 @@
           var descHTML = '<div class="pkg-inclusions-text">' + shortText + '</div>';
 
           var priceHTML = hasVariants
-            ? '<div class="pkg-price-from">From &#8369;' + Math.min.apply(null, p.variants.map(function(v) { return v.price; })).toLocaleString('en-PH') + ' <span>/ head</span></div>'
-            : '<div class="pkg-price-from">&#8369;' + Number(p.price).toLocaleString('en-PH') + ' <span>/ head</span></div>';
+            ? '<div class="pkg-price-from">From &#8369;' + Math.min.apply(null, p.variants.map(function(v) { return v.price; })).toLocaleString('en-PH') + '</div>'
+            : '<div class="pkg-price-from">&#8369;' + Number(p.price).toLocaleString('en-PH') + '</div>';
 
           var catererBadge = '<div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">by <strong style="color:var(--orange);cursor:pointer;" onclick="event.stopPropagation();openModal(' + c.id + ')">' + c.name + '</strong></div>';
 
@@ -666,8 +666,8 @@
             + '<span style="font-size:0.74rem;color:var(--muted);display:none;" id="full-' + safeId + '">' + (p.inclusions || '') + '</span>'
             + (isLong ? '<button class="show-more-btn" id="btn-' + safeId + '" onclick="toggleDesc(\'' + safeId + '\')">Show more</button>' : '');
           var priceHTML = hasVariants
-            ? '<div class="pkg-price-from">From &#8369;' + Math.min.apply(null, p.variants.map(function(v) { return v.price; })).toLocaleString('en-PH') + ' <span>/ head</span></div>'
-            : '<div class="pkg-price-from">&#8369;' + Number(p.price).toLocaleString('en-PH') + ' <span>/ head</span></div>';
+            ? '<div class="pkg-price-from">From &#8369;' + Math.min.apply(null, p.variants.map(function(v) { return v.price; })).toLocaleString('en-PH') + '</div>'
+            : '<div class="pkg-price-from">&#8369;' + Number(p.price).toLocaleString('en-PH') + '</div>';
           var actionHTML = '';
           if (hasVariants) {
             actionHTML += '<button class="pkg-select-btn" id="selbtn-' + safeId + '" onclick="toggleVariantPicker(\'' + safeId + '\')">+ Add to Cart</button>';
