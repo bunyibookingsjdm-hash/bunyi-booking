@@ -232,6 +232,13 @@
       var paid = parseFloat(b.amountPaid) || 0;
       var isVerified = !!b.verified;
       var status = b.status || 'Pending Payment';
+            // Treat completed Cash on Pick-up orders as verified
+      if (
+        b.platform === 'Cash on Pick-up' &&
+        b.status === 'Order Completed'
+      ) {
+        isVerified = true;
+      }
       var isPartial = status === 'Partially Paid';
       var hasReceipt2 = !!(b.receipt2 && b.receipt2 !== 'undefined' && b.receipt2 !== 'null');
       // Show split layout if partial OR customer already submitted remaining
@@ -356,17 +363,26 @@
       var filtered = allBookings.slice().reverse();
 
       if (currentFilter === 'pending') {
-        // Pending = Partially Paid OR unverified OR receipt2 submitted but not confirmed yet
+
         filtered = filtered.filter(function(b) {
-          var hasR2 = !!(b.receipt2 && b.receipt2 !== 'undefined' && b.receipt2 !== 'null');
-          var fullyDone = !!b.verified && b.status === 'Fully Paid' && hasR2;
-          var simpleVerified = !!b.verified && b.status === 'Fully Paid' && !hasR2;
-          return !fullyDone && !simpleVerified;
+
+          // Completed orders should not be pending
+          if (b.status === 'Order Completed') {
+            return false;
+          }
+          // Verified payments should not be pending
+          if (b.verified === true) {
+            return false;
+          }
+          return true;
         });
-      } else if (currentFilter === 'verified') {
-        // Verified = caterer verified AND status is Fully Paid
+      } 
+      else if (currentFilter === 'verified') {
         filtered = filtered.filter(function(b) {
-          return !!b.verified && b.status === 'Fully Paid';
+          return (
+            b.verified === true ||
+            b.status === 'Order Completed'
+          );
         });
       }
 
