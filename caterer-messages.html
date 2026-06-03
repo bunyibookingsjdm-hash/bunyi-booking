@@ -417,12 +417,14 @@
       document.getElementById('chatMessages').innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>Select a conversation to start chatting</p></div>';
     }
 
-    loadSession();
+   loadSession().then(function() {
+      setInterval(loadMessages, 2000);
+      setInterval(loadConversations, 5000);
+    });
 
     loadNotifications();
-    setInterval(loadMessages, 2000);
-    setInterval(loadConversations, 5000);
     setInterval(loadNotifications, 5000);
+    
   </script>
 </body>
 </html>
