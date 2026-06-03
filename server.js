@@ -789,6 +789,7 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   }).catch(e => {});
   if (paymentType === 'full') { addNotification('booking', '🎉 Booking confirmed! Full payment received for your event on ' + date + '.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Full payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
   else { addNotification('booking', '✅ Booking submitted! Down payment received for your event on ' + date + '. Remaining balance due 7 days before the event.', req.session.user ? req.session.user.email : null); addCatererNotification(caterer, 'booking', '📦 New booking received! Down payment from a customer for ' + (finalEvent || 'an event') + ' on ' + date + '.'); }
+  res.redirect('/booking-success?caterer=' + encodeURIComponent(caterer) + '&status=' + encodeURIComponent(status) + '&date=' + date + '&bookingId=' + encodeURIComponent(bookingId));
 });
 
 app.get('/payment', (req, res) => {
@@ -1508,6 +1509,13 @@ app.get('/blocked-slots', (req, res) => {
     recurringDays: recurringDaysByBusiness[caterer] || [],
     maxOrders: maxOrdersByBusiness[caterer] || 1
   });
+});
+
+app.get('/caterer-qr-codes', (req, res) => {
+  const { caterer } = req.query;
+  if (!caterer) return res.json([]);
+  const found = caterers.find(c => c.name === caterer || c.name === decodeURIComponent(caterer));
+  res.json(found ? (found.qrCodes || []) : []);
 });
 
 // Updated booked-times: respects maxOrders
