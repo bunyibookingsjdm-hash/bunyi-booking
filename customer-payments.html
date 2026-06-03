@@ -384,13 +384,24 @@
     }
 
     async function loadPayments() {
-      var res = await fetch('/bookings');
-      allBookings = await res.json();
-      var params = new URLSearchParams(window.location.search);
-      var filterParam = params.get('filter');
-      if (filterParam === 'pending') { applyFilter('pending', document.getElementById('btnPending')); }
-      else if (filterParam === 'verified') { applyFilter('verified', document.getElementById('btnVerified')); }
-      else { applyFilter('all', document.getElementById('btnAll')); }
+      try {
+        const sessionRes = await fetch('/session-user');
+        const sessionUser = await sessionRes.json();
+        var res = await fetch('/bookings');
+        const allData = await res.json();
+        // Filter only this user's bookings
+        allBookings = allData.filter(function(b) {
+          return b.senderEmail === sessionUser.email ||
+                 b.sender === sessionUser.name;
+        });
+        var params = new URLSearchParams(window.location.search);
+        var filterParam = params.get('filter');
+        if (filterParam === 'pending') { applyFilter('pending', document.getElementById('btnPending')); }
+        else if (filterParam === 'verified') { applyFilter('verified', document.getElementById('btnVerified')); }
+        else { applyFilter('all', document.getElementById('btnAll')); }
+      } catch(e) {
+        document.getElementById('paymentsList').innerHTML = '<p style="color:var(--muted);font-size:0.88rem;">Error loading payments.</p>';
+      }
     }
 
     function loadCartBadge() {
