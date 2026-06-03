@@ -344,11 +344,20 @@
       var name=document.getElementById('pkgName').value.trim(); var category=document.getElementById('pkgCategory').value; var price=document.getElementById('pkgPrice').value.trim(); var inclusions=document.getElementById('pkgInclusions').value.trim(); var imageFile=document.getElementById('pkgImage').files[0]; var errorBox=document.getElementById('modalError'); var variantRows=document.getElementById('variantRows').children; var hasVariants=variantRows.length>0;
       if(!name||!inclusions){errorBox.textContent='Please fill in all required fields.';errorBox.style.display='block';return;}
       if(!hasVariants&&!price){errorBox.textContent='Please enter a price or add variants.';errorBox.style.display='block';return;}
+      if(!hasVariants&&parseFloat(price)<=0){errorBox.textContent='Price must be greater than 0. Negative values are not allowed.';errorBox.style.display='block';return;}
       if(editIndex===-1&&!imageFile){errorBox.textContent='Product photo is required.';errorBox.style.display='block';return;}
       errorBox.style.display='none';
       var saveBtn=document.getElementById('saveBtn'); saveBtn.disabled=true; saveBtn.textContent='Saving...';
       var fd=new FormData(); fd.append('name',name); fd.append('category',category); fd.append('price',hasVariants?'0':price); fd.append('inclusions',inclusions); if(imageFile)fd.append('image',imageFile);
-      for(var i=0;i<variantRows.length;i++){var inputs=variantRows[i].querySelectorAll('input');fd.append('variantNames',inputs[0].value.trim());fd.append('variantPrices',inputs[1].value.trim());}
+      for(var i=0;i<variantRows.length;i++){
+      var inputs=variantRows[i].querySelectorAll('input');
+      var vName=inputs[0].value.trim();
+      var vPrice=parseFloat(inputs[1].value);
+      if(!vName){errorBox.textContent='Please enter a name for all variants.';errorBox.style.display='block';saveBtn.disabled=false;saveBtn.textContent='Save Product';return;}
+      if(isNaN(vPrice)||vPrice<=0){errorBox.textContent='Variant prices must be greater than 0. Negative values are not allowed.';errorBox.style.display='block';saveBtn.disabled=false;saveBtn.textContent='Save Product';return;}
+      fd.append('variantNames',vName);
+      fd.append('variantPrices',inputs[1].value.trim());
+    }
       try { var url=editIndex===-1?'/caterer-package/add':'/caterer-package/edit'; if(editIndex!==-1)fd.append('index',editIndex); var res=await fetch(url,{method:'POST',body:fd}); var data=await res.json(); if(data.success){myCaterer.packages=data.packages;renderProducts();closeModal();}else{errorBox.textContent=data.error||'Something went wrong.';errorBox.style.display='block';} } catch(e){errorBox.textContent='Failed to save. Please try again.';errorBox.style.display='block';}
       saveBtn.disabled=false; saveBtn.textContent='Save Product';
     }
