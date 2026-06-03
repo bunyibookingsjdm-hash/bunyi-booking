@@ -289,8 +289,8 @@
               <span class="platform-opt-label">Maya</span>
             </label>
             <label class="platform-opt">
-              <input type="radio" name="platform" value="Cash" onchange="toggleOtherPlatform(this)">
-              <span class="platform-opt-label">Cash</span>
+              <input type="radio" name="platform" value="Cash on Pick-up" onchange="toggleOtherPlatform(this)">
+              <span class="platform-opt-label">Cash on Pick-up</span>
             </label>
             <label class="platform-opt">
               <input type="radio" name="platform" value="Other" onchange="toggleOtherPlatform(this)">
@@ -617,7 +617,7 @@
       const receiptGroup = document.getElementById('receiptGroup');
       const receiptFile = document.getElementById('receiptFile');
       const cashNote = document.getElementById('cashNote');
-      const isCash = radio.value === 'Cash';
+      const isCash = radio.value === 'Cash on Pick-up';
       const isOther = radio.value === 'Other';
       // Other platform box
       box.style.display = isOther ? 'block' : 'none';
