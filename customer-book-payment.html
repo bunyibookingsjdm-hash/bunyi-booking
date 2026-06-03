@@ -289,6 +289,10 @@
               <span class="platform-opt-label">Maya</span>
             </label>
             <label class="platform-opt">
+              <input type="radio" name="platform" value="Cash" onchange="toggleOtherPlatform(this)">
+              <span class="platform-opt-label">Cash</span>
+            </label>
+            <label class="platform-opt">
               <input type="radio" name="platform" value="Other" onchange="toggleOtherPlatform(this)">
               <span class="platform-opt-label">Other</span>
             </label>
@@ -297,13 +301,16 @@
             <input type="text" name="otherPlatform" id="otherPlatformInput" placeholder="e.g. Maya, Palawan, etc.">
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="referenceGroup">
           <label for="reference">Reference Number</label>
-          <input type="text" name="reference" id="reference" placeholder="e.g. 123456789" required>
+          <input type="text" name="reference" id="reference" placeholder="e.g. 123456789">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="receiptGroup">
           <label>Upload Receipt</label>
-          <input type="file" name="receipt" accept="image/*,.pdf" required>
+          <input type="file" name="receipt" id="receiptFile" accept="image/*,.pdf">
+        </div>
+        <div id="cashNote" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:14px 16px;font-size:0.86rem;color:#16a34a;font-weight:500;margin-bottom:16px;">
+          💵 You selected Cash payment. Please prepare the exact amount upon pick-up. No receipt upload needed.
         </div>
 
         <div class="divider"></div>
@@ -605,8 +612,22 @@
     function toggleOtherPlatform(radio) {
       const box = document.getElementById('otherPlatformBox');
       const inp = document.getElementById('otherPlatformInput');
-      if (radio.value === 'Other') { box.style.display = 'block'; inp.required = true; }
-      else { box.style.display = 'none'; inp.required = false; }
+      const refGroup = document.getElementById('referenceGroup');
+      const refInput = document.getElementById('reference');
+      const receiptGroup = document.getElementById('receiptGroup');
+      const receiptFile = document.getElementById('receiptFile');
+      const cashNote = document.getElementById('cashNote');
+      const isCash = radio.value === 'Cash';
+      const isOther = radio.value === 'Other';
+      // Other platform box
+      box.style.display = isOther ? 'block' : 'none';
+      inp.required = isOther;
+      // Hide reference and receipt for Cash
+      refGroup.style.display = isCash ? 'none' : 'block';
+      refInput.required = !isCash;
+      receiptGroup.style.display = isCash ? 'none' : 'block';
+      receiptFile.required = !isCash;
+      cashNote.style.display = isCash ? 'block' : 'none';
     }
 
     // ── QR CODES ──
