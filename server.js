@@ -867,14 +867,12 @@ app.get('/messages', async (req, res) => {
 
   try {
     if (resolvedEmail) {
-      // Get one specific conversation
       const doc = await mdb.collection('messages').findOne({ 
         userEmail: resolvedEmail, 
         caterer: caterer 
       });
       return res.json(doc ? doc.items : []);
     } else {
-      // Caterer fetching all conversations list
       const docs = await mdb.collection('messages').find({ caterer }).toArray();
       return res.json(docs);
     }
