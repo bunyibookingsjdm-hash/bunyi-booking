@@ -856,7 +856,11 @@ app.get('/messages', async (req, res) => {
         userEmail: resolvedEmail, 
         caterer: caterer 
       });
-      return res.json(doc ? doc.items : []);
+      const tagged = (doc ? doc.items : []).map(item => ({
+        ...item,
+        isCustomerMessage: item.sender !== doc.caterer
+      }));
+      return res.json(tagged);
     } else {
       const docs = await mdb.collection('messages').find({ caterer }).toArray();
       return res.json(docs);

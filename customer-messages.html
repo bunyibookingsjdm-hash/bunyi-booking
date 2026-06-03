@@ -293,7 +293,7 @@
           }
           const timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
           // CORRECT FIX: if sender matches current user name OR email = my message = right side orange
-          const isMe = (m.sender === currentUserName) || (m.sender === currentUserEmail);
+          const isMe = m.isCustomerMessage === true;
           const div = document.createElement('div');
           div.className = 'msg-row ' + (isMe ? 'me' : 'them');
           div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
