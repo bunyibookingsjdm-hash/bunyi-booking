@@ -59,14 +59,9 @@
     .mobile-nav a { display: block; color: #aaa; text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 12px 14px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
     .mobile-nav a:hover, .mobile-nav a.active { color: var(--white); background: rgba(255,255,255,0.18); }
     @media (max-width: 700px) { .header { padding: 0 16px; } .header-nav { display: none !important; } .hamburger-btn { display: flex !important; } }
-    /* ── RESPONSIVE CHAT LAYOUT FOR ALL DEVICES ── */
-    @media (max-width: 1024px) {
-      .chat-sidebar { width: 260px; }
-    }
-    @media (max-width: 900px) {
-      .chat-sidebar { width: 220px; }
-    }
- .back-btn { display: none; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--orange); font-family: 'Poppins', sans-serif; font-weight: 600; margin-right: 6px; padding: 4px 0; }
+    @media (max-width: 1024px) { .chat-sidebar { width: 260px; } }
+    @media (max-width: 900px) { .chat-sidebar { width: 220px; } }
+    .back-btn { display: none; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--orange); font-family: 'Poppins', sans-serif; font-weight: 600; margin-right: 6px; padding: 4px 0; }
     @media (max-width: 768px) {
       .chat-layout { position: relative; overflow: hidden; }
       .chat-sidebar { width: 100% !important; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; display: flex !important; }
@@ -83,7 +78,6 @@
       .bubble { font-size: 0.85rem; padding: 9px 12px; }
       .msg-row { max-width: 85%; }
     }
-    @media (min-width: 769px) { .back-btn { display: none !important; } }
     .chat-layout { display: flex; flex: 1; overflow: hidden; }
     .chat-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--white); display: flex; flex-direction: column; overflow: hidden; }
     .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--white); flex-shrink: 0; }
@@ -208,9 +202,10 @@
     var activeCustomer = null;
     var allConvos = [];
 
-    function formatTime(ts) { var d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
-    function formatSidebarTime(ts) { var d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); var now = new Date(); var diff = now - d; if (diff < 86400000) return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
+    function formatTime(ts) { var d = new Date(ts); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
+    function formatSidebarTime(ts) { var d = new Date(ts); var now = new Date(); var diff = now - d; if (diff < 86400000) return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
 
+    // INIT: load session first, then conversations, then start polling
     async function loadSession() {
       try {
         var res = await fetch('/caterer-session');
@@ -218,44 +213,54 @@
         if (!session.loggedIn) { window.location.href = '/caterer-login'; return; }
         myBusinessName = session.businessName;
         var avatarEl = document.getElementById('profileAvatar');
-        if (session.photo) { avatarEl.style.background = 'none'; avatarEl.style.padding = '0'; avatarEl.style.overflow = 'hidden'; avatarEl.innerHTML = '<img src="' + session.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
-        else { avatarEl.textContent = session.businessName.charAt(0).toUpperCase(); }
+        if (session.photo) {
+          avatarEl.style.background = 'none';
+          avatarEl.style.overflow = 'hidden';
+          avatarEl.innerHTML = '<img src="' + session.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        } else {
+          avatarEl.textContent = session.businessName.charAt(0).toUpperCase();
+        }
         document.getElementById('dropdownName').textContent = session.businessName;
         document.getElementById('dropdownEmail').textContent = session.email;
-        loadConversations();
+        // Load conversations only AFTER myBusinessName is set
+        await loadConversations();
+        // Start polling AFTER session is ready
+        setInterval(function() { loadMessages(); }, 2000);
+        setInterval(function() { loadConversations(); }, 5000);
       } catch(e) {}
     }
 
     async function loadConversations() {
-        try {
-          const docs = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName))
-            .then(r => r.json());
-          
-          allConvos = docs.map(function(doc) {
-            const items = doc.items || [];
-            const last = items[items.length - 1];
-            // Get display name from last customer message
-            const customerMsg = items.find(function(m) { return m.sender !== myBusinessName; });
-            return {
-              name: customerMsg ? customerMsg.sender : doc.userEmail,
-              displayName: customerMsg ? customerMsg.sender : doc.userEmail,
-              userEmail: doc.userEmail,
-              lastMessage: last ? last.text : '',
-              lastTime: last ? last.timestamp : doc.updatedAt
-            };
-          });
-          renderSidebar();
-        } catch(e) {}
-      }
+      if (!myBusinessName) return;
+      try {
+        var docs = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName)).then(function(r) { return r.json(); });
+        allConvos = docs.map(function(doc) {
+          var items = doc.items || [];
+          var last = items[items.length - 1];
+          var customerMsg = items.find(function(m) { return m.sender !== myBusinessName; });
+          return {
+            name: customerMsg ? customerMsg.sender : doc.userEmail,
+            displayName: customerMsg ? customerMsg.sender : doc.userEmail,
+            userEmail: doc.userEmail,
+            lastMessage: last ? last.text : '',
+            lastTime: last ? last.timestamp : doc.updatedAt
+          };
+        });
+        renderSidebar();
+      } catch(e) {}
+    }
 
     function renderSidebar() {
       var list = document.getElementById('sidebarList');
-      if (allConvos.length === 0) { list.innerHTML = '<div class="sidebar-empty">No conversations yet.<br>Customers will appear here when they message you.</div>'; return; }
+      if (allConvos.length === 0) {
+        list.innerHTML = '<div class="sidebar-empty">No conversations yet.<br>Customers will appear here when they message you.</div>';
+        return;
+      }
       list.innerHTML = '';
       allConvos.forEach(function(c) {
         var div = document.createElement('div');
         div.className = 'convo-item' + (activeCustomer === c.name ? ' active' : '');
-        div.innerHTML = '<div class="convo-avatar">' + c.name.charAt(0).toUpperCase() + '</div>'
+        div.innerHTML = '<div class="convo-avatar">' + (c.displayName || c.name).charAt(0).toUpperCase() + '</div>'
           + '<div class="convo-info"><div class="convo-name">' + (c.displayName || c.name) + '</div>'
           + '<div class="convo-last">' + (c.lastMessage || '') + '</div></div>'
           + '<div class="convo-time">' + formatSidebarTime(c.lastTime) + '</div>';
@@ -273,7 +278,7 @@
       filtered.forEach(function(c) {
         var div = document.createElement('div');
         div.className = 'convo-item' + (activeCustomer === c.name ? ' active' : '');
-        div.innerHTML = '<div class="convo-avatar">' + c.name.charAt(0).toUpperCase() + '</div>'
+        div.innerHTML = '<div class="convo-avatar">' + (c.displayName || c.name).charAt(0).toUpperCase() + '</div>'
           + '<div class="convo-info"><div class="convo-name">' + (c.displayName || c.name) + '</div>'
           + '<div class="convo-last">' + (c.lastMessage || '') + '</div></div>'
           + '<div class="convo-time">' + formatSidebarTime(c.lastTime) + '</div>';
@@ -293,17 +298,14 @@
       document.querySelector('.chat-main').classList.add('show-mobile');
       await loadMessages();
     }
-    
+
     async function loadMessages() {
-      if (!activeCustomer) return;
+      if (!activeCustomer || !myBusinessName) return;
       try {
         var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
         var activeEmail = activeConvo ? activeConvo.userEmail : null;
         if (!activeEmail) return;
-
-        var items = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName) + '&userEmail=' + encodeURIComponent(activeEmail))
-          .then(r => r.json());
-
+        var items = await fetch('/messages?caterer=' + encodeURIComponent(myBusinessName) + '&userEmail=' + encodeURIComponent(activeEmail)).then(function(r) { return r.json(); });
         var box = document.getElementById('chatMessages');
         if (!items || items.length === 0) {
           box.innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>No messages yet.</p></div>';
@@ -323,7 +325,8 @@
             box.appendChild(sep);
           }
           var timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-          var isMe = m.sender === myBusinessName;
+          // CORRECT: caterer's own messages = right side orange
+          var isMe = (m.sender === myBusinessName);
           var div = document.createElement('div');
           div.className = 'msg-row ' + (isMe ? 'me' : 'them');
           div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
@@ -336,7 +339,7 @@
     async function sendMessage() {
       var input = document.getElementById('msgInput');
       var text = input.value.trim();
-      if (!text || !activeCustomer) return;
+      if (!text || !activeCustomer || !myBusinessName) return;
       try {
         var activeConvo = allConvos.find(function(c) { return c.name === activeCustomer; });
         var activeUserEmail = activeConvo ? activeConvo.userEmail : null;
@@ -344,11 +347,7 @@
         await fetch('/send-message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            caterer: myBusinessName,
-            text: text,
-            userEmail: activeUserEmail
-          })
+          body: JSON.stringify({ caterer: myBusinessName, text: text, userEmail: activeUserEmail })
         });
         input.value = '';
         await loadMessages();
@@ -357,21 +356,22 @@
       } catch(e) {}
     }
 
-    document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.activeElement === document.getElementById('msgInput')) sendMessage(); });
-
-    function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
-    async function toggleNotifDropdown() { const dd = document.getElementById('notifDropdown'); document.getElementById('profileDropdown').classList.remove('open'); dd.classList.toggle('open'); if (dd.classList.contains('open')) { await loadNotifications(); } }
-    document.addEventListener('click', function(e) {
-      var nw=document.querySelector('.notif-wrapper'); var pw=document.querySelector('.profile-wrapper');
-      if(nw&&!nw.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
-      if(pw&&!pw.contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
-      var nav=document.getElementById('mobileNav'); var btn=document.getElementById('hamburgerBtn');
-      if(nav&&btn&&!nav.contains(e.target)&&!btn.contains(e.target)) nav.classList.remove('open');
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && document.activeElement === document.getElementById('msgInput')) sendMessage();
     });
 
-    function toggleMobileNav(){document.getElementById('mobileNav').classList.toggle('open');}
+    function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
+    async function toggleNotifDropdown() { var dd = document.getElementById('notifDropdown'); document.getElementById('profileDropdown').classList.remove('open'); dd.classList.toggle('open'); if (dd.classList.contains('open')) { await loadNotifications(); } }
+    document.addEventListener('click', function(e) {
+      var nw = document.querySelector('.notif-wrapper'); var pw = document.querySelector('.profile-wrapper');
+      if (nw && !nw.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+      if (pw && !pw.contains(e.target)) document.getElementById('profileDropdown').classList.remove('open');
+      var nav = document.getElementById('mobileNav'); var btn = document.getElementById('hamburgerBtn');
+      if (nav && btn && !nav.contains(e.target) && !btn.contains(e.target)) nav.classList.remove('open');
+    });
+    function toggleMobileNav() { document.getElementById('mobileNav').classList.toggle('open'); }
 
-    function formatNotifTime(ts) { var d = ts && ts.toDate ? ts.toDate() : (ts && ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts)); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
+    function formatNotifTime(ts) { var d = new Date(ts); return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }); }
     async function loadNotifications() {
       try {
         var res = await fetch('/caterer-notifications');
@@ -389,18 +389,14 @@
           a.href = '#';
           a.onclick = function(e) {
             e.preventDefault();
-            fetch('/caterer-read-notification', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id: n.id })
-            })
-            .then(function() { 
-              var text = (n.text || '').toLowerCase();
-              if (text.includes('payment') || text.includes('verify')) { window.location.href = '/caterer-bookings?filter=pending'; }
-              else if (text.includes('booking')) { window.location.href = '/caterer-bookings'; }
-              else if (text.includes('message') || text.includes('chat')) { window.location.href = '/caterer-messages'; }
-              else { window.location.href = '/caterer-dashboard'; }
-            });
+            fetch('/caterer-read-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) })
+              .then(function() {
+                var text = (n.text || '').toLowerCase();
+                if (text.includes('payment') || text.includes('verify')) { window.location.href = '/caterer-bookings?filter=pending'; }
+                else if (text.includes('booking')) { window.location.href = '/caterer-bookings'; }
+                else if (text.includes('message') || text.includes('chat')) { window.location.href = '/caterer-messages'; }
+                else { window.location.href = '/caterer-dashboard'; }
+              });
           };
           a.innerHTML = '<div class="notif-text">' + n.text + '</div><div class="notif-time">' + formatNotifTime(n.createdAt) + '</div>';
           list.appendChild(a);
@@ -417,15 +413,12 @@
       document.getElementById('chatMessages').innerHTML = '<div class="empty-chat"><div class="empty-chat-icon">💬</div><p>Select a conversation to start chatting</p></div>';
     }
 
-   loadSession().then(function() {
-      setInterval(loadMessages, 2000);
-      setInterval(loadConversations, 5000);
-    });
-
+    // START: session loads everything in correct order
+    loadSession();
     loadNotifications();
     setInterval(loadNotifications, 5000);
-    
   </script>
 </body>
 </html>
+
 

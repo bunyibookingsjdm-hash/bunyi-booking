@@ -124,21 +124,6 @@ setInterval(() => {
   });
 }, 24 * 60 * 60 * 1000);
 
-setInterval(() => {
-  const now = new Date(); now.setHours(0, 0, 0, 0);
-  bookings.forEach(b => {
-    if (b.status === 'Partially Paid') {
-      const eventDate = new Date(b.date + 'T00:00:00');
-      const daysUntilEvent = Math.ceil((eventDate - now) / (1000 * 60 * 60 * 24));
-      const dueDate = new Date(eventDate); dueDate.setDate(dueDate.getDate() - 7);
-      const daysUntilDue = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
-      if (daysUntilDue === 10) addNotification('reminder', '⏰ Reminder: Your remaining balance for your event on ' + b.date + ' is due in 10 days (' + dueDate.toLocaleDateString('en-PH', { month: 'long', day: 'numeric' }) + '). Please prepare your payment.');
-      if (daysUntilDue <= 0 && daysUntilEvent >= 0) addNotification('reminder', '🚨 Urgent: Your remaining balance for your event on ' + b.date + ' is now due! Please complete your payment immediately.');
-      if (daysUntilEvent === 3) addNotification('reminder', '⚠️ Final Reminder: Your event is in 3 days (' + b.date + '). Please settle your remaining balance as soon as possible.');
-    }
-  });
-}, 24 * 60 * 60 * 1000);
-
 let caterers = [], reviews = [], reviewIdCounter = 1;
 
 const sharedCSS = `

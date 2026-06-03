@@ -213,6 +213,8 @@
         const res = await fetch('/session-user');
         const data = await res.json();
         if (data && data.name) {
+          currentUserName = data.name;
+          currentUserEmail = data.email || '';
           const avatarEl = document.getElementById('accountAvatar');
           if (data.photo) {
             avatarEl.style.background = 'none';
@@ -222,19 +224,12 @@
           }
           document.getElementById('accountDropdownName').textContent = data.name;
           document.getElementById('accountDropdownEmail').textContent = data.email || '';
-          currentUserName = data.name;
-          currentUserEmail = data.email;
         }
       } catch(e) {}
     }
 
     async function loadSidebar() {
       try {
-        if (!currentUserEmail) {
-          const r = await fetch('/session-user');
-          const d = await r.json();
-          if (d) { currentUserEmail = d.email; currentUserName = d.name; }
-        }
         const res = await fetch('/chats-data');
         const data = await res.json();
         const list = document.getElementById('sidebarList');
@@ -297,7 +292,8 @@
             box.appendChild(sep);
           }
           const timeStr = ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-          const isMe = m.sender === currentUserName || m.sender === currentUserEmail;
+          // CORRECT FIX: if sender matches current user name OR email = my message = right side orange
+          const isMe = (m.sender === currentUserName) || (m.sender === currentUserEmail);
           const div = document.createElement('div');
           div.className = 'msg-row ' + (isMe ? 'me' : 'them');
           div.innerHTML = '<div class="bubble">' + m.text + '</div><div class="msg-time">' + timeStr + '</div>';
@@ -311,11 +307,6 @@
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (!text || !activeCaterer) return;
-      if (!currentUserEmail) {
-        const r = await fetch('/session-user');
-        const d = await r.json();
-        if (d) { currentUserEmail = d.email; currentUserName = d.name; }
-      }
       await fetch('/send-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -420,15 +411,15 @@
       document.getElementById('emptyPanel').style.display = 'flex';
     }
 
-    // Init - load user info first, then sidebar
+    // INIT: load user info FIRST, then everything else
     loadUserInfo().then(() => {
       loadSidebar().then(() => {
         if (activeCaterer) openChat(activeCaterer);
       });
+      setInterval(() => { loadMessages(); loadSidebar(); }, 2000);
     });
     loadCartBadge();
     loadNotifications();
-    setInterval(() => { loadMessages(); loadSidebar(); }, 2000);
     setInterval(loadNotifications, 5000);
   </script>
 </body>
