@@ -1511,6 +1511,36 @@ app.get('/blocked-slots', (req, res) => {
   });
 });
 
+// ── READY FOR PICK-UP ──
+app.post('/caterer-ready-pickup', requireCaterer, async (req, res) => {
+  const { index } = req.body;
+  const mine = bookings.filter(b => b.caterer === req.session.caterer.businessName);
+  const booking = mine[parseInt(index)];
+  if (!booking) return res.status(404).json({ error: 'Booking not found' });
+  booking.status = 'Ready for Pick-up';
+  try {
+    const { ObjectId } = require('mongodb');
+    await mdb.collection('bookings').updateOne({ _id: new ObjectId(booking.id) }, { $set: { status: 'Ready for Pick-up' } });
+  } catch(e) {}
+  addNotification('pickup', '🚀 Your order from ' + booking.caterer + ' is ready for pick-up! Please pick it up on ' + booking.date + '.', booking.senderEmail);
+  res.json({ success: true });
+});
+
+// ── CUSTOMER MARK AS RECEIVED ──
+app.post('/customer-mark-received', requireLogin, async (req, res) => {
+  const { bookingId } = req.body;
+  const booking = bookings.find(b => b.bookingId === bookingId || b.id === bookingId);
+  if (!booking) return res.status(404).json({ error: 'Booking not found' });
+  booking.status = 'Order Completed';
+  booking.receivedAt = new Date();
+  try {
+    const { ObjectId } = require('mongodb');
+    await mdb.collection('bookings').updateOne({ _id: new ObjectId(booking.id) }, { $set: { status: 'Order Completed', receivedAt: booking.receivedAt } });
+  } catch(e) {}
+  addCatererNotification(booking.caterer, 'completed', '✅ Order Completed — ' + booking.sender + ' confirmed receipt for booking ' + booking.bookingId + ' on ' + booking.date + '.');
+  res.json({ success: true });
+});
+
 app.get('/caterer-qr-codes', (req, res) => {
   const { caterer } = req.query;
   if (!caterer) return res.json([]);

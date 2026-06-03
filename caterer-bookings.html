@@ -275,10 +275,23 @@
       // ── Standard single-payment layout (no split needed) ──
       if (!showSplit) {
         var verifySection = '';
-        if (!isVerified) {
+        if (b.status === 'Order Completed') {
+          verifySection = '<div class="card-verify-row" style="background:#f0fdf4;border-top:1.5px solid #86efac;">'
+            + '<span class="verify-note" style="color:var(--green);font-weight:600;">✅ Order Completed — Customer confirmed receipt on ' + (b.receivedAt ? new Date(b.receivedAt).toLocaleDateString('en-PH', {month:'long',day:'numeric',year:'numeric'}) : 'confirmed') + '</span>'
+            + '</div>';
+        } else if (b.status === 'Ready for Pick-up') {
+          verifySection = '<div class="card-verify-row" style="background:#fff8f0;border-top:1.5px solid #ffd0bc;">'
+            + '<span class="verify-note" style="color:var(--orange);font-weight:600;">🚀 Marked as Ready for Pick-up — Awaiting customer confirmation</span>'
+            + '</div>';
+        } else if (!isVerified) {
           verifySection = '<div class="card-verify-row">'
             + '<span class="verify-note">⏳ Payment awaiting verification</span>'
             + '<button class="verify-btn" onclick="verifyBooking(' + mineIdx + ',' + globalIdx + ',this)">✓ Verify Payment</button>'
+            + '</div>';
+        } else if (isVerified && (b.status === 'Fully Paid' || b.platform === 'Cash on Pick-up')) {
+          verifySection = '<div class="card-verify-row" style="background:#fff8f0;border-top:1.5px solid #ffd0bc;">'
+            + '<span class="verify-note" style="color:var(--green);">✓ Payment Verified</span>'
+            + '<button class="verify-btn" style="background:var(--orange);" onclick="markReadyPickup(' + mineIdx + ',' + globalIdx + ',this)">🚀 Ready for Pick-up</button>'
             + '</div>';
         }
         return '<div class="booking-card fade-in" id="' + bookingAnchor + '">'
@@ -411,6 +424,19 @@
           renderBookings();
         } else { btn.disabled = false; btn.textContent = '✓ Verify Payment'; }
       } catch(e) { btn.disabled = false; btn.textContent = '✓ Verify Payment'; }
+    }
+
+    async function markReadyPickup(mineIdx, globalIdx, btn) {
+      if (!confirm('Mark this booking as Ready for Pick-up?')) return;
+      btn.disabled = true; btn.textContent = 'Updating...';
+      try {
+        var res = await fetch('/caterer-ready-pickup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ index: mineIdx }) });
+        var data = await res.json();
+        if (data.success) {
+          allBookings[globalIdx].status = 'Ready for Pick-up';
+          renderBookings();
+        } else { btn.disabled = false; btn.textContent = '🚀 Ready for Pick-up'; }
+      } catch(e) { btn.disabled = false; btn.textContent = '🚀 Ready for Pick-up'; }
     }
 
     function applyFilter(filter, btn) {

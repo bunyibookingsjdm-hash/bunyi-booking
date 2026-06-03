@@ -380,16 +380,6 @@
         badge.style.display = total > 0 ? 'inline-block' : 'none';
       } catch(e) {}
     }
-    
-    function loadCartBadge() {
-      try {
-        const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]');
-        const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
-        const badge = document.getElementById('cartBadge');
-        badge.textContent = total;
-        badge.style.display = total > 0 ? 'inline-block' : 'none';
-      } catch(e) {}
-    }
 
     async function loadUserInfo() {
       try {
