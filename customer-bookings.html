@@ -310,7 +310,10 @@
 
     function renderBookings(data) {
       const now = new Date(); now.setHours(0,0,0,0);
-      const todayStr = now.toISOString().split('T')[0];
+      const todayStr =
+        now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
       document.getElementById('eventsContainer').innerHTML =
         sectionHTML('Today', data.filter(b => b.date === todayStr), 'today', '🔴') +
         sectionHTML('Upcoming', data.filter(b => b.date > todayStr && b.status !== 'Ready for Pick-up' && b.status !== 'Order Completed'), 'upcoming', '📅') +
