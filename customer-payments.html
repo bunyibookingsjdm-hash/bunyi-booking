@@ -248,11 +248,29 @@
 
       var hdrClass = isFullyDone ? 'hdr-verified' : (isPartial ? 'hdr-partial' : (isVerified && status === 'Fully Paid' ? 'hdr-verified' : 'hdr-pending'));
       var badgeText, badgeClass;
-      if (isFullyDone) { badgeText = '✓ Verified'; badgeClass = 'badge-verified'; }
-      else if (isVerified && status === 'Fully Paid') { badgeText = '✓ Verified'; badgeClass = 'badge-verified'; }
-      else if (status === 'Fully Paid') { badgeText = 'Fully Paid'; badgeClass = 'badge-paid'; }
-      else if (isPartial) { badgeText = 'Partially Paid'; badgeClass = 'badge-partial'; }
-      else { badgeText = 'Pending Verification'; badgeClass = 'badge-pending'; }
+      if (isFullyDone) {
+          badgeText = '✓ Verified';
+          badgeClass = 'badge-verified';
+        }
+        else if (
+          (isVerified && status === 'Fully Paid') ||
+          status === 'Order Completed'
+        ) {
+          badgeText = '✓ Verified';
+          badgeClass = 'badge-verified';
+        }
+        else if (status === 'Fully Paid') {
+          badgeText = 'Fully Paid';
+          badgeClass = 'badge-paid';
+        }
+        else if (isPartial) {
+          badgeText = 'Partially Paid';
+          badgeClass = 'badge-partial';
+        }
+        else {
+          badgeText = 'Pending Verification';
+          badgeClass = 'badge-pending';
+        }
 
       var receipt1HTML = (b.receipt && b.receipt !== 'undefined' && b.receipt !== 'null')
         ? '<a href="' + b.receipt + '" target="_blank" class="receipt-link">📎 View Receipt</a>'
