@@ -1536,9 +1536,19 @@ app.post('/caterer-ready-pickup', requireCaterer, async (req, res) => {
 app.post('/customer-mark-received', requireLogin, async (req, res) => {
   const { bookingId } = req.body;
   const booking = bookings.find(b => b.bookingId === bookingId || b.id === bookingId);
-  if (!booking) return res.status(404).json({ error: 'Booking not found' });
-  booking.status = 'Order Completed';
-  booking.receivedAt = new Date();
+  if (!booking) {
+  return res.status(404).json({ error: 'Booking not found' });
+}
+
+// Customer can only confirm receipt if caterer already marked it ready
+if (booking.status !== 'Ready for Pick-up') {
+  return res.status(400).json({
+    error: 'Order is not yet ready for pick-up.'
+  });
+}
+
+booking.status = 'Order Completed';
+booking.receivedAt = new Date();
   try {
     const { ObjectId } = require('mongodb');
     await mdb.collection('bookings').updateOne({ _id: new ObjectId(booking.id) }, { $set: { status: 'Order Completed', receivedAt: booking.receivedAt } });
