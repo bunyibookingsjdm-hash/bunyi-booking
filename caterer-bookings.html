@@ -188,10 +188,15 @@
       <input type="text" id="searchInput" placeholder="Search by Customer name or Booking ID..." oninput="renderBookings()">
     </div>
     <div class="filter-bar">
-      <button class="filter-btn active" id="btnAll" onclick="applyFilter('all', this)">All</button>
-      <button class="filter-btn" id="btnPending" onclick="applyFilter('pending', this)">Pending</button>
-      <button class="filter-btn" id="btnVerified" onclick="applyFilter('verified', this)">Verified</button>
-    </div>
+    <button class="filter-btn active" id="btnAll"
+        onclick="applyFilter('all', this)">All</button>
+    <button class="filter-btn" id="btnPending"
+        onclick="applyFilter('pending', this)">Pending</button>
+    <button class="filter-btn" id="btnVerified"
+        onclick="applyFilter('verified', this)">Verified</button>
+    <button class="filter-btn" id="btnCompleted"
+        onclick="applyFilter('completed', this)">Completed</button>
+  </div>
     <div class="results-count" id="resultsCount"></div>
     <div id="bookingsList"><p style="color:var(--muted);font-size:0.88rem;">Loading...</p></div>
   </main>
@@ -463,8 +468,7 @@
           var hasR2 = !!(b.receipt2 && b.receipt2 !== 'undefined' && b.receipt2 !== 'null');
           var verifiedStatus =
             b.status === 'Fully Paid' ||
-            b.status === 'Ready for Pick-up' ||
-            b.status === 'Order Completed';
+            b.status === 'Ready for Pick-up';
           var fullyDone = !!b.verified && verifiedStatus && hasR2;
           var simpleVerified = !!b.verified && verifiedStatus && !hasR2;
           return !fullyDone && !simpleVerified;
@@ -474,9 +478,13 @@
         filtered = filtered.filter(function(b) {
           return !!b.verified && (
             b.status === 'Fully Paid' ||
-            b.status === 'Ready for Pick-up' ||
-            b.status === 'Order Completed'
+            b.status === 'Ready for Pick-up'
           );
+        });
+      }
+      else if (currentFilter === 'completed') {
+        filtered = filtered.filter(function(b) {
+          return b.status === 'Order Completed';
         });
       }
       if (q) {
@@ -508,11 +516,17 @@
         allBookings = await res.json();
         var params = new URLSearchParams(window.location.search);
         var f = params.get('filter');
-        if (f === 'pending') { applyFilter('pending', document.getElementById('btnPending')); }
-        else if (f === 'verified') { applyFilter('verified', document.getElementById('btnVerified')); }
-        else { renderBookings(); }
-      } catch(e) { console.error(e); }
-    }
+        if (f === 'pending') {
+        applyFilter('pending', document.getElementById('btnPending')); }
+        else if (f === 'verified') {
+          applyFilter('verified', document.getElementById('btnVerified'));
+        }
+        else if (f === 'completed') {
+          applyFilter('completed', document.getElementById('btnCompleted')); }
+        else {
+          renderBookings(); }
+        } catch(e) { console.error(e); }
+      }
 
     function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
     async function toggleNotifDropdown() { const dd = document.getElementById('notifDropdown'); document.getElementById('profileDropdown').classList.remove('open'); dd.classList.toggle('open'); if (dd.classList.contains('open')) { await loadNotifications(); } }
