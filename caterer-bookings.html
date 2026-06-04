@@ -246,6 +246,10 @@
     function buildCard(b) {
       var total = parseFloat(b.totalAmount) || 0;
       var paid = parseFloat(b.amountPaid) || 0;
+      // Cash on Pick-up should not appear as already paid
+      if (b.platform === 'Cash on Pick-up') {
+        paid = 0;
+      }
       var remaining = total - paid;
       var isVerified = !!b.verified;
       var status = b.status || 'Pending Payment';
@@ -314,7 +318,11 @@
           + '<div class="card-section"><div class="card-row">'
           + '<div><div class="card-field-label">Total Amount</div><div class="card-field-value">₱' + total.toFixed(2) + '</div></div>'
           + '<div><div class="card-field-label">Amount Paid</div><div class="card-field-value green">₱' + paid.toFixed(2) + '</div></div>'
-          + '<div><div class="card-field-label">Remaining Balance</div><div class="card-field-value ' + (remaining <= 0 ? 'green' : 'orange') + '">₱' + remaining.toFixed(2) + '</div></div>'
+          + '<div><div class="card-field-label">Remaining Balance</div><div class="card-field-value ' + (remaining <= 0 ? 'green' : 'orange') + '">'
+          + (b.platform === 'Cash on Pick-up'
+              ? 'Upon Pick Up'
+              : '₱' + remaining.toFixed(2))
+          + '</div></div>'
           + '</div></div>'
           + verifySection
           + '</div>';
