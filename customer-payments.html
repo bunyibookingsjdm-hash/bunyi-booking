@@ -232,6 +232,11 @@
       var paid = parseFloat(b.amountPaid) || 0;
       var isVerified = !!b.verified;
       var status = b.status || 'Pending Payment';
+
+      // Cash on Pick-up logic
+      if (b.platform === 'Cash on Pick-up') {
+        paid = 0;
+      }
             // Treat completed Cash on Pick-up orders as verified
       if (
         b.platform === 'Cash on Pick-up' &&
@@ -260,9 +265,14 @@
           badgeClass = 'badge-verified';
         }
         else if (status === 'Fully Paid') {
+        if (b.platform === 'Cash on Pick-up') {
+          badgeText = 'Awaiting Pick Up';
+          badgeClass = 'badge-pending';
+        } else {
           badgeText = 'Fully Paid';
           badgeClass = 'badge-paid';
         }
+      }
         else if (isPartial) {
           badgeText = 'Partially Paid';
           badgeClass = 'badge-partial';
@@ -300,16 +310,25 @@
         html += '</div></div>';
         html += '<div class="card-section"><div class="card-row">';
         html += '<div><div class="card-field-label">Total Amount</div><div class="card-field-value">₱' + total.toFixed(2) + '</div></div>';
-        html += '<div><div class="card-field-label">Amount Paid</div><div class="card-field-value green">₱' + paid.toFixed(2) + '</div></div>';
-        html += '<div><div class="card-field-label">Remaining Balance</div><div class="card-field-value ' + (remaining <= 0 ? 'green' : 'orange') + '">₱' + remaining.toFixed(2) + '</div></div>';
-        html += '</div></div>';
-        // Status note — no verify button (customer view)
-        if (isVerified) {
-          html += '<div class="status-note-row verified"><span style="font-size:0.75rem;color:var(--green);font-weight:600;">✅ Payment verified by caterer</span></div>';
+        if (b.platform === 'Cash on Pick-up') {
+          html += '<div><div class="card-field-label">Amount Paid</div><div class="card-field-value orange">₱0.00</div></div>';
+          html += '<div><div class="card-field-label">Remaining Balance</div><div class="card-field-value orange">Upon Pick Up</div></div>';
         } else {
-          html += '<div class="status-note-row"><span style="font-size:0.75rem;color:var(--muted);">⏳ Awaiting caterer verification</span></div>';
-        }
 
+          html += '<div><div class="card-field-label">Amount Paid</div><div class="card-field-value green">₱' + paid.toFixed(2) + '</div></div>';
+          html += '<div><div class="card-field-label">Remaining Balance</div><div class="card-field-value ' + (remaining <= 0 ? 'green' : 'orange') + '">₱' + remaining.toFixed(2) + '</div></div>';
+        }
+        html += '</div></div>';
+                // Status note — no verify button (customer view)
+                if (isVerified) {
+                if (b.platform === 'Cash on Pick-up' && b.status !== 'Order Completed') {
+                  html += '<div class="status-note-row verified"><span style="font-size:0.75rem;color:var(--green);font-weight:600;">✅ Payment will be settled upon pick-up</span></div>';
+                } else {
+                  html += '<div class="status-note-row verified"><span style="font-size:0.75rem;color:var(--green);font-weight:600;">✅ Payment verified by caterer</span></div>';
+              }
+              } else {
+                  html += '<div class="status-note-row"><span style="font-size:0.75rem;color:var(--muted);">⏳ Awaiting caterer verification</span></div>';
+                }
       } else {
         // ── SPLIT PAYMENT LAYOUT (mirrors caterer view, no verify buttons) ──
         var remaining2Amount = parseFloat(b.remaining2) || (total / 2);
