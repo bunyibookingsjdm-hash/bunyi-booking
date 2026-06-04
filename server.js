@@ -622,6 +622,8 @@ app.get('/account', requireLogin, (req, res) => {
         </div>
         ` : `
         <div class="card fade-in">
+          ${req.query.report === 'success' ? '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:0.84rem;color:#16a34a;margin-bottom:18px;font-weight:500;">✅ Report submitted successfully. Our team will review it.</div>' : ''}
+          ${req.query.bug === 'success' ? '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:0.84rem;color:#16a34a;margin-bottom:18px;font-weight:500;">✅ Bug report submitted successfully.</div>' : ''}
           ${req.query.pwsaved === '1' ? '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:0.84rem;color:#16a34a;margin-bottom:18px;font-weight:500;">✅ Password updated successfully.</div>' : ''}
           ${req.query.pwerror === 'wrong' ? '<div style="background:#fff0eb;border:1px solid #ffd0bc;border-radius:8px;padding:10px 14px;font-size:0.84rem;color:#c93a08;margin-bottom:18px;font-weight:500;">❌ Current password is incorrect.</div>' : ''}
           ${req.query.pwerror === 'short' ? '<div style="background:#fff0eb;border:1px solid #ffd0bc;border-radius:8px;padding:10px 14px;font-size:0.84rem;color:#c93a08;margin-bottom:18px;font-weight:500;">❌ New password must be at least 6 characters.</div>' : ''}
@@ -1750,24 +1752,24 @@ app.post('/submit-report', requireLogin, async (req, res) => {
       status: 'Pending',
       createdAt: new Date()
     });
-    res.redirect('/account?tab=settings');
-  } catch (e) {
-    console.log('Report error:', e);
-    res.redirect('/account?tab=settings');
-  }
-});
+        res.redirect('/account?tab=settings&report=success');
+      } catch (e) {
+        console.log('Report error:', e);
+        res.redirect('/account?tab=settings');
+      }
+    });
 
 app.post('/submit-bug-report', requireLogin, async (req, res) => {
   try {
     await mdb.collection('bugReports').insertOne({
-      userEmail: req.session.user.email,
-      userName: req.session.user.name,
-      title: req.body.title,
-      description: req.body.description,
-      status: 'Open',
-      createdAt: new Date()
-    });
-    res.redirect('/account?tab=settings');
+  userEmail: req.session.user.email,
+  userName: req.session.user.name,
+  title: req.body.title,
+  description: req.body.description,
+  status: 'Open',
+  createdAt: new Date()
+});
+    res.redirect('/account?tab=settings&bug=success');
   } catch (e) {
     console.log('Bug report error:', e);
     res.redirect('/account?tab=settings');
@@ -1794,6 +1796,18 @@ app.get('/booked-times', (req, res) => {
   const fullyBooked = Object.entries(timeCounts).filter(([t, c]) => c >= max).map(([t]) => t);
   res.json(fullyBooked);
 });
+
+app.get('/admin-reports', async (req, res) => {
+  try { const reports = await mdb .collection('reports') .find({}) .sort({ createdAt: -1 }) .toArray();
+
+    res.json(reports); } catch (err) { console.error(err);
+    res.json([]); } });
+
+app.get('/admin-bug-reports', async (req, res) => {
+  try { const bugs = await mdb .collection('bugReports') .find({}) .sort({ createdAt: -1 }) .toArray();
+
+    res.json(bugs); } catch (err) { console.error(err);
+    res.json([]); } });
 
 async function loadFromFirestore() {
   try {

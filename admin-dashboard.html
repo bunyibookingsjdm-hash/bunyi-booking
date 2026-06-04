@@ -452,7 +452,7 @@
       document.getElementById('sidebarOverlay').classList.remove('open');
     }
 
-    var allUsers = [], allCaterers = [], allBookings = [], _payTab = 'all';
+    var allUsers = [], allCaterers = [], allBookings = [], allReports = [], allBugReports = [], _payTab = 'all';
 
     function adminLogout() { sessionStorage.removeItem('bunyi_admin'); window.location.href = '/admin-login'; }
 
@@ -518,11 +518,13 @@
 
     async function loadData() {
       try {
-        var [uRes,cRes,bRes]=await Promise.all([fetch('/admin-users'),fetch('/admin-caterers'),fetch('/admin-bookings')]);
+        var [uRes,cRes,bRes,rRes,bugRes] = await Promise.all([ fetch('/admin-users'), fetch('/admin-caterers'), fetch('/admin-bookings'), fetch('/admin-reports'), fetch('/admin-bug-reports') ]);
         allUsers=uRes.ok?await uRes.json():[];
         allCaterers=cRes.ok?await cRes.json():[];
         allBookings=bRes.ok?await bRes.json():[];
-        renderDashboard(); renderUsers(); renderCaterers(); renderBookings(); renderPayments(); renderAnalytics();
+        allReports = rRes.ok ? await rRes.json() : [];
+        allBugReports = bugRes.ok ? await bugRes.json() : [];
+        renderDashboard(); renderUsers(); renderCaterers(); renderBookings(); renderPayments(); renderReports(); renderBugReports(); renderAnalytics();
       } catch(e){ console.error(e); }
     }
 
@@ -637,8 +639,54 @@
 
     function confirmDelete(type,index) {
       if(!confirm('Remove this '+type+'? This cannot be undone.')) return;
-      fetch('/admin-delete-'+type,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:index})})
-        .then(function(r){return r.json();}).then(function(){loadData();}).catch(function(e){alert('Error: '+e.message);});
+
+      fetch('/admin-delete-'+type,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({index:index}) })
+      .then(function(r){return r.json();})
+      .then(function(){loadData();})
+      .catch(function(e){alert('Error: '+e.message);});
+    }
+
+
+    // ================= REPORTS =================
+    function renderReports() {
+      const tb = document.getElementById('reportsTableBody');
+
+      if (!allReports.length) { tb.innerHTML = '<tr><td colspan="4" class="empty-state">No reports submitted</td></tr>'; return; }
+
+      tb.innerHTML = allReports.map(r => `
+        <tr>
+          <td>${r.reporterName || r.reporterEmail}</td>
+          <td>${r.reportedUser}</td>
+          <td>${r.reason}</td>
+          <td>
+            <span class="badge bg-orange">
+              ${r.status || 'Pending'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+
+    // ================= BUG REPORTS =================
+    function renderBugReports() {
+      const tb = document.getElementById('supportTableBody');
+
+      if (!allBugReports.length) {
+        tb.innerHTML = '<tr><td colspan="4" class="empty-state">No bug reports submitted</td></tr>'; return;  }
+
+      tb.innerHTML = allBugReports.map(b => `
+        <tr>
+          <td>${b.userName}</td>
+          <td>Customer</td>
+          <td>${b.description}</td>
+          <td>
+            <span class="badge bg-red">
+              ${b.status || 'Open'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
     }
 
     loadData();
