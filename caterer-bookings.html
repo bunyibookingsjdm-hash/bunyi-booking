@@ -453,13 +453,22 @@
       if (currentFilter === 'pending') {
         filtered = filtered.filter(function(b) {
           var hasR2 = !!(b.receipt2 && b.receipt2 !== 'undefined' && b.receipt2 !== 'null');
-          var fullyDone = !!b.verified && b.status === 'Fully Paid' && hasR2;
-          var simpleVerified = !!b.verified && b.status === 'Fully Paid' && !hasR2;
+          var verifiedStatus =
+            b.status === 'Fully Paid' ||
+            b.status === 'Ready for Pick-up' ||
+            b.status === 'Order Completed';
+          var fullyDone = !!b.verified && verifiedStatus && hasR2;
+          var simpleVerified = !!b.verified && verifiedStatus && !hasR2;
           return !fullyDone && !simpleVerified;
         });
-      } else if (currentFilter === 'verified') {
+      } 
+      else if (currentFilter === 'verified') {
         filtered = filtered.filter(function(b) {
-          return !!b.verified && b.status === 'Fully Paid';
+          return !!b.verified && (
+            b.status === 'Fully Paid' ||
+            b.status === 'Ready for Pick-up' ||
+            b.status === 'Order Completed'
+          );
         });
       }
       if (q) {
