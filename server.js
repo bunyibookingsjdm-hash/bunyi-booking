@@ -635,6 +635,34 @@ app.get('/account', requireLogin, (req, res) => {
           <div class="setting-row"><div><div class="setting-label">Profile Visibility</div><div class="setting-sub">Allow caterers to see your profile information</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
           <div class="setting-row"><div><div class="setting-label">Activity Status</div><div class="setting-sub">Show when you were last active</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
           <div class="divider"></div>
+          <div class="divider"></div>
+        <p class="section-label">Support & Reports</p>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Report a User</div>
+            <div class="setting-sub">
+              Report a customer or caterer for misconduct.
+            </div>
+          </div>
+          <button
+            onclick="document.getElementById('reportUserModal').style.display='flex'"
+            style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+            Report →
+          </button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Report a Bug</div>
+            <div class="setting-sub">
+              Report technical issues or system errors.
+            </div>
+          </div>
+          <button
+            onclick="document.getElementById('bugReportModal').style.display='flex'"
+            style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+            Report →
+          </button>
+        </div>
           <p class="section-label">Account</p>
           <div class="setting-row"><div><div class="setting-label">Change Password</div><div class="setting-sub">Update your account password</div></div><button onclick="document.getElementById('changePwModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Change →</button></div>
           <div class="setting-row"><div><div class="setting-label" style="color:#e53e3e;">Delete Account</div><div class="setting-sub">Permanently remove your account and data</div></div><button onclick="document.getElementById('deleteAcctModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:#e53e3e;background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Delete →</button></div>
@@ -659,6 +687,88 @@ app.get('/account', requireLogin, (req, res) => {
             </div>
           </div>
         </div>
+        <div id="reportUserModal"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
+        <div style="background:#1A1A1A;padding:20px;color:white;">
+          <h3>🚨 Report a User</h3>
+        </div>
+        <form action="/submit-report" method="POST" style="padding:20px;">
+        <div class="form-group">
+        <label>Reported User Email</label>
+        <input type="email" name="reportedEmail" required>
+        </div>
+        <div class="form-group">
+        <label>Reason</label>
+        <select name="reason" required>
+        <option value="">Select Reason</option>
+        <option>Scam / Fraud</option>
+        <option>Harassment</option>
+        <option>Fake Information</option>
+        <option>No Show</option>
+        <option>Inappropriate Behavior</option>
+        <option>Other</option>
+        </select>
+        </div>
+        <div class="form-group">
+        <label>Details</label>
+        <textarea
+        name="details"
+        required
+        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;height:120px;">
+        </textarea>
+        </div>
+        <div style="display:flex;gap:10px;">
+        <button
+        type="button"
+        onclick="document.getElementById('reportUserModal').style.display='none'"
+        class="logout-btn">
+        Cancel
+        </button>
+        <button
+        type="submit"
+        class="save-btn">
+        Submit Report
+        </button>
+        </div>
+        </form>
+        </div>
+        </div>
+        <div id="bugReportModal"
+style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+<div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
+<div style="background:#1A1A1A;padding:20px;color:white;">
+  <h3>🐞 Report a Bug</h3>
+</div>
+<form action="/submit-bug-report" method="POST" style="padding:20px;">
+<div class="form-group">
+<label>Issue Title</label>
+<input type="text" name="title" required>
+</div>
+<div class="form-group">
+<label>Description</label>
+<textarea
+name="description"
+required
+style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;height:120px;">
+</textarea>
+</div>
+<div style="display:flex;gap:10px;">
+<button
+type="button"
+onclick="document.getElementById('bugReportModal').style.display='none'"
+class="logout-btn">
+Cancel
+</button>
+<button
+type="submit"
+class="save-btn">
+Submit Bug Report
+</button>
+</div>
+</form>
+</div>
+</div>
       </main>
       <script>
         function toggleAccountDropdown() { const ad = document.getElementById('accountDropdown'); const nd = document.getElementById('notifDropdown'); if (nd) nd.classList.remove('open'); ad.classList.toggle('open'); }
@@ -1588,14 +1698,12 @@ app.post('/customer-mark-received', requireLogin, async (req, res) => {
   if (!booking) {
   return res.status(404).json({ error: 'Booking not found' });
 }
-
 // Customer can only confirm receipt if caterer already marked it ready
 if (booking.status !== 'Ready for Pick-up') {
   return res.status(400).json({
     error: 'Order is not yet ready for pick-up.'
   });
 }
-
 booking.status = 'Order Completed';
 booking.receivedAt = new Date();
   try {
@@ -1604,6 +1712,41 @@ booking.receivedAt = new Date();
   } catch(e) {}
   addCatererNotification(booking.caterer, 'completed', '✅ Order Completed — ' + booking.sender + ' confirmed receipt for booking ' + booking.bookingId + ' on ' + booking.date + '.');
   res.json({ success: true });
+});
+
+app.post('/submit-report', requireLogin, async (req, res) => {
+  try {
+    await mdb.collection('reports').insertOne({
+      reporterEmail: req.session.user.email,
+      reporterName: req.session.user.name,
+      reportedEmail: req.body.reportedEmail,
+      reason: req.body.reason,
+      details: req.body.details,
+      status: 'Pending',
+      createdAt: new Date()
+    });
+    res.redirect('/account?tab=settings');
+  } catch (e) {
+    console.log('Report error:', e);
+    res.redirect('/account?tab=settings');
+  }
+});
+
+app.post('/submit-bug-report', requireLogin, async (req, res) => {
+  try {
+    await mdb.collection('bugReports').insertOne({
+      userEmail: req.session.user.email,
+      userName: req.session.user.name,
+      title: req.body.title,
+      description: req.body.description,
+      status: 'Open',
+      createdAt: new Date()
+    });
+    res.redirect('/account?tab=settings');
+  } catch (e) {
+    console.log('Bug report error:', e);
+    res.redirect('/account?tab=settings');
+  }
 });
 
 app.get('/caterer-qr-codes', (req, res) => {
