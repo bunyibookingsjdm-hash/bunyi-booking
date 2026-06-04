@@ -430,6 +430,7 @@ app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
 app.get('/account', requireLogin, (req, res) => {
   const user = users.find(u => u.email === req.session.user.email);
   if (!user) return res.redirect('/customer-login');
+
   const saved = req.query.saved || '';
   const tab = req.query.tab || 'info';
 
@@ -695,8 +696,18 @@ app.get('/account', requireLogin, (req, res) => {
         </div>
         <form action="/submit-report" method="POST" style="padding:20px;">
         <div class="form-group">
-        <label>Reported User Email</label>
-        <input type="email" name="reportedEmail" required>
+        <label>Booking / Caterer</label>
+        <select name="reportBooking" required>
+        <option value="">Select Booking</option>
+        ${bookings
+          .filter(b => b.senderEmail === user.email)
+          .map(b => `
+            <option value="${b.bookingId}">
+              ${b.bookingId} — ${b.caterer}
+            </option>
+          `)
+          .join('')}
+        </select>
         </div>
         <div class="form-group">
         <label>Reason</label>
@@ -1716,10 +1727,24 @@ booking.receivedAt = new Date();
 
 app.post('/submit-report', requireLogin, async (req, res) => {
   try {
+      const booking = bookings.find(
+      b => b.bookingId === req.body.reportBooking
+    );
+
+    const existingReport = await mdb.collection('reports').findOne({
+      reporterEmail: req.session.user.email,
+      bookingId: req.body.reportBooking
+    });
+
+    if (existingReport) {
+      return res.redirect('/account?tab=settings');
+    }
+
     await mdb.collection('reports').insertOne({
       reporterEmail: req.session.user.email,
       reporterName: req.session.user.name,
-      reportedEmail: req.body.reportedEmail,
+      reportedUser: booking ? booking.caterer : 'Unknown',
+      bookingId: req.body.reportBooking,
       reason: req.body.reason,
       details: req.body.details,
       status: 'Pending',
