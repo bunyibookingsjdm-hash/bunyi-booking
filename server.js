@@ -1441,7 +1441,20 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
               Report →
             </button>
           </div>
+          <div class="setting-row">
+  <div>
+    <div class="setting-label">My Reports</div>
+    <div class="setting-sub">
+      Track reports and bug reports you've submitted
+    </div>
+  </div>
 
+  <button
+    onclick="loadMyReports();document.getElementById('myReportsModal').style.display='flex';"
+    style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+    View →
+  </button>
+</div>
           <p class="section-label">Account</p>
 
           <div class="setting-row">
@@ -1570,6 +1583,76 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
         <div id="changePwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;"><div style="background:#fff;border-radius:14px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.25);"><div style="background:#1A1A1A;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:0.68rem;font-weight:600;color:#E8450A;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Security</div><div style="font-size:1.1rem;font-weight:700;color:#fff;">Change Password</div></div><button onclick="document.getElementById('changePwModal').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button></div><form action="/caterer-account/change-password" method="POST" style="padding:24px;"><div style="margin-bottom:14px;"><label>Current Password</label><input type="password" name="currentPassword" required placeholder="Enter current password"></div><div style="margin-bottom:14px;"><label>New Password</label><input type="password" name="newPassword" required placeholder="Minimum 6 characters"></div><div style="margin-bottom:22px;"><label>Confirm New Password</label><input type="password" name="confirmPassword" required placeholder="Repeat new password"></div><div style="display:flex;gap:10px;"><button type="button" onclick="document.getElementById('changePwModal').style.display='none'" style="flex:1;padding:11px;background:transparent;color:#888;border:1.5px solid #e8e8e8;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;cursor:pointer;">Cancel</button><button type="submit" style="flex:2;padding:11px;background:#E8450A;color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">Update Password</button></div></form></div></div>
         <div id="deleteAcctModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;"><div style="background:#fff;border-radius:14px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.25);"><div style="background:#1A1A1A;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:0.68rem;font-weight:600;color:#e53e3e;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Danger Zone</div><div style="font-size:1.1rem;font-weight:700;color:#fff;">Delete Account</div></div><button onclick="document.getElementById('deleteAcctModal').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button></div><div style="padding:24px;"><p style="font-size:0.88rem;color:#555;line-height:1.6;margin-bottom:20px;font-family:'Poppins',sans-serif;">This will <strong>permanently delete</strong> your caterer account and all data. This action <strong>cannot be undone</strong>.</p><form action="/caterer-account/delete" method="POST"><div style="margin-bottom:20px;"><label>Enter your password to confirm</label><input type="password" name="password" required placeholder="Your password"></div><div style="display:flex;gap:10px;"><button type="button" onclick="document.getElementById('deleteAcctModal').style.display='none'" style="flex:1;padding:11px;background:transparent;color:#888;border:1.5px solid #e8e8e8;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;cursor:pointer;">Cancel</button><button type="submit" style="flex:2;padding:11px;background:#e53e3e;color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">Yes, Delete My Account</button></div></form></div></div></div>
         `}
+        <!-- MY REPORTS MODAL -->
+        <div id="myReportsModal"
+        style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.55);
+        z-index:9999;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+        ">
+          <div
+          style="
+          background:#fff;
+          border-radius:14px;
+          width:100%;
+          max-width:900px;
+          max-height:85vh;
+          overflow:auto;
+          ">
+            <div
+            style="
+            background:#1A1A1A;
+            padding:20px;
+            color:white;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            ">
+              <h3>📋 My Reports</h3>
+              <button
+              type="button"
+              onclick="document.getElementById('myReportsModal').style.display='none'"
+              style="
+              background:none;
+              border:none;
+              color:white;
+              font-size:20px;
+              cursor:pointer;
+              ">
+                ✕
+              </button>
+            </div>
+            <div style="padding:20px;">
+              <table
+              style="
+              width:100%;
+              border-collapse:collapse;
+              ">
+                <thead>
+                  <tr>
+                    <th align="left">Type</th>
+                    <th align="left">Target</th>
+                    <th align="left">Reason</th>
+                    <th align="left">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="myReportsBody">
+                  <tr>
+                    <td colspan="4">
+                      Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </main>
       <script>
         function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); document.getElementById('notifDropdown').classList.remove('open'); }
@@ -1619,6 +1702,42 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
 
         function toggleMobileNav(){document.getElementById('mobileNav').classList.toggle('open');}
         loadNotifications(); setInterval(loadNotifications, 5000);
+        async function loadMyReports() {
+          try {
+            const res = await fetch('/caterer-my-reports');
+            const data = await res.json();
+            const body =
+              document.getElementById('myReportsBody');
+            let rows = '';
+            data.reports.forEach(function(r){
+              rows +=
+              '<tr>' +
+              '<td>User Report</td>' +
+              '<td>' + (r.reportedUser || '-') + '</td>' +
+              '<td>' + (r.reason || '-') + '</td>' +
+              '<td>' + (r.status || 'Pending') + '</td>' +
+              '</tr>';
+            });
+            data.bugs.forEach(function(b){
+              rows +=
+              '<tr>' +
+              '<td>Bug Report</td>' +
+              '<td>System</td>' +
+              '<td>' + (b.title || '-') + '</td>' +
+              '<td>' + (b.status || 'Pending') + '</td>' +
+              '</tr>';
+            });
+            if(!rows){
+              rows =
+              '<tr>' +
+              '<td colspan="4">No reports submitted.</td>' +
+              '</tr>';
+            }
+            body.innerHTML = rows;
+          } catch(err){
+            console.error(err);
+          }
+        }
         async function uploadPhoto(input) { if (!input.files[0]) return; const formData = new FormData(); formData.append('photo', input.files[0]); try { const res = await fetch('/caterer-upload-profile-photo', { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { document.getElementById('photoMsg').textContent = '✅ Photo updated!'; const big = document.getElementById('bigAvatar'); big.style.background = 'none'; big.style.padding = '0'; big.style.overflow = 'hidden'; big.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; } } catch(e) { document.getElementById('photoMsg').textContent = '❌ Upload failed.'; } }
       </script>
       <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
@@ -1975,6 +2094,7 @@ app.get('/admin-bug-reports', async (req, res) => {
     res.json(bugs); } catch (err) { console.error(err);
     res.json([]); } });
 
+
     // CATERER MY REPORTS
     app.get('/caterer-my-reports', requireCaterer, async (req, res) => {
       try {
@@ -2003,6 +2123,27 @@ app.get('/admin-bug-reports', async (req, res) => {
       }
     });
 
+app.get('/caterer-my-reports', requireCaterer, (req, res) => {
+
+  const catererEmail =
+    req.session.caterer.email;
+
+  const reports =
+    userReports.filter(r =>
+      r.reporterEmail === catererEmail
+    );
+
+  const bugs =
+    bugReports.filter(b =>
+      b.reporterEmail === catererEmail
+    );
+
+  res.json({
+    reports,
+    bugs
+  });
+
+});
 
     app.post('/admin-update-report-status', async (req, res) => {
   try {
