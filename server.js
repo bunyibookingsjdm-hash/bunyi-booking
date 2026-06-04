@@ -641,31 +641,44 @@ app.get('/account', requireLogin, (req, res) => {
           <div class="divider"></div>
         <p class="section-label">Support & Reports</p>
         <div class="setting-row">
-          <div>
-            <div class="setting-label">Report a User</div>
-            <div class="setting-sub">
-              Report a customer or caterer for misconduct.
-            </div>
+        <div>
+          <div class="setting-label">Report a User</div>
+          <div class="setting-sub">
+            Report a customer or caterer for misconduct.
           </div>
-          <button
-            onclick="document.getElementById('reportUserModal').style.display='flex'"
-            style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
-            Report →
-          </button>
         </div>
-        <div class="setting-row">
-          <div>
-            <div class="setting-label">Report a Bug</div>
-            <div class="setting-sub">
-              Report technical issues or system errors.
-            </div>
+        <button
+          onclick="document.getElementById('reportUserModal').style.display='flex'"
+          style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+          Report →
+        </button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Report a Bug</div>
+          <div class="setting-sub">
+            Report technical issues or system errors.
           </div>
-          <button
-            onclick="document.getElementById('bugReportModal').style.display='flex'"
-            style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
-            Report →
-          </button>
         </div>
+        <button
+          onclick="document.getElementById('bugReportModal').style.display='flex'"
+          style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+          Report →
+        </button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">My Reports</div>
+          <div class="setting-sub">
+            Track reports and bug reports you've submitted
+          </div>
+        </div>
+        <button
+          onclick=" loadMyReports(); document.getElementById('myReportsModal').style.display='flex'; "
+          style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+          View →
+        </button>
+      </div>
           <p class="section-label">Account</p>
           <div class="setting-row"><div><div class="setting-label">Change Password</div><div class="setting-sub">Update your account password</div></div><button onclick="document.getElementById('changePwModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Change →</button></div>
           <div class="setting-row"><div><div class="setting-label" style="color:#e53e3e;">Delete Account</div><div class="setting-sub">Permanently remove your account and data</div></div><button onclick="document.getElementById('deleteAcctModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:#e53e3e;background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Delete →</button></div>
@@ -690,98 +703,40 @@ app.get('/account', requireLogin, (req, res) => {
             </div>
           </div>
         </div>
-        <div id="reportUserModal"
-        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-        <div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
-        <div style="background:#1A1A1A;padding:20px;color:white;">
-          <h3>🚨 Report a User</h3>
-        </div>
-        <form action="/submit-report" method="POST" style="padding:20px;">
-        <div class="form-group">
-        <label>Booking / Caterer</label>
-        <select name="reportBooking" required>
-        <option value="">Select Booking</option>
-        ${bookings
-          .filter(b => b.senderEmail === user.email)
-          .map(b => `
-            <option value="${b.bookingId}">
-              ${b.bookingId} — ${b.caterer}
-            </option>
-          `)
-          .join('')}
-        </select>
-        </div>
-        <div class="form-group">
-        <label>Reason</label>
-        <select name="reason" required>
-        <option value="">Select Reason</option>
-        <option>Scam / Fraud</option>
-        <option>Harassment</option>
-        <option>Fake Information</option>
-        <option>No Show</option>
-        <option>Inappropriate Behavior</option>
-        <option>Other</option>
-        </select>
-        </div>
-        <div class="form-group">
-        <label>Details</label>
-        <textarea
-        name="details"
-        required
-        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;height:120px;">
-        </textarea>
-        </div>
-        <div style="display:flex;gap:10px;">
-        <button
-        type="button"
-        onclick="document.getElementById('reportUserModal').style.display='none'"
-        class="logout-btn">
-        Cancel
-        </button>
-        <button
-        type="submit"
-        class="save-btn">
-        Submit Report
-        </button>
-        </div>
-        </form>
-        </div>
-        </div>
-                <div id="bugReportModal"
-        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-        <div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
-        <div style="background:#1A1A1A;padding:20px;color:white;">
-          <h3>🐞 Report a Bug</h3>
-        </div>
-        <form action="/submit-bug-report" method="POST" style="padding:20px;">
-        <div class="form-group">
-        <label>Issue Title</label>
-        <input type="text" name="title" required>
-        </div>
-        <div class="form-group">
-        <label>Description</label>
-        <textarea
-        name="description"
-        required
-        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;height:120px;">
-        </textarea>
-        </div>
-        <div style="display:flex;gap:10px;">
-        <button
-        type="button"
-        onclick="document.getElementById('bugReportModal').style.display='none'"
-        class="logout-btn">
-        Cancel
-        </button>
-        <button
-        type="submit"
-        class="save-btn">
-        Submit Bug Report
-        </button>
-        </div>
-        </form>
-        </div>
-        </div>
+
+        <!-- MY REPORTS MODAL START -->
+<div id="myReportsModal"
+style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:900px;max-height:85vh;overflow:auto;">
+    <div style="background:#1A1A1A;padding:20px;color:white;display:flex;justify-content:space-between;align-items:center;">
+      <h3>📋 My Reports</h3>
+      <button
+      type="button"
+      onclick="document.getElementById('myReportsModal').style.display='none'"
+      style="background:none;border:none;color:white;font-size:20px;cursor:pointer;">
+        ✕
+      </button>
+    </div>
+    <div style="padding:20px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th align="left">Type</th>
+            <th align="left">Target</th>
+            <th align="left">Reason</th>
+            <th align="left">Status</th>
+          </tr>
+        </thead>
+        <tbody id="myReportsBody">
+          <tr>
+            <td colspan="4">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- MY REPORTS MODAL END -->
       </main>
       <script>
         function toggleAccountDropdown() { const ad = document.getElementById('accountDropdown'); const nd = document.getElementById('notifDropdown'); if (nd) nd.classList.remove('open'); ad.classList.toggle('open'); }
@@ -801,8 +756,44 @@ app.get('/account', requireLogin, (req, res) => {
         function loadCartBadge() { try { const cart = JSON.parse(sessionStorage.getItem('bunyi_cart') || '[]'); const total = cart.reduce((s, i) => s + (i.qty || 1), 0); const badge = document.getElementById('cartBadgeAcct'); if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'inline-block' : 'none'; } } catch(e) {} }
         document.addEventListener('click', function(e) { const nw = document.querySelector('.notif-wrapper'); if (nw && !nw.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if (dd) dd.classList.remove('open'); } const aw = document.querySelector('.account-wrapper'); if (aw && !aw.contains(e.target)) { const ad = document.getElementById('accountDropdown'); if (ad) ad.classList.remove('open'); } const nav = document.getElementById('mobileNav'); const btn = document.getElementById('hamburgerBtn'); if (nav && btn && !nav.contains(e.target) && !btn.contains(e.target)) nav.classList.remove('open'); });
         function toggleMobileNav() { document.getElementById('mobileNav').classList.toggle('open'); }
-        loadNotifications(); loadCartBadge(); setInterval(loadNotifications, 5000);
-        async function uploadPhoto(input) { if (!input.files[0]) return; const formData = new FormData(); formData.append('photo', input.files[0]); try { const res = await fetch('/upload-profile-photo', { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { document.getElementById('photoMsg').textContent = '✅ Photo updated!'; const big = document.getElementById('bigAvatar'); big.style.background = 'none'; big.style.padding = '0'; big.style.overflow = 'hidden'; big.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; } } catch(e) { document.getElementById('photoMsg').textContent = '❌ Upload failed.'; } }
+       loadNotifications();
+loadCartBadge();
+setInterval(loadNotifications, 5000);
+async function loadMyReports() {
+  try {
+    const res = await fetch('/my-reports');
+    const data = await res.json();
+    const body =
+      document.getElementById('myReportsBody');
+    let rows = '';
+    data.reports.forEach(function(r){
+      rows += '<tr>' +
+      '<td>User Report</td>' +
+      '<td>' + (r.reportedUser || '-') + '</td>' +
+      '<td>' + (r.reason || '-') + '</td>' +
+      '<td>' + (r.status || 'Pending') + '</td>' +
+      '</tr>';
+    });
+    data.bugs.forEach(function(b){
+      rows += '<tr>' +
+      '<td>Bug Report</td>' +
+      '<td>System</td>' +
+      '<td>' + (b.title || '-') + '</td>' +
+      '<td>' + (b.status || 'Open') + '</td>' +
+      '</tr>';
+    });
+    if(!rows){
+      rows =
+      '<tr>' +
+      '<td colspan="4">No reports submitted.</td>' +
+      '</tr>';
+    }
+    body.innerHTML = rows;
+  } catch(err){
+    console.log(err);
+  }
+}
+async function uploadPhoto(input) { if (!input.files[0]) return; const formData = new FormData(); formData.append('photo', input.files[0]); try { const res = await fetch('/upload-profile-photo', { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { document.getElementById('photoMsg').textContent = '✅ Photo updated!'; const big = document.getElementById('bigAvatar'); big.style.background = 'none'; big.style.padding = '0'; big.style.overflow = 'hidden'; big.innerHTML = '<img src="' + data.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; } } catch(e) { document.getElementById('photoMsg').textContent = '❌ Upload failed.'; } }
       </script>
       <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
     </body></html>
@@ -1920,6 +1911,36 @@ app.post('/submit-bug-report', requireLogin, async (req, res) => {
   }
 });
 
+app.get('/my-reports', requireLogin, async (req, res) => {
+  try {
+    const reports =
+      await mdb.collection('reports')
+      .find({
+        reporterEmail:
+          req.session.user.email
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+    const bugs =
+      await mdb.collection('bugReports')
+      .find({
+        userEmail:
+          req.session.user.email
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+    res.json({
+      reports,
+      bugs
+    });
+  } catch(err) {
+    console.error(err);
+    res.json({
+      reports: [],
+      bugs: []
+    });
+  }
+});
 
 app.get('/caterer-qr-codes', (req, res) => {
   const { caterer } = req.query;
@@ -1953,6 +1974,35 @@ app.get('/admin-bug-reports', async (req, res) => {
 
     res.json(bugs); } catch (err) { console.error(err);
     res.json([]); } });
+
+    // CATERER MY REPORTS
+    app.get('/caterer-my-reports', requireCaterer, async (req, res) => {
+      try {
+        const reports = await mdb.collection('reports')
+          .find({
+            reporterEmail: req.session.caterer.email
+          })
+          .sort({ createdAt: -1 })
+          .toArray();
+        const bugs = await mdb.collection('bugReports')
+          .find({
+            userEmail: req.session.caterer.email
+          })
+          .sort({ createdAt: -1 })
+          .toArray();
+        res.json({
+          reports,
+          bugs
+        });
+      } catch (err) {
+        console.log(err);
+        res.json({
+          reports: [],
+          bugs: []
+        });
+      }
+    });
+
 
     app.post('/admin-update-report-status', async (req, res) => {
   try {
