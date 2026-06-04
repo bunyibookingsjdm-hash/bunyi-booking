@@ -724,36 +724,36 @@
     }
 
     async function updateReportStatus(reportId, status) {
+      const res = await fetch('/admin-update-report-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reportId,
+          status
+        })
+      });
+      if (res.ok) {
+        await loadData();
+      }
+    }
 
-  await fetch('/admin-update-report-status', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      reportId,
-      status
-    })
-  });
-
-  loadData();
-}
-
-async function updateBugStatus(bugId, status) {
-
-  await fetch('/admin-update-bug-status', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      bugId,
-      status
-    })
-  });
-
-  loadData();
-}
+    async function updateBugStatus(bugId, status) {
+      const res = await fetch('/admin-update-bug-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bugId,
+          status
+        })
+      });
+      if (res.ok) {
+        await loadData();
+      }
+    }
 
     loadData();
   </script>
