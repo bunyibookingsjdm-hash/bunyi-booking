@@ -124,6 +124,15 @@
     .search-clear { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--muted); cursor: pointer; display: none; background: var(--border); border: none; border-radius: 999px; width: 20px; height: 20px; display: none; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; }
     .search-clear:hover { background: var(--crimson); color: var(--white); }
     .search-result-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+
+    /* CUSTOMER BOOKING FILTER TABS */
+    .filter-tabs{ display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+
+    .filter-btn{ border:1px solid var(--border); background:#fff; padding:10px 18px;  border-radius:999px; font-family:'Poppins',sans-serif; font-size:.85rem; font-weight:600; cursor:pointer; transition:.2s; }
+
+    .filter-btn:hover{ border-color:var(--orange); }
+
+    .filter-btn.active{ background:var(--orange); color:#fff; border-color:var(--orange); }
   </style>
 </head>
 <body>
@@ -185,11 +194,22 @@
       <span class="search-icon">🔍</span>
       <input type="text" id="bookingSearch" placeholder="Search by Booking ID (e.g. BNY-XXXXX)..." oninput="handleSearch(this.value)">
     </div>
-    <div id="searchResultLabel" class="search-result-label" style="display:none;"></div>
+    <div class="filter-tabs" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <button class="filter-btn active" onclick="setFilter('today', this)">Today</button>
+      <button class="filter-btn" onclick="setFilter('upcoming', this)">Upcoming</button>
+      <button class="filter-btn" onclick="setFilter('pickup', this)">Ready for Pick-up</button>
+      <button class="filter-btn" onclick="setFilter('received', this)">Received</button>
+      <button class="filter-btn" onclick="setFilter('past', this)">Past</button>
+    </div>
 
-    <div id="eventsContainer"><p style="color:var(--muted);font-size:0.88rem;">Loading...</p></div>
-  </main>
+    <div id="searchResultLabel"
+        class="search-result-label"
+        style="display:none;">
+    </div>
 
+<div id="eventsContainer">
+  <p style="color:var(--muted);font-size:0.88rem;">Loading...</p>
+</div>
   <script>
     function formatTime(t) {
       if (!t) return '—';
@@ -318,19 +338,90 @@
     }
 
     let allBookings = [];
+    let currentFilter = 'today';
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b=>{
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      renderBookings(allBookings);
+    }
 
     function renderBookings(data) {
-      const now = new Date(); now.setHours(0,0,0,0);
-      const todayStr =
-        now.getFullYear() + '-' +
-        String(now.getMonth() + 1).padStart(2, '0') + '-' +
-        String(now.getDate()).padStart(2, '0');
-      document.getElementById('eventsContainer').innerHTML =
-        sectionHTML('Today', data.filter(b => b.date === todayStr), 'today', '🔴') +
-        sectionHTML('Upcoming', data.filter(b => b.date > todayStr && b.status !== 'Ready for Pick-up' && b.status !== 'Order Completed'), 'upcoming', '📅') +
-        sectionHTML('Ready for Pick-up', data.filter(b => b.status === 'Ready for Pick-up'), 'pickup', '🚀') +
-        sectionHTML('Received', data.filter(b => b.status === 'Order Completed'), 'received', '✅') +
-        sectionHTML('Past', data.filter(b => b.date < todayStr && b.status !== 'Order Completed').reverse(), 'past', '🕐');
+
+  const now = new Date();
+  now.setHours(0,0,0,0);
+
+  const todayStr =
+    now.getFullYear() + '-' +
+    String(now.getMonth()+1).padStart(2,'0') + '-' +
+    String(now.getDate()).padStart(2,'0');
+
+  let filtered = [];
+
+  if (currentFilter === 'today') {
+    filtered = data.filter(b => b.date === todayStr);
+  }
+
+  else if (currentFilter === 'upcoming') {
+    filtered = data.filter(b =>
+      b.date > todayStr &&
+      b.status !== 'Ready for Pick-up' &&
+      b.status !== 'Order Completed'
+    );
+  }
+
+  else if (currentFilter === 'pickup') {
+    filtered = data.filter(b =>
+      b.status === 'Ready for Pick-up'
+    );
+  }
+
+  else if (currentFilter === 'received') {
+    filtered = data.filter(b =>
+      b.status === 'Order Completed'
+    );
+  }
+
+  else if (currentFilter === 'past') {
+    filtered = data.filter(b =>
+      b.date < todayStr &&
+      b.status !== 'Order Completed'
+    );
+  }
+
+  let title = '';
+
+    switch(currentFilter){
+      case 'today':
+        title = 'Today';
+        break;
+
+      case 'upcoming':
+        title = 'Upcoming';
+        break;
+
+      case 'pickup':
+        title = 'Ready for Pick-up';
+        break;
+
+      case 'received':
+        title = 'Received';
+        break;
+
+      case 'past':
+        title = 'Past';
+        break;
+    }
+
+    document.getElementById('eventsContainer').innerHTML =
+      sectionHTML(
+        title,
+        filtered,
+        currentFilter,
+        '📅'
+      );
     }
 
     function handleSearch(query) {
@@ -477,6 +568,7 @@
     loadEvents(); loadUserInfo(); loadCartBadge(); loadNotifications(); setInterval(loadNotifications, 5000);
   </script>
   <script src='https://cdn.jotfor.ms/agent/embedjs/019e466996117451b02c25c833a184e8bfc4/embed.js'></script>
+  </main>
 </body>
 </html>
 
