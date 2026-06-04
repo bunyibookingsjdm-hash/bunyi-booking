@@ -1244,13 +1244,51 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
         </div>
         ${tab === 'info' ? `
         <div class="card fade-in">
-          ${req.query.saved === '1' ? '<div class="success-msg">✅ Changes saved successfully.</div>' : ''}
+          ${req.query.saved === '1'
+            ? '<div class="success-msg">✅ Changes saved successfully.</div>'
+            : ''}
+
           <p class="section-label">Business Information</p>
-          <div class="form-row" style="margin-bottom:16px;">
-            <div class="form-group"><label>Business Name</label><div class="read-field">${catererUser.businessName}</div></div>
-            <div class="form-group"><label>Contact Number</label><div class="read-field">${catererUser.contactNumber || '—'}</div></div>
-          </div>
-          <div class="form-group"><label>Business Address</label><div class="read-field">${catererUser.businessAddress || '—'}</div></div>
+
+          <form action="/caterer-account/update" method="POST">
+
+            <div class="form-row" style="margin-bottom:16px;">
+              <div class="form-group">
+                <label>Business Name</label>
+                <input
+                  type="text"
+                  name="businessName"
+                  value="${catererUser.businessName || ''}"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label>Contact Number</label>
+                <input
+                  type="text"
+                  name="contactNumber"
+                  value="${catererUser.contactNumber || ''}">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Business Address</label>
+              <input
+                type="text"
+                name="businessAddress"
+                value="${catererUser.businessAddress || ''}">
+            </div>
+
+            <input
+              type="hidden"
+              name="email"
+              value="${catererUser.email}">
+
+            <button type="submit" class="save-btn">
+              Save Changes
+            </button>
+
+          </form>
         </div>
         ` : `
         <div class="card fade-in">
