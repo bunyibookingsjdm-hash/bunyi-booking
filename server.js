@@ -1954,6 +1954,27 @@ app.get('/admin-bug-reports', async (req, res) => {
     res.json(bugs); } catch (err) { console.error(err);
     res.json([]); } });
 
+    app.post('/admin-update-report-status', async (req, res) => {
+  try {
+    const { reportId, status } = req.body;
+    const { ObjectId } = require('mongodb');
+    await mdb.collection('reports').updateOne(
+      { _id: new ObjectId(reportId) },
+      { $set: { status, updatedAt: new Date() } } );
+    res.json({ success: true }); } catch (err) { console.log(err); res.status(500).json({ success: false }); }
+});
+
+app.post('/admin-update-bug-status', async (req, res) => {
+  try {
+    const { bugId, status } = req.body;
+    const { ObjectId } = require('mongodb');
+    await mdb.collection('bugReports').updateOne(
+      { _id: new ObjectId(bugId) },
+      { $set: { status, updatedAt: new Date() } } );
+    res.json({ success: true });
+  } catch (err) { console.log(err); res.status(500).json({ success: false }); }
+});
+
 app.post('/submit-caterer-report', requireCaterer, async (req, res) => {
   try {
     const booking = bookings.find(

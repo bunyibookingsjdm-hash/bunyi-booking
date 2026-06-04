@@ -361,15 +361,16 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Reporter</th>
-                  <th>Reported User</th>
-                  <th>Reason</th>
-                  <th>Status</th>
-                </tr>
+                <th>Reporter</th>
+                <th>Reported User</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
               </thead>
               <tbody id="reportsTableBody">
                 <tr>
-                  <td colspan="4" class="empty-state">
+                  <td colspan="5" class="empty-state">
                     No reports submitted
                   </td>
                 </tr>
@@ -397,27 +398,24 @@
 
           <div class="full-panel-body">
             <table class="data-table">
-
               <thead>
                 <tr>
                   <th>User</th>
                   <th>Role</th>
                   <th>Description</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
-
               <tbody id="supportTableBody">
                 <tr>
-                  <td colspan="4" class="empty-state">
+                  <td colspan="5" class="empty-state">
                     No bug reports submitted
                   </td>
                 </tr>
               </tbody>
-
             </table>
           </div>
-
         </div>
 
       </div>
@@ -651,21 +649,37 @@
     function renderReports() {
       const tb = document.getElementById('reportsTableBody');
 
-      if (!allReports.length) { tb.innerHTML = '<tr><td colspan="4" class="empty-state">No reports submitted</td></tr>'; return; }
+      if (!allReports.length) { tb.innerHTML = '<tr><td colspan="5" class="empty-state">No reports submitted</td></tr>'; return; }
 
       tb.innerHTML = allReports.map(r => `
         <tr>
           <td>${r.reporterName || r.reporterEmail}</td>
           <td>${r.reportedUser}</td>
           <td>${r.reason}</td>
+
           <td>
             <span class="badge bg-orange">
               ${r.status || 'Pending'}
             </span>
           </td>
+
+          <td>
+            <button
+              onclick="updateReportStatus('${r._id}','Approved')"
+              style="padding:6px 10px;background:#16a34a;color:white;border:none;border-radius:6px;cursor:pointer;margin-right:5px;">
+              Approve
+            </button>
+
+            <button
+              onclick="updateReportStatus('${r._id}','Dismissed')"
+              style="padding:6px 10px;background:#dc2626;color:white;border:none;border-radius:6px;cursor:pointer;">
+              Dismiss
+            </button>
+          </td>
+
         </tr>
       `).join('');
-    }
+}
 
 
     // ================= BUG REPORTS =================
@@ -673,21 +687,73 @@
       const tb = document.getElementById('supportTableBody');
 
       if (!allBugReports.length) {
-        tb.innerHTML = '<tr><td colspan="4" class="empty-state">No bug reports submitted</td></tr>'; return;  }
+        tb.innerHTML = '<tr><td colspan="5" class="empty-state">No bug reports submitted</td></tr>'; return;  }
 
       tb.innerHTML = allBugReports.map(b => `
         <tr>
           <td>${b.userName}</td>
-          <td>Customer</td>
+
+          <td>
+            ${b.role || 'Customer'}
+          </td>
+
           <td>${b.description}</td>
+
           <td>
             <span class="badge bg-red">
               ${b.status || 'Open'}
             </span>
           </td>
+
+          <td>
+            <button
+              onclick="updateBugStatus('${b._id}','Investigating')"
+              style="padding:6px 10px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;margin-right:5px;">
+              Investigating
+            </button>
+
+            <button
+              onclick="updateBugStatus('${b._id}','Resolved')"
+              style="padding:6px 10px;background:#16a34a;color:white;border:none;border-radius:6px;cursor:pointer;">
+              Resolved
+            </button>
+          </td>
+
         </tr>
       `).join('');
     }
+
+    async function updateReportStatus(reportId, status) {
+
+  await fetch('/admin-update-report-status', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      reportId,
+      status
+    })
+  });
+
+  loadData();
+}
+
+async function updateBugStatus(bugId, status) {
+
+  await fetch('/admin-update-bug-status', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      bugId,
+      status
+    })
+  });
+
+  loadData();
+}
 
     loadData();
   </script>
