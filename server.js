@@ -1426,58 +1426,156 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
           <div class="setting-row"><div><div class="setting-label">Booking Alerts</div><div class="setting-sub">Get notified when a new booking is received</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
           <div class="setting-row"><div><div class="setting-label">Payment Updates</div><div class="setting-sub">Get notified when a customer pays</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
           <div class="setting-row"><div><div class="setting-label">New Messages</div><div class="setting-sub">Get notified when a customer sends you a message</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="divider"></div> <p class="section-label">Report Customer</p>
-          <form action="/submit-caterer-report" method="POST"> <div class="form-group"> <label>Booking ID</label> <input type="text" name="bookingId" placeholder="Enter Booking ID" required> </div>
-            <div class="form-group">
-              <label>Reason</label>
-              <select name="reason" required>
-                <option value="">Select reason</option>
-                <option>Spam Booking</option>
-                <option>Fake Information</option>
-                <option>No Show</option>
-                <option>Inappropriate Behavior</option>
-                <option>Other</option>
-              </select>
+        
+          <p class="section-label">Support & Reports</p>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Report a Customer</div>
+              <div class="setting-sub">Report customer misconduct or violations</div>
             </div>
-          <div class="form-group">
-            <label>Details</label>
-            <textarea
-              name="details"
-              placeholder="Describe the issue..."
-              required></textarea>
+            <button onclick="document.getElementById('reportCustomerModal').style.display='flex'"
+              style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+              Report →
+            </button>
           </div>
-          <button type="submit" class="save-btn"> Submit Report </button>
-        </form>
-        <div class="divider"></div>
 
-<p class="section-label">Report System Bug</p>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Report a Bug</div>
+              <div class="setting-sub">Report technical issues and system problems</div>
+            </div>
+            <button onclick="document.getElementById('reportBugModal').style.display='flex'"
+              style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+              Report →
+            </button>
+          </div>
 
-<form action="/submit-caterer-bug-report" method="POST">
-
-  <div class="form-group">
-    <label>Bug Title</label>
-    <input
-      type="text"
-      name="title"
-      required>
-  </div>
-
-  <div class="form-group">
-    <label>Description</label>
-    <textarea
-      name="description"
-      required></textarea>
-  </div>
-
-  <button type="submit" class="save-btn">
-    Submit Bug Report
-  </button>
-
-</form>
           <p class="section-label">Account</p>
-          <div class="setting-row"><div><div class="setting-label">Change Password</div><div class="setting-sub">Update your account password</div></div><button onclick="document.getElementById('changePwModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Change →</button></div>
-          <div class="setting-row"><div><div class="setting-label" style="color:#e53e3e;">Delete Account</div><div class="setting-sub">Permanently remove your account and data</div></div><button onclick="document.getElementById('deleteAcctModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:#e53e3e;background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Delete →</button></div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Change Password</div>
+              <div class="setting-sub">Update your account password</div>
+            </div>
+            <button onclick="document.getElementById('changePwModal').style.display='flex'"
+              style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+              Change →
+            </button>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label" style="color:#e53e3e;">Delete Account</div>
+              <div class="setting-sub">Permanently remove your account and data</div>
+            </div>
+            <button onclick="document.getElementById('deleteAcctModal').style.display='flex'"
+              style="font-size:0.82rem;font-weight:600;color:#e53e3e;background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+              Delete →
+            </button>
+          </div>
         </div>
+        <div id="reportCustomerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
+    <div style="background:#1A1A1A;padding:20px;color:#fff;font-weight:700;">
+      🚨 Report Customer
+    </div>
+
+    <div style="padding:20px;">
+      <form action="/submit-caterer-report" method="POST">
+
+        <label>Booking / Customer</label>
+
+        <select name="bookingId" required>
+          <option value="">Select Booking</option>
+
+          ${bookings
+            .filter(b => b.caterer === catererUser.businessName)
+            .map(b => `
+              <option value="${b.bookingId}">
+                ${b.bookingId} — ${b.sender}
+              </option>
+            `).join('')}
+        </select>
+
+        <br><br>
+
+        <label>Reason</label>
+
+        <select name="reason" required>
+          <option value="">Select Reason</option>
+          <option>Fake Information</option>
+          <option>No Show</option>
+          <option>Spam Booking</option>
+          <option>Inappropriate Behavior</option>
+          <option>Other</option>
+        </select>
+
+        <br><br>
+
+        <label>Details</label>
+
+        <textarea name="details" rows="5" required></textarea>
+
+        <br>
+
+        <div style="display:flex;gap:10px;">
+          <button type="button"
+            onclick="document.getElementById('reportCustomerModal').style.display='none'"
+            style="flex:1;">
+            Cancel
+          </button>
+
+          <button type="submit"
+            class="save-btn"
+            style="flex:1;margin-top:0;">
+            Submit Report
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="reportBugModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
+    <div style="background:#1A1A1A;padding:20px;color:#fff;font-weight:700;">
+      🐞 Report System Bug
+    </div>
+
+    <div style="padding:20px;">
+      <form action="/submit-caterer-bug-report" method="POST">
+
+        <label>Bug Title</label>
+        <input type="text" name="title" required>
+
+        <br><br>
+
+        <label>Description</label>
+        <textarea name="description" rows="5" required></textarea>
+
+        <br>
+
+        <div style="display:flex;gap:10px;">
+          <button type="button"
+            onclick="document.getElementById('reportBugModal').style.display='none'"
+            style="flex:1;">
+            Cancel
+          </button>
+
+          <button type="submit"
+            class="save-btn"
+            style="flex:1;margin-top:0;">
+            Submit Bug Report
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
         <div id="changePwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;"><div style="background:#fff;border-radius:14px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.25);"><div style="background:#1A1A1A;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:0.68rem;font-weight:600;color:#E8450A;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Security</div><div style="font-size:1.1rem;font-weight:700;color:#fff;">Change Password</div></div><button onclick="document.getElementById('changePwModal').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button></div><form action="/caterer-account/change-password" method="POST" style="padding:24px;"><div style="margin-bottom:14px;"><label>Current Password</label><input type="password" name="currentPassword" required placeholder="Enter current password"></div><div style="margin-bottom:14px;"><label>New Password</label><input type="password" name="newPassword" required placeholder="Minimum 6 characters"></div><div style="margin-bottom:22px;"><label>Confirm New Password</label><input type="password" name="confirmPassword" required placeholder="Repeat new password"></div><div style="display:flex;gap:10px;"><button type="button" onclick="document.getElementById('changePwModal').style.display='none'" style="flex:1;padding:11px;background:transparent;color:#888;border:1.5px solid #e8e8e8;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;cursor:pointer;">Cancel</button><button type="submit" style="flex:2;padding:11px;background:#E8450A;color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">Update Password</button></div></form></div></div>
         <div id="deleteAcctModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;"><div style="background:#fff;border-radius:14px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.25);"><div style="background:#1A1A1A;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:0.68rem;font-weight:600;color:#e53e3e;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Danger Zone</div><div style="font-size:1.1rem;font-weight:700;color:#fff;">Delete Account</div></div><button onclick="document.getElementById('deleteAcctModal').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button></div><div style="padding:24px;"><p style="font-size:0.88rem;color:#555;line-height:1.6;margin-bottom:20px;font-family:'Poppins',sans-serif;">This will <strong>permanently delete</strong> your caterer account and all data. This action <strong>cannot be undone</strong>.</p><form action="/caterer-account/delete" method="POST"><div style="margin-bottom:20px;"><label>Enter your password to confirm</label><input type="password" name="password" required placeholder="Your password"></div><div style="display:flex;gap:10px;"><button type="button" onclick="document.getElementById('deleteAcctModal').style.display='none'" style="flex:1;padding:11px;background:transparent;color:#888;border:1.5px solid #e8e8e8;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;cursor:pointer;">Cancel</button><button type="submit" style="flex:2;padding:11px;background:#e53e3e;color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">Yes, Delete My Account</button></div></form></div></div></div>
         `}
