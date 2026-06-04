@@ -187,8 +187,20 @@
       <button class="nav-item" id="nav-caterers" onclick="showPage('caterers')"><span class="nav-icon">🍽️</span> Caterers</button>
       <button class="nav-item" id="nav-bookings" onclick="showPage('bookings')"><span class="nav-icon">📅</span> Bookings</button>
       <button class="nav-item" id="nav-payments" onclick="showPage('payments')"><span class="nav-icon">💳</span> Payments</button>
+      <div class="nav-section-label">Support</div>
+      <button class="nav-item" id="nav-reports"
+      onclick="showPage('reports')">
+      <span class="nav-icon">🚨</span> Reports
+      </button>
+      <button class="nav-item" id="nav-support"
+      onclick="showPage('support')">
+      <span class="nav-icon">🐞</span> Bug Reports
+      </button>
       <div class="nav-section-label">Insights</div>
-      <button class="nav-item" id="nav-analytics" onclick="showPage('analytics')"><span class="nav-icon">📈</span> Analytics</button>
+      <button class="nav-item" id="nav-analytics"
+      onclick="showPage('analytics')">
+      <span class="nav-icon">📈</span> Analytics
+      </button>
     </nav>
     <div class="sidebar-footer">
       <button class="logout-btn" onclick="adminLogout()">🚪 Log Out</button>
@@ -331,6 +343,85 @@
         </div>
       </div>
 
+      <!-- REPORTS -->
+      <div class="page-section" id="page-reports">
+
+        <div class="section-header">
+          <div class="section-label">Moderation</div>
+          <div class="section-title">User Reports</div>
+          <div class="section-sub">
+            Reports submitted by customers and caterers
+          </div>
+        </div>
+        <div class="full-panel">
+          <div class="full-panel-header">
+            <span class="full-panel-title">Reports</span>
+          </div>
+          <div class="full-panel-body">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Reporter</th>
+                  <th>Reported User</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody">
+                <tr>
+                  <td colspan="4" class="empty-state">
+                    No reports submitted
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUPPORT -->
+      <div class="page-section" id="page-support">
+
+        <div class="section-header">
+          <div class="section-label">Support</div>
+          <div class="section-title">Bug Reports</div>
+          <div class="section-sub">
+            System issues reported by users
+          </div>
+        </div>
+
+        <div class="full-panel">
+          <div class="full-panel-header">
+            <span class="full-panel-title">Bug Reports</span>
+          </div>
+
+          <div class="full-panel-body">
+            <table class="data-table">
+
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody id="supportTableBody">
+                <tr>
+                  <td colspan="4" class="empty-state">
+                    No bug reports submitted
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+
       <!-- ANALYTICS -->
       <div class="page-section" id="page-analytics">
         <div class="section-header">
@@ -370,9 +461,32 @@
       document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
       document.getElementById('page-'+page).classList.add('active');
       document.getElementById('nav-'+page).classList.add('active');
-      var titles={dashboard:'Dashboard',users:'Customers',caterers:'Caterers',bookings:'Bookings',payments:'Payments',analytics:'Analytics & Reports'};
+      var titles={ dashboard:'Dashboard', users:'Customers', caterers:'Caterers', bookings:'Bookings', payments:'Payments', reports:'Reports', support:'Bug Reports', analytics:'Analytics & Reports' };
       document.getElementById('topbarTitle').textContent = titles[page]||page;
       closeSidebar();
+    }
+
+    function maskName(name){
+      if(!name) return '—';
+      if(name.length <= 3) return name;
+      return name.substring(0,2) +
+            '*'.repeat(name.length-3) +
+            name.substring(name.length-1);
+    }
+    function maskEmail(email){
+      if(!email) return '—';
+      const parts = email.split('@');
+      if(parts.length !== 2) return email;
+      return parts[0].substring(0,2) +
+            '********' +
+            '@' +
+            parts[1];
+    }
+    function maskPhone(phone){
+      if(!phone) return '—';
+      return phone.substring(0,3) +
+            '*****' +
+            phone.substring(phone.length-3);
     }
 
     function formatPeso(n) { return '₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2}); }
@@ -422,12 +536,12 @@
       var recent=allBookings.slice(-5).reverse();
       document.getElementById('recentBookingsBody').innerHTML=recent.length===0
         ?'<tr><td colspan="4" class="empty-state">No bookings yet</td></tr>'
-        :recent.map(function(b){return '<tr><td><strong>'+(b.sender||'—')+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.date||'—')+'</td><td>'+statusBadge(b.status)+'</td></tr>';}).join('');
+        :recent.map(function(b){ return '<tr><td><strong>'+maskName(b.sender)+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.date||'—')+'</td><td>'+statusBadge(b.status)+'</td></tr>'; }).join('');
 
       var recentU=allUsers.slice(-5).reverse();
       document.getElementById('recentUsersBody').innerHTML=recentU.length===0
         ?'<tr><td colspan="3" class="empty-state">No users yet</td></tr>'
-        :recentU.map(function(u){return '<tr><td><strong>'+(u.name||'—')+'</strong></td><td style="color:var(--muted)">'+(u.email||'—')+'</td><td>'+(u.gender||'—')+'</td></tr>';}).join('');
+        :recentU.map(function(u){ return '<tr><td><strong>'+maskName(u.name)+'</strong></td><td style="color:var(--muted)">'+maskEmail(u.email)+'</td><td>'+(u.gender||'—')+'</td></tr>'; }).join('');
 
       var fp=allBookings.filter(function(b){return b.status==='Fully Paid';}).length;
       var pp=allBookings.filter(function(b){return b.status==='Partially Paid';}).length;
@@ -441,20 +555,45 @@
 
     function renderUsers() {
       var tb=document.getElementById('usersTableBody');
-      if(!allUsers.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No customers found</td></tr>';return;}
-      tb.innerHTML=allUsers.map(function(u,i){return '<tr><td><strong>'+(u.name||'—')+'</strong></td><td style="color:var(--muted)">'+(u.email||'—')+'</td><td>'+(u.gender||'—')+'</td><td>'+(u.phone||'—')+'</td><td style="color:var(--muted);font-size:0.78rem;">'+formatDate(u.createdAt)+'</td><td><button class="delete-btn" onclick="confirmDelete(\'user\','+i+')">🗑️ Remove</button></td></tr>';}).join('');
+      if(!allUsers.length){
+        tb.innerHTML='<tr><td colspan="6" class="empty-state">No customers found</td></tr>';
+        return;
+      }
+      tb.innerHTML=allUsers.map(function(u,i){
+        return '<tr>'
+          + '<td><strong>'+maskName(u.name)+'</strong></td>'
+          + '<td style="color:var(--muted)">'+maskEmail(u.email)+'</td>'
+          + '<td>'+(u.gender||'—')+'</td>'
+          + '<td>'+maskPhone(u.phone)+'</td>'
+          + '<td style="color:var(--muted);font-size:0.78rem;">'+formatDate(u.createdAt)+'</td>'
+          + '<td><button class="delete-btn" onclick="confirmDelete(\'user\','+i+')">🗑️ Remove</button></td>'
+          + '</tr>';
+      }).join('');
     }
 
     function renderCaterers() {
       var tb=document.getElementById('caterersTableBody');
-      if(!allCaterers.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No caterers found</td></tr>';return;}
-      tb.innerHTML=allCaterers.map(function(c,i){var pk=(c.packages||[]).length;return '<tr><td><strong>'+(c.name||c.businessName||'—')+'</strong></td><td style="color:var(--muted)">'+(c.email||'—')+'</td><td style="color:var(--muted)">'+(c.location||c.businessAddress||'—')+'</td><td>'+(c.contactNumber||'—')+'</td><td><span class="badge bg-green">'+pk+' items</span></td><td><button class="delete-btn" onclick="confirmDelete(\'caterer\','+i+')">🗑️ Remove</button></td></tr>';}).join('');
+      if(!allCaterers.length){
+        tb.innerHTML='<tr><td colspan="6" class="empty-state">No caterers found</td></tr>';
+        return;
+      }
+      tb.innerHTML=allCaterers.map(function(c,i){
+        var pk=(c.packages||[]).length;
+        return '<tr>'
+          + '<td><strong>'+(c.name||c.businessName||'—')+'</strong></td>'
+          + '<td style="color:var(--muted)">'+maskEmail(c.email)+'</td>'
+          + '<td style="color:var(--muted)">'+(c.location||c.businessAddress||'—')+'</td>'
+          + '<td>'+maskPhone(c.contactNumber)+'</td>'
+          + '<td><span class="badge bg-green">'+pk+' items</span></td>'
+          + '<td><button class="delete-btn" onclick="confirmDelete(\'caterer\','+i+')">🗑️ Remove</button></td>'
+          + '</tr>';
+      }).join('');
     }
 
     function renderBookings() {
       var tb=document.getElementById('bookingsTableBody');
       if(!allBookings.length){tb.innerHTML='<tr><td colspan="7" class="empty-state">No bookings found</td></tr>';return;}
-      tb.innerHTML=[...allBookings].reverse().map(function(b){return '<tr><td><strong>'+(b.sender||'—')+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.packageName||'—')+'</td><td><span class="badge bg-orange">'+(b.eventType||'—')+'</span></td><td style="color:var(--muted)">'+(b.date||'—')+'</td><td style="font-weight:700;color:var(--red-bright)">'+formatPeso(b.totalAmount)+'</td><td>'+statusBadge(b.status)+'</td></tr>';}).join('');
+      tb.innerHTML=[...allBookings].reverse().map(function(b){return '<tr><td><strong>'+maskName(b.sender)+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.packageName||'—')+'</td><td><span class="badge bg-orange">'+(b.eventType||'—')+'</span></td><td style="color:var(--muted)">'+(b.date||'—')+'</td><td style="font-weight:700;color:var(--red-bright)">'+formatPeso(b.totalAmount)+'</td><td>'+statusBadge(b.status)+'</td></tr>';}).join('');
     }
 
     function renderPayments() {
@@ -472,7 +611,7 @@
       var data=[...allBookings].reverse();
       if(_payTab!=='all') data=data.filter(function(b){return b.status===_payTab;});
       if(!data.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No payments found</td></tr>';return;}
-      tb.innerHTML=data.map(function(b){return '<tr><td><strong>'+(b.sender||'—')+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.packageName||'—')+'</td><td>'+formatPeso(b.totalAmount)+'</td><td style="font-weight:700;color:var(--red-bright)">'+formatPeso(b.amountPaid)+'</td><td>'+(b.platform||'—')+'</td><td>'+statusBadge(b.status)+'</td><td>'+(b.verified?'<span class="badge bg-green">✓ Verified</span>':'<span class="badge bg-red">Pending</span>')+'</td></tr>';}).join('');
+      tb.innerHTML=data.map(function(b){return '<tr><td><strong>'+maskName(b.sender)+'</strong></td><td>'+(b.caterer||'—')+'</td><td style="color:var(--muted)">'+(b.packageName||'—')+'</td><td>'+formatPeso(b.totalAmount)+'</td><td style="font-weight:700;color:var(--red-bright)">'+formatPeso(b.amountPaid)+'</td><td>'+(b.platform||'—')+'</td><td>'+statusBadge(b.status)+'</td><td>'+(b.verified?'<span class="badge bg-green">✓ Verified</span>':'<span class="badge bg-red">Pending</span>')+'</td></tr>';}).join('');
     }
 
     function renderAnalytics() {
