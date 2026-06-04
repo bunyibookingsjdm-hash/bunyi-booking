@@ -747,41 +747,41 @@ app.get('/account', requireLogin, (req, res) => {
         </form>
         </div>
         </div>
-        <div id="bugReportModal"
-style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-<div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
-<div style="background:#1A1A1A;padding:20px;color:white;">
-  <h3>🐞 Report a Bug</h3>
-</div>
-<form action="/submit-bug-report" method="POST" style="padding:20px;">
-<div class="form-group">
-<label>Issue Title</label>
-<input type="text" name="title" required>
-</div>
-<div class="form-group">
-<label>Description</label>
-<textarea
-name="description"
-required
-style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;height:120px;">
-</textarea>
-</div>
-<div style="display:flex;gap:10px;">
-<button
-type="button"
-onclick="document.getElementById('bugReportModal').style.display='none'"
-class="logout-btn">
-Cancel
-</button>
-<button
-type="submit"
-class="save-btn">
-Submit Bug Report
-</button>
-</div>
-</form>
-</div>
-</div>
+                <div id="bugReportModal"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#fff;border-radius:14px;width:100%;max-width:500px;overflow:hidden;">
+        <div style="background:#1A1A1A;padding:20px;color:white;">
+          <h3>🐞 Report a Bug</h3>
+        </div>
+        <form action="/submit-bug-report" method="POST" style="padding:20px;">
+        <div class="form-group">
+        <label>Issue Title</label>
+        <input type="text" name="title" required>
+        </div>
+        <div class="form-group">
+        <label>Description</label>
+        <textarea
+        name="description"
+        required
+        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;height:120px;">
+        </textarea>
+        </div>
+        <div style="display:flex;gap:10px;">
+        <button
+        type="button"
+        onclick="document.getElementById('bugReportModal').style.display='none'"
+        class="logout-btn">
+        Cancel
+        </button>
+        <button
+        type="submit"
+        class="save-btn">
+        Submit Bug Report
+        </button>
+        </div>
+        </form>
+        </div>
+        </div>
       </main>
       <script>
         function toggleAccountDropdown() { const ad = document.getElementById('accountDropdown'); const nd = document.getElementById('notifDropdown'); if (nd) nd.classList.remove('open'); ad.classList.toggle('open'); }
@@ -1420,11 +1420,60 @@ app.get('/caterer-account', requireCaterer, (req, res) => {
           ${req.query.pwerror === 'short' ? '<div class="error-msg-box">❌ New password must be at least 6 characters.</div>' : ''}
           ${req.query.pwerror === 'mismatch' ? '<div class="error-msg-box">❌ Passwords do not match.</div>' : ''}
           ${req.query.delerror === 'wrong' ? '<div class="error-msg-box">❌ Incorrect password. Account not deleted.</div>' : ''}
+          ${req.query.report === 'success'  ? '<div class="success-msg">✅ Customer report submitted successfully.</div>' : ''}
+          ${req.query.bug === 'success' ? '<div class="success-msg">✅ Bug report submitted successfully.</div>' : ''}
           <p class="section-label">Notifications</p>
           <div class="setting-row"><div><div class="setting-label">Booking Alerts</div><div class="setting-sub">Get notified when a new booking is received</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
           <div class="setting-row"><div><div class="setting-label">Payment Updates</div><div class="setting-sub">Get notified when a customer pays</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
           <div class="setting-row"><div><div class="setting-label">New Messages</div><div class="setting-sub">Get notified when a customer sends you a message</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="divider"></div>
+          <div class="divider"></div> <p class="section-label">Report Customer</p>
+          <form action="/submit-caterer-report" method="POST"> <div class="form-group"> <label>Booking ID</label> <input type="text" name="bookingId" placeholder="Enter Booking ID" required> </div>
+            <div class="form-group">
+              <label>Reason</label>
+              <select name="reason" required>
+                <option value="">Select reason</option>
+                <option>Spam Booking</option>
+                <option>Fake Information</option>
+                <option>No Show</option>
+                <option>Inappropriate Behavior</option>
+                <option>Other</option>
+              </select>
+            </div>
+          <div class="form-group">
+            <label>Details</label>
+            <textarea
+              name="details"
+              placeholder="Describe the issue..."
+              required></textarea>
+          </div>
+          <button type="submit" class="save-btn"> Submit Report </button>
+        </form>
+        <div class="divider"></div>
+
+<p class="section-label">Report System Bug</p>
+
+<form action="/submit-caterer-bug-report" method="POST">
+
+  <div class="form-group">
+    <label>Bug Title</label>
+    <input
+      type="text"
+      name="title"
+      required>
+  </div>
+
+  <div class="form-group">
+    <label>Description</label>
+    <textarea
+      name="description"
+      required></textarea>
+  </div>
+
+  <button type="submit" class="save-btn">
+    Submit Bug Report
+  </button>
+
+</form>
           <p class="section-label">Account</p>
           <div class="setting-row"><div><div class="setting-label">Change Password</div><div class="setting-sub">Update your account password</div></div><button onclick="document.getElementById('changePwModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Change →</button></div>
           <div class="setting-row"><div><div class="setting-label" style="color:#e53e3e;">Delete Account</div><div class="setting-sub">Permanently remove your account and data</div></div><button onclick="document.getElementById('deleteAcctModal').style.display='flex'" style="font-size:0.82rem;font-weight:600;color:#e53e3e;background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">Delete →</button></div>
@@ -1732,16 +1781,13 @@ app.post('/submit-report', requireLogin, async (req, res) => {
       const booking = bookings.find(
       b => b.bookingId === req.body.reportBooking
     );
-
     const existingReport = await mdb.collection('reports').findOne({
       reporterEmail: req.session.user.email,
       bookingId: req.body.reportBooking
     });
-
     if (existingReport) {
       return res.redirect('/account?tab=settings');
     }
-
     await mdb.collection('reports').insertOne({
       reporterEmail: req.session.user.email,
       reporterName: req.session.user.name,
@@ -1776,6 +1822,7 @@ app.post('/submit-bug-report', requireLogin, async (req, res) => {
   }
 });
 
+
 app.get('/caterer-qr-codes', (req, res) => {
   const { caterer } = req.query;
   if (!caterer) return res.json([]);
@@ -1808,6 +1855,45 @@ app.get('/admin-bug-reports', async (req, res) => {
 
     res.json(bugs); } catch (err) { console.error(err);
     res.json([]); } });
+
+app.post('/submit-caterer-report', requireCaterer, async (req, res) => {
+  try {
+    const booking = bookings.find(
+      b => b.bookingId === req.body.bookingId
+    );
+    const existingReport = await mdb.collection('reports').findOne({
+      reporterEmail: req.session.caterer.email,
+      bookingId: req.body.bookingId });
+    if (existingReport) {
+      return res.redirect('/caterer-account?tab=settings'); }
+    await mdb.collection('reports').insertOne({
+      reporterEmail: req.session.caterer.email,
+      reporterName: req.session.caterer.businessName,
+      reporterRole: 'Caterer',
+      reportedUser: booking ? booking.sender : 'Unknown Customer',
+      bookingId: req.body.bookingId,
+      reason: req.body.reason,
+      details: req.body.details,
+      status: 'Pending',
+      createdAt: new Date()
+    });
+    res.redirect('/caterer-account?tab=settings&report=success');
+  } catch(e) {
+    console.log(e);
+    res.redirect('/caterer-account?tab=settings');
+  }
+});
+
+app.post('/submit-caterer-bug-report', requireCaterer, async (req, res) => {
+  try {
+    await mdb.collection('bugReports').insertOne({
+      userEmail: req.session.caterer.email,
+      userName: req.session.caterer.businessName,
+      role: 'Caterer',
+      title: req.body.title,
+      description: req.body.description,
+      status: 'Open', createdAt: new Date()  });
+    res.redirect('/caterer-account?tab=settings&bug=success'); } catch(e) { console.log(e); res.redirect('/caterer-account?tab=settings'); } });
 
 async function loadFromFirestore() {
   try {
