@@ -621,27 +621,30 @@
       } catch(e) {}
     }
 
-    // ── OTHER PLATFORM ──
-    function toggleOtherPlatform(radio) {
-      const box = document.getElementById('otherPlatformBox');
-      const inp = document.getElementById('otherPlatformInput');
-      const refGroup = document.getElementById('referenceGroup');
-      const refInput = document.getElementById('reference');
-      const receiptGroup = document.getElementById('receiptGroup');
-      const receiptFile = document.getElementById('receiptFile');
-      const cashNote = document.getElementById('cashNote');
-      const isCash = radio.value === 'Cash on Pick-up';
-      const isOther = radio.value === 'Other';
-      // Other platform box
-      box.style.display = isOther ? 'block' : 'none';
-      inp.required = isOther;
-      // Hide reference and receipt for Cash
-      refGroup.style.display = isCash ? 'none' : 'block';
-      refInput.required = !isCash;
-      receiptGroup.style.display = isCash ? 'none' : 'block';
-      receiptFile.required = !isCash;
-      cashNote.style.display = isCash ? 'block' : 'none';
-    }
+   function toggleOtherPlatform(radio) {
+        const box = document.getElementById('otherPlatformBox');
+        const inp = document.getElementById('otherPlatformInput');
+        const refGroup = document.getElementById('referenceGroup');
+        const refInput = document.getElementById('reference');
+        const receiptGroup = document.getElementById('receiptGroup');
+        const receiptFile = document.getElementById('receiptFile');
+        const cashNote = document.getElementById('cashNote');
+        const isCash = radio.value === 'Cash on Pick-up';
+        const isOther = radio.value === 'Other';
+        box.style.display = isOther ? 'block' : 'none';
+        inp.required = isOther;
+        refGroup.style.display = isCash ? 'none' : 'block';
+        refInput.required = !isCash;
+        receiptGroup.style.display = isCash ? 'none' : 'block';
+        receiptFile.required = !isCash;
+        cashNote.style.display = isCash ? 'block' : 'none';
+        // NEW
+        if (isCash) {
+            document.getElementById('hiddenPaymentType').value = 'cash';
+        } else {
+            updatePayment(); // restores full/down
+        }
+      }
 
     // ── QR CODES ──
     async function loadCatererQR() {

@@ -205,11 +205,22 @@
     }
 
     function getStatusBadge(b) {
-      if (b.status === 'Order Completed') return '<span class="status-badge badge-full" style="background:#dcfce7;color:#15803d;">✅ Order Completed</span>';
-      if (b.status === 'Ready for Pick-up') return '<span class="status-badge" style="background:#fff0eb;color:#E8450A;font-weight:700;">🚀 Ready for Pick-up</span>';
-      if (b.status === 'Fully Paid' && b.verified) return '<span class="status-badge badge-full">✅ Fully Paid</span>';
-      if (b.status === 'Fully Paid' && !b.verified) return '<span class="status-badge badge-pending">⏳ Awaiting Verification</span>';
-      if (b.status === 'Partially Paid') return '<span class="status-badge badge-partial">💳 Partially Paid</span>';
+      if (b.status === 'Order Completed')
+        return '<span class="status-badge badge-full" style="background:#dcfce7;color:#15803d;">✅ Order Completed</span>';
+      if (b.status === 'Ready for Pick-up')
+        return '<span class="status-badge" style="background:#fff0eb;color:#E8450A;font-weight:700;">🚀 Ready for Pick-up</span>';
+      // Cash on Pick-up
+      if (b.platform === 'Cash on Pick-up') {
+        if (b.verified)
+          return '<span class="status-badge badge-pending">💵 Payment Upon Pick-up</span>';
+        return '<span class="status-badge badge-pending">⏳ Awaiting Verification</span>';
+      }
+      if (b.status === 'Fully Paid' && b.verified)
+        return '<span class="status-badge badge-full">✅ Fully Paid</span>';
+      if (b.status === 'Fully Paid' && !b.verified)
+        return '<span class="status-badge badge-pending">⏳ Awaiting Verification</span>';
+      if (b.status === 'Partially Paid')
+        return '<span class="status-badge badge-partial">💳 Partially Paid</span>';
       return '<span class="status-badge badge-pending">⏳ Pending Payment</span>';
     }
 

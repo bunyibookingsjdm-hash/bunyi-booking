@@ -776,8 +776,19 @@ app.post('/book', upload.single('receipt'), async (req, res) => {
   const guestCount = parseInt(guests) || 1;
   const pricePerHead = parseFloat(price) || 0;
   const total = parseFloat(grandTotal) || (guestCount * pricePerHead);
-  const amountPaid = paymentType === 'full' ? total : total * 0.5;
-  const status = paymentType === 'full' ? 'Fully Paid' : 'Partially Paid';
+  let amountPaid = 0;
+  let status = 'Pending Payment';
+  if (finalPlatform === 'Cash on Pick-up') {
+      amountPaid = 0;
+      status = 'Pending Payment';
+  } else {
+      amountPaid = paymentType === 'full'
+          ? total
+          : total * 0.5;
+      status = paymentType === 'full'
+          ? 'Fully Paid'
+          : 'Partially Paid';
+  }
   const bookingId = 'BNY-' + Date.now().toString(36).toUpperCase();
   let receiptUrl = null;
   if (req.file) {
